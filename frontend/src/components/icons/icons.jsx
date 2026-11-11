@@ -538,3 +538,12 @@ export function AmbulanceIcon({ size = 24 }) {
     </Svg>
   );
 }
+
+export function CodeIcon({ size = 24 }) {
+  return (
+    <Svg size={size}>
+      <polyline points="16 18 22 12 16 6" {...stroke} />
+      <polyline points="8 6 2 12 8 18" {...stroke} />
+    </Svg>
+  );
+}

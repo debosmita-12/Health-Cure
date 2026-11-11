@@ -886,7 +886,7 @@
    -------------------------------------------------------------------------- */
 .site-footer {
   border-top: 1px solid var(--color-border-subtle);
-  padding: 44px 0 52px;
+  padding: 30px 0;
   background-color: var(--color-white);
 }
 
@@ -895,31 +895,23 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 20px;
 }
 
-.footer-brand-block {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
+.footer-copyright {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text-body);
+  margin: 0;
 }
 
-.footer-nav {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
-.footer-link {
+.footer-healthcare-message {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #4B5563;
-}
-
-.footer-link:hover {
-  color: var(--color-primary);
+  color: var(--color-sage);
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .footer-socials {
@@ -933,11 +925,15 @@
   height: 36px;
   border-radius: 50%;
   border: 1px solid var(--color-border-subtle);
+  background: transparent;
   color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: var(--transition);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
 }
 
 .social-icon-btn:hover {
@@ -945,22 +941,6 @@
   color: var(--color-white);
   border-color: var(--color-primary);
   transform: translateY(-2px);
-}
-
-.footer-tagline {
-  margin: 0;
-  padding: 0;
-}
-
-.footer-tagline p {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--color-sage);
-  text-align: left;
-  line-height: 1.45;
-  text-transform: uppercase;
-  margin: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -2624,8 +2604,9 @@
 
   .footer-row {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 28px;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
   }
 
   .footer-brand-block {
@@ -2853,4 +2834,494 @@
     flex-direction: column;
     gap: 14px;
   }
+}
+
+/* ========================================================
+   ENHANCEMENTS: SECTION SCROLLING, CURSORS & DEVELOPERS
+   ======================================================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+#hero,
+#services,
+#about,
+#contact,
+#developers {
+  scroll-margin-top: 96px;
+}
+
+/* 1. Prevent blinking cursor and unwanted text cursor */
+.eyebrow-text {
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+  caret-color: transparent;
+}
+
+.hero-headline,
+.section-title,
+.section-subtitle,
+.feature-heading,
+.subpage-title,
+.subpage-main-title,
+.booking-card-title,
+.booking-card-subtitle {
+  cursor: default;
+}
+
+/* 2. Prevent accidental text selection on non-editable UI elements */
+.nav-link,
+.mobile-link,
+.brand-link,
+.brand-name,
+.btn,
+.icon-button,
+.menu-button,
+.carousel-btn,
+.carousel-dot,
+svg,
+.trust-badge-icon,
+.service-card-icon-wrap,
+.smile-arc-svg,
+.stats-divider,
+.stats-icon,
+.eyebrow-text,
+.hero-headline,
+.section-title,
+.section-subtitle,
+.feature-heading,
+.booking-card-title,
+.booking-card-subtitle,
+.trust-badge-item strong,
+.trust-badge-item span,
+.stats-value,
+.stats-label,
+.developer-name,
+.nav-user-chip,
+.nav-cta {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Informational & user-editable content explicitly selectable */
+input,
+textarea,
+select,
+.hero-description,
+.service-card-desc,
+.feature-desc,
+.testimonial-quote-body,
+.subpage-desc,
+.subpage-lede,
+.records-view,
+.appointments-view,
+.consent-view,
+.logs-tab,
+p,
+blockquote,
+table,
+td,
+th {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* 4. Developers Section */
+.developers-section {
+  padding: 88px 0;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-border-card);
+}
+
+.developers-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 52px;
+}
+
+.developers-header .section-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 12px;
+}
+
+.developers-header .section-subtitle {
+  font-size: 1.05rem;
+  color: var(--color-text-body);
+  line-height: 1.6;
+}
+
+.developers-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+}
+
+.developer-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border-card);
+  border-radius: var(--radius-lg);
+  padding: 36px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 18px rgba(23, 76, 64, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.developer-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(23, 76, 64, 0.09);
+  border-color: var(--color-sage);
+}
+
+.developer-avatar-wrap {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--color-bg-tint);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+  border: 2px solid #E3ECE7;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.developer-card:hover .developer-avatar-wrap {
+  transform: scale(1.05);
+  background: #E0F2E9;
+}
+
+.developer-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin: 0;
+  line-height: 1.35;
+}
+
+@media (max-width: 992px) {
+  .developers-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .developers-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* User Profile Badge in Nav */
+.nav-user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: var(--color-bg-tint);
+  border: 1px solid var(--color-border-card);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.btn-logout {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-card);
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+  background: #FDE8E8;
+  border-color: #F8B4B4;
+  color: #9B1C1C;
+}
+
+/* Contact Section on Landing Page */
+.home-contact-section {
+  padding: 88px 0;
+  background: var(--color-bg-subtle, #F4FAF7);
+}
+
+.home-contact-section .form-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+@media (max-width: 868px) {
+  .home-contact-section .form-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* ==========================================================================
+   THREE-ROLE CLINICAL PORTAL SIDEBAR & WORKSPACE LAYOUT
+   Preserves 100% of the Health & Cure Color Palette & Component Tokens
+   ========================================================================== */
+
+.portal-grid-layout {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+  margin-top: 24px;
+  margin-bottom: 64px;
+}
+
+@media (max-width: 1024px) {
+  .portal-grid-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+.portal-sidebar-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border-card, #E2F0EA);
+  border-radius: var(--radius-lg, 20px);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  position: sticky;
+  top: 100px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.portal-sidebar-card::-webkit-scrollbar {
+  width: 6px;
+}
+.portal-sidebar-card::-webkit-scrollbar-thumb {
+  background: #C4DDD3;
+  border-radius: 999px;
+}
+
+.portal-user-profile-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border-subtle, #E2F0EA);
+}
+
+.portal-user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-bg-tint, #EEF8F3);
+  color: var(--color-primary, #174C40);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  border: 1.5px solid #D5EBE1;
+}
+
+.portal-user-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.portal-user-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--color-text-title, #11231E);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0 2px;
+}
+
+.portal-user-role-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-bg-tint, #EEF8F3);
+  color: var(--color-primary, #174C40);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.portal-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  border: 1px solid var(--color-input-border, #D8ECE3);
+  border-radius: var(--radius-sm, 8px);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.portal-search-input:focus {
+  border-color: var(--color-primary, #174C40);
+}
+
+.portal-nav-group-title {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-sage, #5E8F7C);
+  margin: 14px 0 6px;
+  padding-left: 6px;
+}
+
+.portal-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.portal-nav-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--color-text-body, #4E655E);
+  font-size: 0.88rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.18s ease;
+}
+
+.portal-nav-btn:hover {
+  background: var(--color-bg-tint, #EEF8F3);
+  color: var(--color-primary, #174C40);
+}
+
+.portal-nav-btn.active {
+  background: var(--color-primary, #174C40);
+  color: var(--color-white, #FFFFFF);
+  font-weight: 700;
+}
+
+.portal-nav-btn.active .portal-nav-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+}
+
+.portal-nav-btn-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.portal-nav-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--color-bg-tint, #EEF8F3);
+  color: var(--color-primary, #174C40);
+}
+
+.portal-content-area {
+  min-width: 0;
+}
+
+.portal-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.portal-table-wrap {
+  overflow-x: auto;
+}
+
+.portal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.portal-table th {
+  background: var(--color-bg-tint, #EEF8F3);
+  color: var(--color-primary, #174C40);
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #D5EBE1;
+}
+
+.portal-table td {
+  padding: 14px;
+  border-bottom: 1px solid var(--color-border-subtle, #E2F0EA);
+  color: var(--color-text-body, #4E655E);
+  vertical-align: middle;
+}
+
+.portal-table tr:hover td {
+  background: #F9FCFA;
+}
+
+.status-badge-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.status-badge-pill.status-confirmed,
+.status-badge-pill.status-paid,
+.status-badge-pill.status-approved,
+.status-badge-pill.status-active,
+.status-badge-pill.status-verified {
+  background: #DEF7EC;
+  color: #03543F;
+}
+
+.status-badge-pill.status-pending,
+.status-badge-pill.status-requested {
+  background: #FEF08A;
+  color: #713F12;
+}
+
+.status-badge-pill.status-cancelled,
+.status-badge-pill.status-revoked,
+.status-badge-pill.status-failed {
+  background: #FDE8E8;
+  color: #9B1C1C;
 }

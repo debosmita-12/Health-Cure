@@ -3,15 +3,18 @@ import { Link } from "react-router-dom";
 import clinicPhoto from "../../assets/clinic-reception.jpg";
 import heroPhoto from "../../assets/hero-consult.jpg";
 import Brand from "../../components/common/Brand";
+import api from "../../services/api";
 import {
   ArrowRightIcon,
   CalendarIcon,
   CheckIcon,
   ChevronIcon,
   CloseIcon,
+  CodeIcon,
   LockIcon,
   PlayIcon,
   QuoteIcon,
+  ShieldIcon,
 } from "../../components/icons/icons";
 import {
   principles,
@@ -19,6 +22,13 @@ import {
   statistics,
   trustBadges,
 } from "../../data/content";
+
+const DEVELOPERS = [
+  { id: "dev-1", name: "Debosmita Mukhopadhyay", initials: "DM" },
+  { id: "dev-2", name: "Muthu Amuthan", initials: "MA" },
+  { id: "dev-3", name: "Amanjeeta Rath", initials: "AR" },
+  { id: "dev-4", name: "Khushi Kumari", initials: "KK" },
+];
 
 export default function HomePage() {
   // Testimonial carousel state
@@ -32,10 +42,24 @@ export default function HomePage() {
     date: "",
     service: "",
   });
-  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingResult, setBookingResult] = useState(null);
+  const [submitError, setSubmitError] = useState("");
 
   // Video modal state
   const [videoOpen, setVideoOpen] = useState(false);
+
+  // Contact section form state
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "General Inquiry",
+    message: "",
+  });
+  const [contactErrors, setContactErrors] = useState({});
+  const [contactSuccess, setContactSuccess] = useState(false);
 
   function handleCarouselStep(direction) {
     setPrincipleIndex((prev) => (prev + direction + principles.length) % principles.length);
@@ -44,15 +68,107 @@ export default function HomePage() {
   function handleFormChange(e) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   }
 
-  function handleFormSubmit(e) {
+  function validateBookingForm() {
+    const errors = {};
+    const cleanName = formData.fullName.trim();
+    if (!cleanName || cleanName.length < 2) {
+      errors.fullName = "Please enter your full name (at least 2 characters).";
+    }
+
+    const digitsOnly = formData.phone.replace(/[^0-9]/g, "");
+    if (!digitsOnly || digitsOnly.length < 7) {
+      errors.phone = "Please enter a valid phone number (at least 7 digits).";
+    }
+
+    if (!formData.date) {
+      errors.date = "Please select a preferred appointment date.";
+    } else {
+      const today = new Date().toISOString().split("T")[0];
+      if (formData.date < today) {
+        errors.date = "Appointment date cannot be in the past.";
+      }
+    }
+
+    if (!formData.service) {
+      errors.service = "Please select a healthcare service.";
+    }
+
+    return errors;
+  }
+
+  async function handleFormSubmit(e) {
     e.preventDefault();
-    if (!formData.fullName || !formData.phone) {
-      alert("Please provide at least your full name and contact number.");
+    if (isSubmitting) return;
+
+    const errors = validateBookingForm();
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
       return;
     }
-    setBookingSuccess(true);
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const payload = {
+        fullName: formData.fullName.trim(),
+        phone: formData.phone.trim(),
+        appointmentDate: `${formData.date}T09:00:00`,
+        specialty: formData.service,
+        consultationType: "In-Clinic Visit",
+        timeSlot: "Morning (09:00 - 12:00)",
+      };
+
+      const res = await api.post("/api/appointments/book", payload);
+      setBookingResult(res.data);
+    } catch (err) {
+      setSubmitError(
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Unable to register appointment at this time. Please check your connection or contact the clinic."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleContactChange(e) {
+    const { name, value } = e.target;
+    setContactForm((prev) => ({ ...prev, [name]: value }));
+    if (contactErrors[name]) {
+      setContactErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  }
+
+  function handleContactSubmit(e) {
+    e.preventDefault();
+    const errors = {};
+    if (!contactForm.name.trim() || contactForm.name.trim().length < 2) {
+      errors.name = "Please enter your name.";
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactForm.email.trim())) {
+      errors.email = "Please enter a valid email address.";
+    }
+    if (!contactForm.message.trim() || contactForm.message.trim().length < 10) {
+      errors.message = "Message must be at least 10 characters.";
+    }
+
+    setContactErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
+    const existing = JSON.parse(localStorage.getItem("hc-messages") || "[]");
+    existing.push({
+      ...contactForm,
+      submittedAt: new Date().toISOString(),
+    });
+    localStorage.setItem("hc-messages", JSON.stringify(existing));
+    setContactSuccess(true);
+    setContactForm({ name: "", email: "", phone: "", subject: "General Inquiry", message: "" });
   }
 
   return (
@@ -60,10 +176,11 @@ export default function HomePage() {
       {/* ========================================================
           1. HERO SECTION (Exact replication of reference image)
           ======================================================== */}
-      <section className="hero-section" aria-label="Hero Overview">
+      <section className="hero-section" id="hero" aria-label="Hero Overview">
         <div className="container hero-container">
           {/* Left Column: Hero Copy */}
           <div className="hero-copy">
+            {/* 1. Tagline: Static text with NO blinking cursor or caret */}
             <p className="eyebrow-text">CARING TODAY FOR BRIGHTER TOMORROWS</p>
 
             <h1 className="hero-headline">
@@ -84,14 +201,6 @@ export default function HomePage() {
                     strokeLinecap="round"
                   />
                 </svg>
-
-                {/* Whimsical handwritten badge beside Smiles */}
-                <span className="hero-script-badge" aria-hidden="true">
-                  <span className="script-line">A</span>
-                  <span className="script-line">Brighter</span>
-                  <span className="script-line">You</span>
-                  <span className="script-heart">♡</span>
-                </span>
               </span>
               <span className="headline-line3">Happier Lives</span>
             </h1>
@@ -135,21 +244,13 @@ export default function HomePage() {
 
           {/* Right Column: Integrated Healthcare Image & Appointment Tile */}
           <div className="hero-integrated-tile" aria-label="Healthcare consultation and appointment booking">
-            {/* Left Portion: Healthcare Image */}
+            {/* Left Portion: Healthcare Image (Clean photo without text overlay) */}
             <div className="hero-tile-image-col">
               <img
                 src={heroPhoto}
                 alt="Smiling happy patient during a modern clinic consultation"
                 className="hero-tile-img"
               />
-
-              {/* Whimsical handwritten note on image */}
-              <div className="image-script-note" aria-hidden="true">
-                <span>A</span>
-                <span>Brighter</span>
-                <span>You</span>
-                <span className="heart">♡</span>
-              </div>
             </div>
 
             {/* Right Portion: Book Your Appointment Form */}
@@ -166,55 +267,84 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {bookingSuccess ? (
+              {bookingResult ? (
                 <div className="booking-success-message">
                   <span className="success-icon-wrap">
                     <CheckIcon size={24} />
                   </span>
-                  <h3>Appointment Requested!</h3>
+                  <h3>Appointment Confirmed!</h3>
+                  <div style={{ margin: "10px 0", padding: "6px 12px", background: "#DEF7EC", borderRadius: "6px", display: "inline-block", color: "#03543F", fontWeight: 700, fontSize: "0.88rem" }}>
+                    Reference: {bookingResult.referenceCode}
+                  </div>
                   <p>
-                    Thank you, <strong>{formData.fullName}</strong>. Our clinical coordinators will
-                    contact you at <strong>{formData.phone}</strong> shortly to confirm.
+                    Thank you, <strong>{bookingResult.patientName || formData.fullName}</strong>. Your consultation has been registered for <strong>{formData.service}</strong>.
                   </p>
-                  <Link to="/book-appointment" className="btn btn-primary btn-sm">
-                    View Appointment Details
-                  </Link>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    style={{ marginTop: "12px" }}
+                    onClick={() => {
+                      setBookingResult(null);
+                      setFormData({ fullName: "", phone: "", date: "", service: "" });
+                    }}
+                  >
+                    Book Another Visit
+                  </button>
                 </div>
               ) : (
-                <form className="booking-card-form" onSubmit={handleFormSubmit}>
+                <form className="booking-card-form" onSubmit={handleFormSubmit} noValidate>
+                  {submitError && (
+                    <div className="form-error-alert" style={{ fontSize: "0.85rem", padding: "8px 12px", marginBottom: "12px" }}>
+                      {submitError}
+                    </div>
+                  )}
+
                   <div className="form-group">
                     <input
                       type="text"
                       name="fullName"
-                      placeholder="Full Name"
+                      placeholder="Full Name *"
                       value={formData.fullName}
                       onChange={handleFormChange}
-                      required
                       aria-label="Full Name"
                     />
+                    {formErrors.fullName && (
+                      <small style={{ color: "#E02424", fontSize: "0.75rem", display: "block", marginTop: "4px" }}>
+                        {formErrors.fullName}
+                      </small>
+                    )}
                   </div>
 
                   <div className="form-group">
                     <input
                       type="tel"
                       name="phone"
-                      placeholder="Phone Number"
+                      placeholder="Phone Number *"
                       value={formData.phone}
                       onChange={handleFormChange}
-                      required
                       aria-label="Phone Number"
                     />
+                    {formErrors.phone && (
+                      <small style={{ color: "#E02424", fontSize: "0.75rem", display: "block", marginTop: "4px" }}>
+                        {formErrors.phone}
+                      </small>
+                    )}
                   </div>
 
                   <div className="form-group date-input-wrap">
                     <input
                       type="date"
                       name="date"
-                      placeholder="Select Date"
+                      placeholder="Select Date *"
                       value={formData.date}
                       onChange={handleFormChange}
                       aria-label="Select Date"
                     />
+                    {formErrors.date && (
+                      <small style={{ color: "#E02424", fontSize: "0.75rem", display: "block", marginTop: "4px" }}>
+                        {formErrors.date}
+                      </small>
+                    )}
                   </div>
 
                   <div className="form-group">
@@ -224,7 +354,7 @@ export default function HomePage() {
                       onChange={handleFormChange}
                       aria-label="Select Service"
                     >
-                      <option value="">Select Service</option>
+                      <option value="">Select Service *</option>
                       <option value="General Healthcare">General Healthcare &amp; Exams</option>
                       <option value="Specialist Care">Specialist Care &amp; Consult</option>
                       <option value="Prescription Care">Prescription Management</option>
@@ -232,10 +362,20 @@ export default function HomePage() {
                       <option value="Pediatric Care">Pediatric &amp; Family Care</option>
                       <option value="Emergency Care">Emergency Care</option>
                     </select>
+                    {formErrors.service && (
+                      <small style={{ color: "#E02424", fontSize: "0.75rem", display: "block", marginTop: "4px" }}>
+                        {formErrors.service}
+                      </small>
+                    )}
                   </div>
 
-                  <button type="submit" className="btn btn-primary btn-block btn-booking-submit">
-                    Book Now <ArrowRightIcon size={14} />
+                  <button
+                    type="submit"
+                    className="btn btn-primary btn-block btn-booking-submit"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Booking Appointment..." : "Book Now"}{" "}
+                    <ArrowRightIcon size={14} />
                   </button>
 
                   <p className="booking-secure-note">
@@ -387,6 +527,138 @@ export default function HomePage() {
                   <span className="stats-label">{stat.label}</span>
                 </div>
                 {idx < statistics.length - 1 && <span className="stats-divider" aria-hidden="true" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          5. CONTACT SECTION
+          ======================================================== */}
+      <section className="home-contact-section" id="contact" aria-label="Contact Section">
+        <div className="container form-layout">
+          <div className="subpage-intro">
+            <p className="eyebrow-text">GET IN TOUCH</p>
+            <h2 className="section-title" style={{ fontSize: "2.5rem", marginBottom: "16px" }}>
+              Connect with
+              <br />
+              <span style={{ color: "var(--color-sage)" }}>Health &amp; Cure.</span>
+            </h2>
+            <p className="subpage-desc">
+              Have questions regarding clinical appointments, patient record privacy, or physician credential
+              onboarding? Our care coordinators and technical support team are here to assist.
+            </p>
+
+            <div className="contact-details-card" style={{ marginTop: "28px" }}>
+              <div className="contact-info-item">
+                <span className="contact-icon"><ShieldIcon size={20} /></span>
+                <div>
+                  <strong>Clinical Coordination Desk</strong>
+                  <p>care@healthcure.local | Mon–Sat: 08:00 – 20:00</p>
+                </div>
+              </div>
+              <div className="contact-info-item">
+                <span className="contact-icon"><LockIcon size={20} /></span>
+                <div>
+                  <strong>Data Protection &amp; Privacy Officer</strong>
+                  <p>privacy@healthcure.local | Response within 24h</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-card-container">
+            {contactSuccess ? (
+              <div className="form-success-card">
+                <span className="success-icon-wrap"><CheckIcon size={28} /></span>
+                <h3>Message Sent Successfully!</h3>
+                <p>Thank you for reaching out. Our clinical coordinators will respond within 2 hours.</p>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ marginTop: "16px" }}
+                  onClick={() => setContactSuccess(false)}
+                >
+                  Send Another Inquiry
+                </button>
+              </div>
+            ) : (
+              <form className="panel-form" onSubmit={handleContactSubmit} noValidate>
+                <div className="panel-form-header">
+                  <h3>Send Us a Message</h3>
+                  <p>We typically respond to patient and clinical inquiries within 2 hours.</p>
+                </div>
+
+                <div className="form-row-2">
+                  <label>
+                    Full Name *
+                    <input
+                      name="name"
+                      value={contactForm.name}
+                      onChange={handleContactChange}
+                      placeholder="e.g. Eleanor Hayes"
+                      required
+                    />
+                    {contactErrors.name && <small style={{ color: "#E02424" }}>{contactErrors.name}</small>}
+                  </label>
+
+                  <label>
+                    Email Address *
+                    <input
+                      name="email"
+                      type="email"
+                      value={contactForm.email}
+                      onChange={handleContactChange}
+                      placeholder="name@example.com"
+                      required
+                    />
+                    {contactErrors.email && <small style={{ color: "#E02424" }}>{contactErrors.email}</small>}
+                  </label>
+                </div>
+
+                <label>
+                  Message *
+                  <textarea
+                    name="message"
+                    rows="3"
+                    value={contactForm.message}
+                    onChange={handleContactChange}
+                    placeholder="Describe your inquiry..."
+                    required
+                  />
+                  {contactErrors.message && <small style={{ color: "#E02424" }}>{contactErrors.message}</small>}
+                </label>
+
+                <button type="submit" className="btn btn-primary btn-block">
+                  Send Message <ArrowRightIcon size={14} />
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          6. MEET OUR DEVELOPERS SECTION (Immediately after Contact)
+          ======================================================== */}
+      <section className="developers-section" id="developers" aria-label="Meet Our Developers">
+        <div className="container">
+          <div className="developers-header">
+            <p className="eyebrow-text">ENGINEERING &amp; INNOVATION</p>
+            <h2 className="section-title">Meet Our Developers</h2>
+            <p className="section-subtitle">
+              The team behind Health &amp; Cure – Building technology for better healthcare.
+            </p>
+          </div>
+
+          <div className="developers-grid">
+            {DEVELOPERS.map((dev) => (
+              <div key={dev.id} className="developer-card">
+                <div className="developer-avatar-wrap" aria-hidden="true">
+                  <CodeIcon size={30} />
+                </div>
+                <h3 className="developer-name">{dev.name}</h3>
               </div>
             ))}
           </div>

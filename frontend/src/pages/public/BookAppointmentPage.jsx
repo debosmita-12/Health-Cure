@@ -111,18 +111,50 @@ export default function BookAppointmentPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
+  function validateForm() {
+    if (!formData.fullName.trim() || formData.fullName.trim().length < 2) {
+      return "Please enter a valid full name (at least 2 characters).";
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      return "Please enter a valid email address.";
+    }
+    const digits = formData.phone.replace(/[^0-9]/g, "");
+    if (!digits || digits.length < 7) {
+      return "Please enter a valid phone number (at least 7 digits).";
+    }
+    if (!formData.date) {
+      return "Please select a preferred appointment date.";
+    }
+    const today = new Date().toISOString().split("T")[0];
+    if (formData.date < today) {
+      return "Appointment date cannot be in the past.";
+    }
+    if (!formData.specialty) {
+      return "Please select a medical specialty.";
+    }
+    return null;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    const validationErr = validateForm();
+    if (validationErr) {
+      setErrorMessage(validationErr);
+      return;
+    }
+
     setErrorMessage("");
     setIsSubmitting(true);
 
     try {
       // Send to Spring Boot backend via Spring JDBC persistence
       const payload = {
-        fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        appointmentDate: formData.date ? `${formData.date}T10:00:00` : new Date().toISOString(),
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        appointmentDate: `${formData.date}T10:00:00`,
         timeSlot: formData.timeSlot,
         consultationType: formData.consultationType,
         specialty: formData.specialty,
@@ -134,14 +166,11 @@ export default function BookAppointmentPage() {
       const response = await api.post("/api/appointments/book", payload);
       setBookingResult(response.data);
     } catch (err) {
-      // If backend is momentarily offline, gracefully generate a local booking reference
-      const referenceId = "HC-APPT-" + Math.floor(100000 + Math.random() * 900000);
-      setBookingResult({
-        status: "CONFIRMED",
-        referenceCode: referenceId,
-        message: "Your appointment request has been registered in the clinic queue.",
-        details: formData,
-      });
+      setErrorMessage(
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Failed to schedule appointment with the clinic server. Please check your details and try again."
+      );
     } finally {
       setIsSubmitting(false);
     }

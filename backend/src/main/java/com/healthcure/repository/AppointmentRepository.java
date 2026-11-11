@@ -75,6 +75,11 @@ public class AppointmentRepository {
         return jdbcTemplate.query(sql, rowMapper, doctorId);
     }
 
+    public List<Appointment> findAll() {
+        String sql = "SELECT * FROM appointments ORDER BY appointment_date DESC";
+        return jdbcTemplate.query(sql, rowMapper);
+    }
+
     public Appointment save(Appointment appt) {
         if (appt.getId() == null) {
             String sql = "INSERT INTO appointments (patient_id, doctor_id, patient_name, patient_email, patient_phone, specialty, consultation_type, time_slot, preferred_doctor, appointment_date, status, notes, google_authenticated, reference_code, created_at) " +

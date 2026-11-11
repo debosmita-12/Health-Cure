@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-import Brand from "../common/Brand";
 import {
   SocialFacebookIcon,
   SocialInstagramIcon,
@@ -7,81 +5,69 @@ import {
   SocialYoutubeIcon,
 } from "../icons/icons";
 
-const links = [
-  { label: "Home", to: "/" },
-  { label: "Services", to: "/services" },
-  { label: "About", to: "/about" },
-  { label: "Patient Info", to: "/how-it-works" },
-  { label: "Security Rules", to: "/security-rules" },
-  { label: "Book Appointment", to: "/book-appointment" },
-  { label: "Contact", to: "/contact" },
+const socialLinks = [
+  {
+    name: "Instagram",
+    icon: SocialInstagramIcon,
+    url: import.meta.env.VITE_INSTAGRAM_URL || "",
+  },
+  {
+    name: "Facebook",
+    icon: SocialFacebookIcon,
+    url: import.meta.env.VITE_FACEBOOK_URL || "",
+  },
+  {
+    name: "LinkedIn",
+    icon: SocialLinkedinIcon,
+    url: import.meta.env.VITE_LINKEDIN_URL || "",
+  },
+  {
+    name: "YouTube",
+    icon: SocialYoutubeIcon,
+    url: import.meta.env.VITE_YOUTUBE_URL || "",
+  },
 ];
 
 export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="container footer-row">
-        {/* Left: Brand with left-aligned Tagline directly below */}
-        <div className="footer-brand-block">
-          <Link to="/" className="brand-link" aria-label="Health & Cure home">
-            <Brand compact />
-          </Link>
-          <div className="footer-tagline">
-            <p>
-              A HEALTHIER TOMORROW
-              <br />
-              STARTS WITH A CONNECTED RECORD.
-            </p>
-          </div>
-        </div>
+        {/* A. Copyright Information */}
+        <p className="footer-copyright">
+          &copy; 2026 Health &amp; Cure. All Rights Reserved.
+        </p>
 
-        {/* Center: Nav Links */}
-        <nav className="footer-nav" aria-label="Footer Navigation">
-          {links.map((link) => (
-            <Link key={link.label} to={link.to} className="footer-link">
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+        {/* B. Healthcare Message */}
+        <p className="footer-healthcare-message">
+          Your health, your records, your care &mdash; connected securely for a healthier tomorrow.
+        </p>
 
-        {/* Social Icons */}
-        <div className="footer-socials" aria-label="Social Links">
-          <a
-            href="https://instagram.com"
-            target="_blank"
-            rel="noreferrer"
-            className="social-icon-btn"
-            aria-label="Instagram"
-          >
-            <SocialInstagramIcon size={18} />
-          </a>
-          <a
-            href="https://facebook.com"
-            target="_blank"
-            rel="noreferrer"
-            className="social-icon-btn"
-            aria-label="Facebook"
-          >
-            <SocialFacebookIcon size={18} />
-          </a>
-          <a
-            href="https://linkedin.com"
-            target="_blank"
-            rel="noreferrer"
-            className="social-icon-btn"
-            aria-label="LinkedIn"
-          >
-            <SocialLinkedinIcon size={18} />
-          </a>
-          <a
-            href="https://youtube.com"
-            target="_blank"
-            rel="noreferrer"
-            className="social-icon-btn"
-            aria-label="YouTube"
-          >
-            <SocialYoutubeIcon size={18} />
-          </a>
+        {/* C. Social Media & Contact Icons */}
+        <div className="footer-socials" aria-label="Social and Contact Channels">
+          {socialLinks.map(({ name, icon: Icon, url }) =>
+            url ? (
+              <a
+                key={name}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="social-icon-btn"
+                aria-label={name}
+              >
+                <Icon size={18} />
+              </a>
+            ) : (
+              <button
+                key={name}
+                type="button"
+                className="social-icon-btn"
+                aria-label={name}
+                onClick={(e) => e.preventDefault()}
+              >
+                <Icon size={18} />
+              </button>
+            )
+          )}
         </div>
       </div>
     </footer>

@@ -2,14 +2,22 @@ package com.healthcure.controller;
 
 import com.healthcure.dto.AppointmentRequest;
 import com.healthcure.model.Appointment;
+import com.healthcure.model.Doctor;
+import com.healthcure.model.Patient;
+import com.healthcure.model.User;
 import com.healthcure.repository.AppointmentRepository;
+import com.healthcure.repository.DoctorRepository;
+import com.healthcure.repository.PatientRepository;
+import com.healthcure.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -17,24 +25,63 @@ import java.util.UUID;
 public class AppointmentController {
 
     private final AppointmentRepository appointmentRepository;
+    private final UserRepository userRepository;
+    private final PatientRepository patientRepository;
+    private final DoctorRepository doctorRepository;
 
-    public AppointmentController(AppointmentRepository appointmentRepository) {
+    public AppointmentController(AppointmentRepository appointmentRepository,
+                                 UserRepository userRepository,
+                                 PatientRepository patientRepository,
+                                 DoctorRepository doctorRepository) {
         this.appointmentRepository = appointmentRepository;
+        this.userRepository = userRepository;
+        this.patientRepository = patientRepository;
+        this.doctorRepository = doctorRepository;
     }
 
     @PostMapping("/book")
-    public ResponseEntity<Map<String, Object>> bookAppointment(@Valid @RequestBody AppointmentRequest request) {
+    public ResponseEntity<Map<String, Object>> bookAppointment(@Valid @RequestBody AppointmentRequest request,
+                                                               Authentication auth) {
         Appointment appointment = new Appointment();
-        appointment.setPatientName(request.getFullName());
-        appointment.setPatientEmail(request.getEmail());
-        appointment.setPatientPhone(request.getPhone());
+        appointment.setPatientName(request.getFullName().trim());
+        
+        String email = request.getEmail();
+        if (email == null || email.isBlank()) {
+            String cleanPhone = request.getPhone().replaceAll("[^0-9]", "");
+            email = (cleanPhone.isEmpty() ? "patient" : cleanPhone) + "@patient.healthcure.local";
+        }
+        appointment.setPatientEmail(email.trim().toLowerCase());
+        appointment.setPatientPhone(request.getPhone().trim());
         appointment.setSpecialty(request.getSpecialty());
         appointment.setConsultationType(request.getConsultationType());
         appointment.setTimeSlot(request.getTimeSlot());
         appointment.setPreferredDoctor(request.getPreferredDoctor());
         appointment.setNotes(request.getNotes());
         appointment.setGoogleAuthenticated(Boolean.TRUE.equals(request.getGoogleAuthenticated()));
-        appointment.setStatus("REQUESTED");
+        appointment.setStatus("CONFIRMED");
+
+        // Link to authenticated patient or matched patient by email
+        String checkEmail = auth != null && auth.getName() != null ? auth.getName() : appointment.getPatientEmail();
+        Optional<User> uOpt = userRepository.findByEmail(checkEmail);
+        if (uOpt.isPresent()) {
+            User user = uOpt.get();
+            Optional<Patient> pOpt = patientRepository.findByUserId(user.getId());
+            if (pOpt.isPresent()) {
+                appointment.setPatientId(pOpt.get().getId());
+            } else if ("PATIENT".equalsIgnoreCase(user.getRole())) {
+                Patient newPat = new Patient();
+                newPat.setUserId(user.getId());
+                newPat = patientRepository.save(newPat);
+                appointment.setPatientId(newPat.getId());
+            }
+        }
+
+        // Auto-link doctor if doctor exists
+        List<Doctor> docs = doctorRepository.findAll();
+        if (!docs.isEmpty()) {
+            // Assign first verified doctor or matching
+            appointment.setDoctorId(docs.get(0).getId());
+        }
 
         if (request.getAppointmentDate() != null && !request.getAppointmentDate().isBlank()) {
             try {

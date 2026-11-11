@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import api from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import {
   ArrowRightIcon,
   EyeIcon,
@@ -10,6 +10,7 @@ import {
 } from "../../components/icons/icons";
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const [values, setValues] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -24,6 +25,11 @@ export default function LoginPage() {
   function update(event) {
     setErrors({});
     setValues((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  function fillDemoAccount(email, password) {
+    setValues({ email, password });
+    setErrors({});
   }
 
   function handleGoogleLogin() {
@@ -57,27 +63,31 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      const response = await api.post("/api/auth/login", {
-        email: values.email,
-        password: values.password,
-      });
-
-      if (response.data && response.data.token) {
-        localStorage.setItem("hc_token", response.data.token);
-        localStorage.setItem("hc_user", JSON.stringify(response.data));
-        setLoginRole(response.data.role);
+      const res = await login(values.email, values.password);
+      if (res.success) {
+        setLoginRole(res.user.role);
         setLoginSuccess(true);
+      } else {
+        setErrors({ general: res.error });
       }
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.error) {
-        setErrors({ general: err.response.data.error });
-      } else {
-        // Demonstration fallback if backend is offline
-        setLoginRole(values.email.includes("doctor") ? "DOCTOR" : "PATIENT");
-        setLoginSuccess(true);
-      }
+      setErrors({ general: "Authentication service unavailable. Please try again." });
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  function getDashboardPath(role) {
+    switch (role) {
+      case "PATIENT":
+        return "/patient/dashboard";
+      case "DOCTOR":
+        return "/doctor/dashboard";
+      case "SUPERADMIN":
+      case "ADMIN":
+        return "/admin/dashboard";
+      default:
+        return "/";
     }
   }
 
@@ -97,7 +107,33 @@ export default function LoginPage() {
           </p>
 
           <div className="portal-access-tips">
-            <h4>Access Security Reminders:</h4>
+            <h4>Demo Accounts for Instant Evaluation:</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px", marginBottom: "16px" }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                style={{ textAlign: "left", justifyContent: "flex-start", padding: "8px 12px" }}
+                onClick={() => fillDemoAccount("patient@healthcure.local", "Patient@123")}
+              >
+                👤 <strong>Patient:</strong> patient@healthcure.local
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                style={{ textAlign: "left", justifyContent: "flex-start", padding: "8px 12px" }}
+                onClick={() => fillDemoAccount("doctor@healthcure.local", "Doctor@123")}
+              >
+                🩺 <strong>Doctor:</strong> doctor@healthcure.local
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                style={{ textAlign: "left", justifyContent: "flex-start", padding: "8px 12px" }}
+                onClick={() => fillDemoAccount("admin@healthcure.local", "Admin@123")}
+              >
+                🛡️ <strong>Superadmin:</strong> admin@healthcure.local
+              </button>
+            </div>
             <ul>
               <li>Sessions automatically lock after periods of inactivity.</li>
               <li>Every document access is recorded in an immutable audit log.</li>
@@ -121,11 +157,11 @@ export default function LoginPage() {
                 Signed in successfully as a <strong>{loginRole}</strong>.
               </p>
               <div className="login-success-nav">
-                <Link to="/" className="btn btn-primary btn-block">
-                  Go to Platform Home <ArrowRightIcon size={14} />
+                <Link to={getDashboardPath(loginRole)} className="btn btn-primary btn-block">
+                  Go to {loginRole.charAt(0) + loginRole.slice(1).toLowerCase()} Dashboard <ArrowRightIcon size={14} />
                 </Link>
-                <Link to="/book-appointment" className="btn btn-secondary btn-block">
-                  Book an Appointment
+                <Link to="/" className="btn btn-secondary btn-block">
+                  Go to Platform Home
                 </Link>
               </div>
             </div>
@@ -167,7 +203,7 @@ export default function LoginPage() {
               <form className="panel-form" onSubmit={submit} noValidate>
                 <div className="panel-form-header">
                   <h2>Portal Sign-In</h2>
-                  <p>Use your registered patient or verified doctor credentials.</p>
+                  <p>Use your registered patient, verified doctor, or superadmin credentials.</p>
                 </div>
 
                 <label>

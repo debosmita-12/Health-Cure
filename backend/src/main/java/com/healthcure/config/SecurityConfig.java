@@ -41,12 +41,13 @@ public class SecurityConfig {
                                 "/api/health",
                                 "/api/auth/**",
                                 "/api/public/**",
-                                "/api/appointments/**"
+                                "/api/appointments/**",
+                                "/api/doctors/public"
                         ).permitAll()
-                        // Role-based endpoints
-                        .requestMatchers("/api/patient/**").hasAnyRole("PATIENT", "ADMIN")
-                        .requestMatchers("/api/doctor/**").hasAnyRole("DOCTOR", "ADMIN")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Exactly Three Role-based endpoint boundaries
+                        .requestMatchers("/api/patient/**").hasAnyRole("PATIENT", "SUPERADMIN", "ADMIN")
+                        .requestMatchers("/api/doctor/**").hasAnyRole("DOCTOR", "SUPERADMIN", "ADMIN")
+                        .requestMatchers("/api/admin/**", "/api/superadmin/**").hasAnyRole("SUPERADMIN", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
