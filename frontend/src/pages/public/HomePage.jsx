@@ -691,17 +691,11 @@ export default function HomePage() {
                     <div><strong>Consultation Fee:</strong> ₹{doc.consultation_fee ? Number(doc.consultation_fee).toFixed(0) : "750"}</div>
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "14px", borderTop: "1px solid var(--color-border-subtle)" }}>
+                  <div style={{ display: "flex", alignItems: "center", paddingTop: "14px", borderTop: "1px solid var(--color-border-subtle)" }}>
                     <span style={{ fontSize: "0.8rem", color: doc.is_available ? "#10B981" : "#EF4444", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
                       <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: doc.is_available ? "#10B981" : "#EF4444" }} />
                       {doc.is_available ? "Available for Care" : "Currently Offline"}
                     </span>
-                    <Link
-                      to="/login"
-                      style={{ fontSize: "0.82rem", color: "var(--color-primary)", fontWeight: 700, textDecoration: "none" }}
-                    >
-                      Sign In to Consult →
-                    </Link>
                   </div>
                 </div>
               ))}
