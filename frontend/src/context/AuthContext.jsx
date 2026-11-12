@@ -95,9 +95,13 @@ export function AuthProvider({ children }) {
   function logout() {
     localStorage.removeItem("hc_token");
     localStorage.removeItem("hc_user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("healthcure_user");
     setToken(null);
     setUser(null);
     delete api.defaults.headers.common["Authorization"];
+    window.location.replace("/");
   }
 
   const role = user?.role ? user.role.toUpperCase() : null;

@@ -201,7 +201,6 @@ export default function AdminDashboard() {
 
   function handleLogout() {
     logout();
-    navigate("/");
   }
 
   if (loading && !data) {

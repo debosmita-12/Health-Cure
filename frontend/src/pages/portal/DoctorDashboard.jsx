@@ -14,6 +14,7 @@ import {
   PulseIcon,
   RecordsIcon,
   ShieldIcon,
+  StethoscopeIcon,
   UsersIcon,
 } from "../../components/icons/icons";
 
@@ -229,7 +230,6 @@ export default function DoctorDashboard() {
 
   function handleLogout() {
     logout();
-    navigate("/");
   }
 
   if (loading && !data) {

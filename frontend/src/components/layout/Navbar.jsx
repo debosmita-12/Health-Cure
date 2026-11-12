@@ -106,7 +106,6 @@ export default function Navbar() {
 
   function handleLogout() {
     logout();
-    navigate("/");
   }
 
   function goTo(path) {

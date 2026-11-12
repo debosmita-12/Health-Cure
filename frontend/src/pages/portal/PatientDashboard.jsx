@@ -317,7 +317,6 @@ export default function PatientDashboard() {
 
   function handleLogout() {
     logout();
-    navigate("/");
   }
 
   if (loading && !data) {
