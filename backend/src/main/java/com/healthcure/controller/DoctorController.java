@@ -143,24 +143,82 @@ public class DoctorController {
 
         Long patientId = Long.valueOf(body.get("patientId").toString());
 
-        // Verify patient consent before writing/viewing records
+        // Verify patient relationship (consent or scheduled appointment) before writing records
         boolean hasConsent = accessRepository.hasActiveAccess(doctor.getId(), patientId);
-        if (!hasConsent) {
-            return ResponseEntity.status(403).body(Map.of("error", "Access denied: active patient consent required."));
+        boolean hasAppointment = appointmentRepository.findByDoctorId(doctor.getId()).stream()
+                .anyMatch(a -> a.getPatientId() != null && a.getPatientId().equals(patientId));
+        if (!hasConsent && !hasAppointment) {
+            return ResponseEntity.status(403).body(Map.of("error", "Access denied: patient must have a scheduled appointment or active consent."));
         }
 
         MedicalRecord record = new MedicalRecord();
         record.setPatientId(patientId);
         record.setDoctorId(doctor.getId());
         record.setRecordType((String) body.getOrDefault("recordType", "CONSULTATION"));
-        record.setTitle((String) body.get("title"));
-        record.setDescription((String) body.get("description"));
+        record.setTitle((String) body.getOrDefault("title", "Clinical Consultation Entry"));
+        record.setDescription((String) body.getOrDefault("description", "Authored by attending physician"));
         record.setFileType("text/plain");
 
         MedicalRecord saved = recordRepository.save(record);
+
+        // If consultation details provided, persist to consultations table
+        if (body.containsKey("diagnosis") || body.containsKey("symptoms")) {
+            String symptoms = (String) body.getOrDefault("symptoms", "");
+            String diagnosis = (String) body.getOrDefault("diagnosis", "");
+            String treatmentPlan = (String) body.getOrDefault("treatmentPlan", "");
+            String followUpNotes = (String) body.getOrDefault("followUpNotes", "");
+            recordRepository.saveConsultation(saved.getId(), symptoms, diagnosis, treatmentPlan, followUpNotes);
+        }
+
+        // If prescription details provided, persist to prescriptions table
+        if (body.containsKey("medicineName")) {
+            String med = (String) body.get("medicineName");
+            String dosage = (String) body.getOrDefault("dosage", "1 tablet");
+            String freq = (String) body.getOrDefault("frequency", "Once daily");
+            String dur = (String) body.getOrDefault("duration", "7 days");
+            String notes = (String) body.getOrDefault("notes", "After food");
+            recordRepository.savePrescription(saved.getId(), med, dosage, freq, dur, notes);
+        }
+
         auditLogRepository.log(user.getId(), "RECORD_CREATED", "MEDICAL_RECORD", saved.getId(), "Doctor authored clinical consultation entry.", "127.0.0.1");
 
         return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/prescriptions/create")
+    public ResponseEntity<?> createPrescription(@RequestBody Map<String, Object> body, Authentication auth) {
+        User user = getAuthenticatedUser(auth);
+        Doctor doctor = getDoctor(user);
+
+        Long patientId = Long.valueOf(body.get("patientId").toString());
+        boolean hasConsent = accessRepository.hasActiveAccess(doctor.getId(), patientId);
+        boolean hasAppointment = appointmentRepository.findByDoctorId(doctor.getId()).stream()
+                .anyMatch(a -> a.getPatientId() != null && a.getPatientId().equals(patientId));
+        if (!hasConsent && !hasAppointment) {
+            return ResponseEntity.status(403).body(Map.of("error", "Access denied: patient must have a scheduled appointment or active consent."));
+        }
+
+        String medicineName = (String) body.get("medicineName");
+        String dosage = (String) body.getOrDefault("dosage", "1 tablet");
+        String frequency = (String) body.getOrDefault("frequency", "Once daily");
+        String duration = (String) body.getOrDefault("duration", "7 days");
+        String notes = (String) body.getOrDefault("notes", "Take as directed");
+
+        MedicalRecord record = new MedicalRecord();
+        record.setPatientId(patientId);
+        record.setDoctorId(doctor.getId());
+        record.setRecordType("PRESCRIPTION");
+        record.setTitle("Prescription: " + medicineName);
+        record.setDescription(dosage + ", " + frequency + " for " + duration + ". Notes: " + notes);
+        record.setFileType("text/plain");
+        MedicalRecord saved = recordRepository.save(record);
+
+        recordRepository.savePrescription(saved.getId(), medicineName, dosage, frequency, duration, notes);
+
+        auditLogRepository.log(user.getId(), "PRESCRIPTION_CREATED", "PRESCRIPTION", saved.getId(),
+                "Doctor authored prescription for " + medicineName, "127.0.0.1");
+
+        return ResponseEntity.ok(Map.of("message", "Prescription finalized and delivered to patient vault.", "recordId", saved.getId()));
     }
 
     @PostMapping("/leaves")

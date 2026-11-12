@@ -23,6 +23,9 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Normalize role label (never Superadmin)
+  const displayRole = role === "SUPERADMIN" || role === "ADMIN" ? "Admin" : role === "DOCTOR" ? "Doctor" : "Patient";
+
   // Handle URL hash on initial load or navigation
   useEffect(() => {
     if (location.pathname === "/" && location.hash) {
@@ -95,7 +98,6 @@ export default function Navbar() {
         setActiveSection(link.targetId);
       }
     } else {
-      // Navigate to homepage with section hash
       e.preventDefault();
       navigate(link.targetId === "hero" ? "/" : `/#${link.targetId}`);
     }
@@ -113,6 +115,13 @@ export default function Navbar() {
     navigate(path);
   }
 
+  const portalDashboardPath =
+    role === "PATIENT"
+      ? "/patient/dashboard"
+      : role === "DOCTOR"
+      ? "/doctor/dashboard"
+      : "/admin/dashboard";
+
   return (
     <header className="site-header">
       <div className="container nav-container">
@@ -121,70 +130,25 @@ export default function Navbar() {
           <Brand />
         </Link>
 
-        {/* Center: Desktop Navigation */}
+        {/* Center: Desktop Navigation — Common Public Navigation for All Visitors & Users */}
         <nav className="desktop-nav" aria-label="Primary Navigation">
-          {!isAuthenticated ? (
-            /* Unauthenticated / Public Users */
-            publicNavLinks.map((link) => {
-              const isSectionActive =
-                location.pathname === "/"
-                  ? activeSection === link.targetId
-                  : location.pathname === link.to;
+          {publicNavLinks.map((link) => {
+            const isSectionActive =
+              location.pathname === "/"
+                ? activeSection === link.targetId
+                : location.pathname === link.to;
 
-              return (
-                <a
-                  key={link.label}
-                  href={link.targetId === "hero" ? "/" : `/#${link.targetId}`}
-                  className={isSectionActive ? "nav-link active" : "nav-link"}
-                  onClick={(e) => handlePublicNavClick(e, link)}
-                >
-                  {link.label}
-                </a>
-              );
-            })
-          ) : role === "PATIENT" ? (
-            /* Patient Portal Navigation */
-            <>
-              <NavLink to="/patient/dashboard" end className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-                Dashboard
-              </NavLink>
-              <NavLink to="/patient/dashboard" className="nav-link">
-                Appointments
-              </NavLink>
-              <NavLink to="/patient/dashboard" className="nav-link">
-                My Records
-              </NavLink>
-              <NavLink to="/patient/dashboard" className="nav-link">
-                Consent Control
-              </NavLink>
-            </>
-          ) : role === "DOCTOR" ? (
-            /* Doctor Portal Navigation */
-            <>
-              <NavLink to="/doctor/dashboard" end className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-                Dashboard
-              </NavLink>
-              <NavLink to="/doctor/dashboard" className="nav-link">
-                Appointments
-              </NavLink>
-              <NavLink to="/doctor/dashboard" className="nav-link">
-                Patient Consents
-              </NavLink>
-            </>
-          ) : role === "SUPERADMIN" || role === "ADMIN" ? (
-            /* Superadmin Navigation */
-            <>
-              <NavLink to="/admin/dashboard" end className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
-                Dashboard
-              </NavLink>
-              <NavLink to="/admin/dashboard" className="nav-link">
-                Doctors Queue
-              </NavLink>
-              <NavLink to="/admin/dashboard" className="nav-link">
-                Audit Trail
-              </NavLink>
-            </>
-          ) : null}
+            return (
+              <a
+                key={link.label}
+                href={link.targetId === "hero" ? "/" : `/#${link.targetId}`}
+                className={isSectionActive ? "nav-link active" : "nav-link"}
+                onClick={(e) => handlePublicNavClick(e, link)}
+              >
+                {link.label}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Right: Actions */}
@@ -203,20 +167,29 @@ export default function Navbar() {
           </button>
 
           {!isAuthenticated ? (
-            <>
-              <Link to="/login" className="login-link">
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <Link to="/login" className="nav-link" style={{ fontWeight: 600, color: "var(--color-text-title)" }}>
                 Login
               </Link>
-              <Link to="/book-appointment" className="btn btn-primary nav-cta">
-                Book Appointment <ArrowRightIcon size={14} />
+              <Link
+                to="/register"
+                className="ref-btn-primary"
+                style={{ padding: "10px 22px", fontSize: "0.88rem" }}
+              >
+                Register →
               </Link>
-            </>
+            </div>
           ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span className="nav-user-chip">
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <Link
+                to={portalDashboardPath}
+                className="ref-btn-primary"
+                style={{ padding: "10px 22px", fontSize: "0.88rem" }}
+                title="Go to my portal dashboard"
+              >
                 <UsersIcon size={16} />
-                <span>{user?.firstName || role} ({role?.toLowerCase()})</span>
-              </span>
+                <span>My Dashboard</span>
+              </Link>
               <button
                 type="button"
                 className="btn-logout"
@@ -243,36 +216,23 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Search Overlay */}
+      {/* Search Modal */}
       {searchOpen && (
-        <div className="search-layer" role="presentation" onClick={() => setSearchOpen(false)}>
+        <div
+          className="search-dropdown-backdrop"
+          onClick={() => setSearchOpen(false)}
+        >
           <div
-            className="search-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Search"
+            className="container search-dropdown-container"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="search-header">
-              <label htmlFor="site-search" className="search-label">
-                Search Health &amp; Cure
-              </label>
-              <button
-                type="button"
-                className="icon-button close-search-btn"
-                onClick={() => setSearchOpen(false)}
-                aria-label="Close search"
-              >
-                <CloseIcon size={18} />
-              </button>
-            </div>
             <div className="search-input-wrap">
               <SearchIcon size={18} />
               <input
                 id="site-search"
                 autoFocus
                 value={query}
-                placeholder="Search services, records, security rules, booking..."
+                placeholder="Search services, records, security rules, departments..."
                 onChange={(event) => setQuery(event.target.value)}
               />
             </div>
@@ -298,60 +258,56 @@ export default function Navbar() {
       {open && (
         <div className="mobile-panel">
           <nav className="mobile-nav-links">
-            {!isAuthenticated ? (
-              <>
-                {publicNavLinks.map((link) => (
-                  <a
-                    key={link.label}
-                    href={link.targetId === "hero" ? "/" : `/#${link.targetId}`}
-                    className="mobile-link"
-                    onClick={(e) => handlePublicNavClick(e, link)}
-                  >
-                    {link.label}
-                  </a>
-                ))}
-              </>
-            ) : role === "PATIENT" ? (
-              <>
-                <Link to="/patient/dashboard" className="mobile-link" onClick={() => setOpen(false)}>
-                  Patient Dashboard
-                </Link>
-                <Link to="/book-appointment" className="mobile-link" onClick={() => setOpen(false)}>
-                  Book Appointment
-                </Link>
-              </>
-            ) : role === "DOCTOR" ? (
-              <>
-                <Link to="/doctor/dashboard" className="mobile-link" onClick={() => setOpen(false)}>
-                  Physician Dashboard
-                </Link>
-              </>
-            ) : role === "SUPERADMIN" || role === "ADMIN" ? (
-              <>
-                <Link to="/admin/dashboard" className="mobile-link" onClick={() => setOpen(false)}>
-                  Superadmin Console
-                </Link>
-              </>
-            ) : null}
+            {publicNavLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.targetId === "hero" ? "/" : `/#${link.targetId}`}
+                className="mobile-link"
+                onClick={(e) => handlePublicNavClick(e, link)}
+              >
+                {link.label}
+              </a>
+            ))}
+            {isAuthenticated && (
+              <Link
+                to={portalDashboardPath}
+                className="mobile-link"
+                style={{ fontWeight: 700, color: "var(--color-primary)" }}
+                onClick={() => setOpen(false)}
+              >
+                My Dashboard ({user?.firstName || displayRole})
+              </Link>
+            )}
           </nav>
           <div className="mobile-actions">
             {!isAuthenticated ? (
-              <>
-                <Link to="/login" className="btn btn-secondary mobile-login">
-                  Login to Portal
+              <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+                <Link to="/register" className="ref-btn-primary" style={{ flex: 1, textAlign: "center", justifyContent: "center" }} onClick={() => setOpen(false)}>
+                  Register →
                 </Link>
-                <Link to="/book-appointment" className="btn btn-primary mobile-cta">
-                  Book Appointment <ArrowRightIcon size={14} />
+                <Link to="/login" className="btn btn-secondary" style={{ flex: 1, textAlign: "center" }} onClick={() => setOpen(false)}>
+                  Login
                 </Link>
-              </>
+              </div>
             ) : (
-              <button
-                type="button"
-                className="btn btn-secondary btn-block"
-                onClick={handleLogout}
-              >
-                Logout ({user?.firstName || role})
-              </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+                <Link
+                  to={portalDashboardPath}
+                  className="ref-btn-primary"
+                  style={{ width: "100%", textAlign: "center", justifyContent: "center" }}
+                  onClick={() => setOpen(false)}
+                >
+                  <UsersIcon size={16} />
+                  <span>My Dashboard</span>
+                </Link>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-block"
+                  onClick={handleLogout}
+                >
+                  Logout ({user?.firstName || displayRole})
+                </button>
+              </div>
             )}
           </div>
         </div>

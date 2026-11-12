@@ -21,8 +21,9 @@ public class PublicDoctorController {
 
     @GetMapping("/public")
     public ResponseEntity<List<Map<String, Object>>> getPublicDoctors() {
-        String sql = "SELECT d.id AS doctor_id, u.first_name, u.last_name, d.specialisation, " +
-                     "d.qualification, d.experience_years, d.consultation_fee, d.is_available, " +
+        String sql = "SELECT d.id AS doctor_id, u.first_name, u.last_name, u.email, d.specialisation, " +
+                     "d.qualification, d.experience_years, d.consultation_fee, d.hospital_affiliation, " +
+                     "d.biography, d.profile_image_url, d.is_available, " +
                      "dep.name AS department_name " +
                      "FROM doctors d " +
                      "JOIN users u ON d.user_id = u.id " +

@@ -61,26 +61,32 @@ public class AppointmentController {
         appointment.setStatus("CONFIRMED");
 
         // Link to authenticated patient or matched patient by email
-        String checkEmail = auth != null && auth.getName() != null ? auth.getName() : appointment.getPatientEmail();
-        Optional<User> uOpt = userRepository.findByEmail(checkEmail);
-        if (uOpt.isPresent()) {
-            User user = uOpt.get();
-            Optional<Patient> pOpt = patientRepository.findByUserId(user.getId());
-            if (pOpt.isPresent()) {
-                appointment.setPatientId(pOpt.get().getId());
-            } else if ("PATIENT".equalsIgnoreCase(user.getRole())) {
-                Patient newPat = new Patient();
-                newPat.setUserId(user.getId());
-                newPat = patientRepository.save(newPat);
-                appointment.setPatientId(newPat.getId());
+        if (userRepository != null) {
+            String checkEmail = auth != null && auth.getName() != null ? auth.getName() : appointment.getPatientEmail();
+            Optional<User> uOpt = userRepository.findByEmail(checkEmail);
+            if (uOpt.isPresent()) {
+                User user = uOpt.get();
+                if (patientRepository != null) {
+                    Optional<Patient> pOpt = patientRepository.findByUserId(user.getId());
+                    if (pOpt.isPresent()) {
+                        appointment.setPatientId(pOpt.get().getId());
+                    } else if ("PATIENT".equalsIgnoreCase(user.getRole())) {
+                        Patient newPat = new Patient();
+                        newPat.setUserId(user.getId());
+                        newPat = patientRepository.save(newPat);
+                        appointment.setPatientId(newPat.getId());
+                    }
+                }
             }
         }
 
         // Auto-link doctor if doctor exists
-        List<Doctor> docs = doctorRepository.findAll();
-        if (!docs.isEmpty()) {
-            // Assign first verified doctor or matching
-            appointment.setDoctorId(docs.get(0).getId());
+        if (doctorRepository != null) {
+            List<Doctor> docs = doctorRepository.findAll();
+            if (!docs.isEmpty()) {
+                // Assign first verified doctor or matching
+                appointment.setDoctorId(docs.get(0).getId());
+            }
         }
 
         if (request.getAppointmentDate() != null && !request.getAppointmentDate().isBlank()) {

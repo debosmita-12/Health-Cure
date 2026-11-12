@@ -58,6 +58,20 @@ export default function ContactPage() {
             <div className="contact-info-item">
               <span className="contact-icon"><ShieldIcon size={20} /></span>
               <div>
+                <strong>Super Speciality Hospital Campus</strong>
+                <p>Sector V, Salt Lake, Kolkata, West Bengal - 700091, India</p>
+              </div>
+            </div>
+            <div className="contact-info-item">
+              <span className="contact-icon"><ShieldIcon size={20} /></span>
+              <div>
+                <strong>Helpline &amp; Support Desk</strong>
+                <p>+91 9051579029 | Mon–Sat: 08:00 – 20:00</p>
+              </div>
+            </div>
+            <div className="contact-info-item">
+              <span className="contact-icon"><ShieldIcon size={20} /></span>
+              <div>
                 <strong>Clinical Coordination Desk</strong>
                 <p>care@healthcure.local | Mon–Sat: 08:00 – 20:00</p>
               </div>
@@ -86,7 +100,7 @@ export default function ContactPage() {
                   name="name"
                   value={values.name}
                   onChange={update}
-                  placeholder="e.g. Eleanor Hayes"
+                  placeholder="e.g. Debosmita Mukhopadhyay"
                   required
                 />
                 {errors.name && <small>{errors.name}</small>}
@@ -114,7 +128,7 @@ export default function ContactPage() {
                   type="tel"
                   value={values.phone}
                   onChange={update}
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="+91 9051579029"
                 />
               </label>
 

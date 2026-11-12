@@ -84,4 +84,39 @@ public class RecordRepository {
             return record;
         }
     }
+
+    public void savePrescription(Long recordId, String medicineName, String dosage, String frequency, String duration, String notes) {
+        String sql = "INSERT INTO prescriptions (record_id, medicine_name, dosage, frequency, duration, notes) VALUES (?, ?, ?, ?, ?, ?)";
+        jdbcTemplate.update(sql, recordId, medicineName, dosage, frequency, duration, notes);
+    }
+
+    public List<java.util.Map<String, Object>> findPrescriptionsByPatientId(Long patientId) {
+        String sql = "SELECT p.id, p.record_id, p.medicine_name, p.dosage, p.frequency, p.duration, p.notes, " +
+                     "mr.record_date, mr.doctor_id, doc_u.first_name AS doctor_first_name, doc_u.last_name AS doctor_last_name, " +
+                     "d.specialisation AS doctor_specialisation " +
+                     "FROM prescriptions p " +
+                     "JOIN medical_records mr ON p.record_id = mr.id " +
+                     "LEFT JOIN doctors d ON mr.doctor_id = d.id " +
+                     "LEFT JOIN users doc_u ON d.user_id = doc_u.id " +
+                     "WHERE mr.patient_id = ? ORDER BY mr.record_date DESC";
+        return jdbcTemplate.queryForList(sql, patientId);
+    }
+
+    public void saveConsultation(Long recordId, String symptoms, String diagnosis, String treatmentPlan, String followUpNotes) {
+        String sql = "INSERT INTO consultations (record_id, symptoms, diagnosis, treatment_plan, follow_up_notes) VALUES (?, ?, ?, ?, ?)";
+        jdbcTemplate.update(sql, recordId, symptoms, diagnosis, treatmentPlan, followUpNotes);
+    }
+
+    public List<java.util.Map<String, Object>> findConsultationsByPatientId(Long patientId) {
+        String sql = "SELECT c.id, c.record_id, c.symptoms, c.diagnosis, c.treatment_plan, c.follow_up_notes, " +
+                     "mr.title, mr.description, mr.record_date, mr.doctor_id, " +
+                     "doc_u.first_name AS doctor_first_name, doc_u.last_name AS doctor_last_name, " +
+                     "d.specialisation AS doctor_specialisation " +
+                     "FROM consultations c " +
+                     "JOIN medical_records mr ON c.record_id = mr.id " +
+                     "LEFT JOIN doctors d ON mr.doctor_id = d.id " +
+                     "LEFT JOIN users doc_u ON d.user_id = doc_u.id " +
+                     "WHERE mr.patient_id = ? ORDER BY mr.record_date DESC";
+        return jdbcTemplate.queryForList(sql, patientId);
+    }
 }

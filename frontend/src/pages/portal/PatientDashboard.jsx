@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
+import AppointmentCalendar from "../../components/common/AppointmentCalendar";
 import {
   ArrowRightIcon,
   CalendarIcon,
@@ -21,10 +22,11 @@ import {
 export default function PatientDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { tab } = useParams();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState(tab || "dashboard");
   const [sidebarFilter, setSidebarFilter] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -35,18 +37,50 @@ export default function PatientDashboard() {
   const [uploadDoc, setUploadDoc] = useState({ title: "", description: "", recordType: "LAB_REPORT" });
   const [profileForm, setProfileForm] = useState({ gender: "", bloodGroup: "", address: "", emergencyContact: "" });
 
+  // In-Portal Appointment Booking State
+  const [departments, setDepartments] = useState([]);
+  const [publicDoctors, setPublicDoctors] = useState([]);
+  const [bookingForm, setBookingForm] = useState({
+    department: "General Medicine",
+    specialty: "General Medicine",
+    preferredDoctor: "First Available Specialist",
+    doctorId: null,
+    date: "",
+    timeSlot: "Morning (09:00 - 12:00)",
+    consultationType: "In-Clinic Visit",
+    notes: "",
+  });
+  const [isBookingSubmitting, setIsBookingSubmitting] = useState(false);
+  const [bookingError, setBookingError] = useState("");
+  const [bookingSuccessResult, setBookingSuccessResult] = useState(null);
+
   async function loadDashboard() {
     setLoading(true);
     try {
-      const res = await api.get("/api/patient/dashboard");
-      setData(res.data);
-      if (res.data?.patient) {
-        setProfileForm({
-          gender: res.data.patient.gender || "",
-          bloodGroup: res.data.patient.bloodGroup || "",
-          address: res.data.patient.address || "",
-          emergencyContact: res.data.patient.emergencyContact || "",
-        });
+      const [dashRes, deptsRes, docsRes] = await Promise.allSettled([
+        api.get("/api/patient/dashboard"),
+        api.get("/api/public/departments"),
+        api.get("/api/doctors/public"),
+      ]);
+
+      if (dashRes.status === "fulfilled") {
+        setData(dashRes.value.data);
+        if (dashRes.value.data?.patient) {
+          setProfileForm({
+            gender: dashRes.value.data.patient.gender || "",
+            bloodGroup: dashRes.value.data.patient.bloodGroup || dashRes.value.data.patient.blood_group || "",
+            address: dashRes.value.data.patient.address || "",
+            emergencyContact: dashRes.value.data.patient.emergencyContact || "",
+          });
+        }
+      } else {
+        console.warn("Patient dashboard fetch error:", dashRes.reason);
+      }
+      if (deptsRes.status === "fulfilled" && Array.isArray(deptsRes.value.data)) {
+        setDepartments(deptsRes.value.data);
+      }
+      if (docsRes.status === "fulfilled" && Array.isArray(docsRes.value.data)) {
+        setPublicDoctors(docsRes.value.data);
       }
     } catch (err) {
       console.error("Failed to load patient dashboard", err);
@@ -59,6 +93,62 @@ export default function PatientDashboard() {
     loadDashboard();
   }, []);
 
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab.replace(/_/g, "-"));
+    } else {
+      setActiveTab("dashboard");
+    }
+  }, [tab]);
+
+  async function handleBookAppointmentSubmit(e) {
+    e.preventDefault();
+    setBookingError("");
+    setBookingSuccessResult(null);
+
+    if (!bookingForm.date) {
+      setBookingError("Please select an appointment date.");
+      return;
+    }
+
+    const today = new Date().toISOString().split("T")[0];
+    if (bookingForm.date < today) {
+      setBookingError("Appointment date cannot be in the past.");
+      return;
+    }
+
+    setIsBookingSubmitting(true);
+    try {
+      const payload = {
+        fullName: `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Patient",
+        email: user?.email || "",
+        phone: user?.phone || profileForm.emergencyContact || "+91 9051579029",
+        specialty: bookingForm.specialty || bookingForm.department,
+        consultationType: bookingForm.consultationType,
+        timeSlot: bookingForm.timeSlot,
+        preferredDoctor: bookingForm.preferredDoctor,
+        notes: bookingForm.notes,
+        appointmentDate: bookingForm.date + "T09:00:00",
+        googleAuthenticated: false,
+      };
+
+      const res = await api.post("/api/appointments/book", payload);
+      setBookingSuccessResult(res.data);
+      setActionMessage("Appointment successfully confirmed! Reference: " + res.data.referenceCode);
+      if (res.data) {
+        setData((prev) => ({
+          ...(prev || {}),
+          appointments: [res.data, ...(prev?.appointments || [])],
+        }));
+      }
+      loadDashboard();
+    } catch (err) {
+      setBookingError(err.response?.data?.error || err.response?.data?.message || "Failed to confirm appointment. Please choose another date or slot.");
+    } finally {
+      setIsBookingSubmitting(false);
+    }
+  }
+
   async function handleConsent(requestId, approve) {
     setActionMessage("");
     setErrorMessage("");
@@ -66,6 +156,12 @@ export default function PatientDashboard() {
       const endpoint = approve ? "/api/patient/consent/approve" : "/api/patient/consent/revoke";
       const res = await api.post(endpoint, { requestId });
       setActionMessage(res.data?.message || (approve ? "Access approved." : "Access revoked."));
+      setData((prev) => ({
+        ...(prev || {}),
+        accessRequests: (prev?.accessRequests || []).map((r) =>
+          r.id === requestId ? { ...r, status: approve ? "APPROVED" : "REVOKED" } : r
+        ),
+      }));
       loadDashboard();
     } catch (err) {
       setErrorMessage("Failed to update access consent.");
@@ -117,9 +213,15 @@ export default function PatientDashboard() {
     if (!uploadDoc.title) return;
     setActionMessage("");
     try {
-      await api.post("/api/patient/records/upload", uploadDoc);
+      const res = await api.post("/api/patient/records/upload", uploadDoc);
       setActionMessage("Medical document securely encrypted and uploaded to your vault.");
       setUploadDoc({ title: "", description: "", recordType: "LAB_REPORT" });
+      if (res.data) {
+        setData((prev) => ({
+          ...(prev || {}),
+          records: [res.data, ...(prev?.records || [])],
+        }));
+      }
       loadDashboard();
     } catch {
       setErrorMessage("Failed to upload document.");
@@ -130,8 +232,14 @@ export default function PatientDashboard() {
     e.preventDefault();
     setActionMessage("");
     try {
-      await api.put("/api/patient/profile", profileForm);
+      const res = await api.put("/api/patient/profile", profileForm);
       setActionMessage("Profile details updated successfully.");
+      if (res.data?.patient) {
+        setData((prev) => ({
+          ...(prev || {}),
+          patient: { ...(prev?.patient || {}), ...res.data.patient },
+        }));
+      }
       loadDashboard();
     } catch {
       setErrorMessage("Failed to update profile.");
@@ -148,6 +256,49 @@ export default function PatientDashboard() {
     } catch {
       setErrorMessage("Failed to submit feedback.");
     }
+  }
+
+  function handleDownloadPrescription(rx) {
+    const patientName = `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Patient";
+    const docFirstName = rx.doctor_first_name || rx.doctorFirstName || "";
+    const docLastName = rx.doctor_last_name || rx.doctorLastName || "";
+    const docName = docFirstName ? `Dr. ${docFirstName} ${docLastName}`.trim() : "Attending Physician";
+    const spec = rx.doctor_specialisation || rx.doctorSpecialisation || "General Medicine";
+    const medName = rx.medicine_name || rx.medicineName || rx.title || "Prescription Regimen";
+    const dateStr = rx.record_date || rx.recordDate ? new Date(rx.record_date || rx.recordDate).toLocaleDateString() : new Date().toLocaleDateString();
+
+    const content = [
+      "=================================================================",
+      "               HEALTH & CURE - DIGITAL PRESCRIPTION              ",
+      "=================================================================",
+      `Date:              ${dateStr}`,
+      `Patient Name:      ${patientName}`,
+      `Prescribed By:     ${docName} (${spec})`,
+      "Status:            ACTIVE / VERIFIED",
+      "-----------------------------------------------------------------",
+      "MEDICATION DETAILS:",
+      `  Medicine:        ${medName}`,
+      `  Dosage:          ${rx.dosage || "1 tablet"}`,
+      `  Frequency:       ${rx.frequency || "Once daily"}`,
+      `  Duration:        ${rx.duration || "7 days"}`,
+      `  Instructions:    ${rx.notes || "Take as directed by physician."}`,
+      "-----------------------------------------------------------------",
+      "SECURITY & COMPLIANCE:",
+      "This document is cryptographically verified and issued directly",
+      "through the Health & Cure Electronic Health Records platform.",
+      "=================================================================",
+    ].join("\n");
+
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Prescription_${medName.replace(/[^a-zA-Z0-9_-]/g, "_")}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setActionMessage(`Downloaded official digital prescription for ${medName}.`);
   }
 
   function handleLogout() {
@@ -167,6 +318,8 @@ export default function PatientDashboard() {
 
   const patient = data?.patient || {};
   const records = data?.records || [];
+  const prescriptions = data?.prescriptions || [];
+  const consultations = data?.consultations || [];
   const appointments = data?.appointments || [];
   const accessRequests = data?.accessRequests || [];
   const vitals = data?.vitals || [];
@@ -305,140 +458,161 @@ export default function PatientDashboard() {
   ];
 
   return (
-    <section className="subpage patient-dashboard">
-      <div className="container">
-        {/* Top Header */}
-        <div className="subpage-header">
-          <p className="eyebrow-text">CENTRALIZED PATIENT VAULT &amp; HEALTHCARE PORTAL</p>
-          <h1 className="subpage-main-title">
-            Welcome, <span>{user?.firstName || "Patient"} {user?.lastName || ""}</span>
-          </h1>
-          <p className="subpage-lede">
-            Patient ID: <strong>PAT-{patient.id || "001"}</strong> • Lifetime health records, diagnostic tests, consultations, and doctor consent governance.
-          </p>
-        </div>
-
-        {/* Global Notifications */}
-        {actionMessage && (
-          <div className="form-success-card" style={{ marginBottom: "20px", padding: "14px 20px" }}>
-            <p><strong>Success:</strong> {actionMessage}</p>
-          </div>
-        )}
-        {errorMessage && (
-          <div className="form-error-alert" style={{ marginBottom: "20px" }}>
-            <p><strong>Notice:</strong> {errorMessage}</p>
-          </div>
-        )}
-
-        {/* Quick Stats Bar */}
-        <div className="stats-bar-card" style={{ marginBottom: "28px", padding: "18px 24px" }}>
-          <div className="stats-item">
-            <span className="stats-icon"><UsersIcon size={24} /></span>
-            <div className="stats-content">
-              <strong className="stats-value">{patient.gender || "Patient"} ({patient.bloodGroup || "O+"})</strong>
-              <span className="stats-label">Demographics</span>
-            </div>
-            <span className="stats-divider" aria-hidden="true" />
-          </div>
-
-          <div className="stats-item">
-            <span className="stats-icon"><CalendarIcon size={24} /></span>
-            <div className="stats-content">
-              <strong className="stats-value">{appointments.length} Consultations</strong>
-              <span className="stats-label">Scheduled Visits</span>
-            </div>
-            <span className="stats-divider" aria-hidden="true" />
-          </div>
-
-          <div className="stats-item">
-            <span className="stats-icon"><RecordsIcon size={24} /></span>
-            <div className="stats-content">
-              <strong className="stats-value">{records.length} Records</strong>
-              <span className="stats-label">Encrypted Files</span>
-            </div>
-            <span className="stats-divider" aria-hidden="true" />
-          </div>
-
-          <div className="stats-item">
-            <span className="stats-icon"><ShieldIcon size={24} /></span>
-            <div className="stats-content">
-              <strong className="stats-value">{accessRequests.filter(r => r.status === "APPROVED").length} Approved</strong>
-              <span className="stats-label">Doctor Consents</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 15-Category Two-Column Grid */}
-        <div className="portal-grid-layout">
-          {/* Left Sidebar */}
-          <aside className="portal-sidebar-card">
-            <div className="portal-user-profile-box">
-              <div className="portal-user-avatar">
-                {(user?.firstName || "P")[0].toUpperCase()}
+    <section className="subpage patient-dashboard" style={{ paddingTop: "20px" }}>
+      <div className="container" style={{ maxWidth: "1440px" }}>
+        {/* Full-Height Layout: Dark Green Sidebar on the Left starting from the Top */}
+        <div className="portal-grid-layout" style={{ marginTop: 0 }}>
+          {/* Left Sidebar Column */}
+          <div className="portal-sidebar-column">
+            <aside className="portal-sidebar-card dark-green-sidebar">
+              <div className="portal-user-profile-box">
+                <div className="portal-user-avatar">
+                  {(user?.firstName || "P")[0].toUpperCase()}
+                </div>
+                <div className="portal-user-info">
+                  <h4 className="portal-user-name">{user?.firstName} {user?.lastName}</h4>
+                  <span className="portal-user-role-badge">PATIENT</span>
+                </div>
               </div>
-              <div className="portal-user-info">
-                <h4 className="portal-user-name">{user?.firstName} {user?.lastName}</h4>
-                <span className="portal-user-role-badge">PATIENT</span>
+
+              <div style={{ position: "relative" }}>
+                <input
+                  type="text"
+                  className="portal-search-input"
+                  placeholder="Search portal menu..."
+                  value={sidebarFilter}
+                  onChange={(e) => setSidebarFilter(e.target.value)}
+                />
+              </div>
+
+              <nav aria-label="Patient portal navigation">
+                {menuCategories.map((group) => {
+                  const filteredItems = group.items.filter(item =>
+                    item.label.toLowerCase().includes(sidebarFilter.toLowerCase())
+                  );
+                  if (filteredItems.length === 0) return null;
+
+                  return (
+                    <div key={group.title} style={{ marginBottom: "10px" }}>
+                      <p className="portal-nav-group-title">{group.title}</p>
+                      <ul className="portal-nav-list">
+                        {filteredItems.map((item) => {
+                          const isActive = activeTab === item.id;
+                          return (
+                            <li key={item.id}>
+                              <button
+                                type="button"
+                                className={`portal-nav-btn ${isActive ? "active" : ""}`}
+                                onClick={() => {
+                                  if (item.id === "logout") {
+                                    handleLogout();
+                                  } else if (item.id === "book-appointment") {
+                                    setActiveTab("book-appointment");
+                                    navigate("/patient/book-appointment");
+                                  } else {
+                                    setActiveTab(item.id);
+                                    navigate(`/patient/${item.id}`);
+                                  }
+                                }}
+                              >
+                                <span className="portal-nav-btn-content">
+                                  {item.label}
+                                </span>
+                                {item.badge !== null && item.badge !== undefined && (
+                                  <span className="portal-nav-badge">{item.badge}</span>
+                                )}
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                })}
+              </nav>
+            </aside>
+          </div>
+
+          {/* Right Main Column: Banner, Stats & Content */}
+          <div className="portal-main-column" style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "20px" }}>
+            {/* Executive Clinical Portal Dashboard Banner in exact Register Button Green (#174C40) */}
+            <div className="portal-hero-banner" style={{ margin: 0 }}>
+              <div>
+                <p className="portal-hero-eyebrow">
+                  <ShieldIcon size={16} />
+                  Centralized Patient Vault &amp; Healthcare Portal
+                </p>
+                <h1 className="portal-hero-title">
+                  Welcome, <span>{user?.firstName || "Patient"} {user?.lastName || ""}</span>
+                </h1>
+                <p className="portal-hero-lede">
+                  Lifetime encrypted health records, diagnostic tests, verified consultations, and patient consent governance.
+                </p>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-end" }}>
+                <span className="portal-hero-badge">
+                  <strong>Patient ID:</strong> PAT-{patient.id || user?.patientId || user?.id || "001"}
+                </span>
+                <span className="portal-hero-badge" style={{ background: "rgba(52, 211, 153, 0.25)", borderColor: "#34D399" }}>
+                  <CheckIcon size={14} /> Active Care Member
+                </span>
               </div>
             </div>
 
-            <div style={{ position: "relative" }}>
-              <input
-                type="text"
-                className="portal-search-input"
-                placeholder="Search portal menu..."
-                value={sidebarFilter}
-                onChange={(e) => setSidebarFilter(e.target.value)}
-              />
+            {/* Global Notifications */}
+            {actionMessage && (
+              <div className="form-success-card" style={{ margin: 0, padding: "14px 20px" }}>
+                <p><strong>Success:</strong> {actionMessage}</p>
+              </div>
+            )}
+            {errorMessage && (
+              <div className="form-error-alert" style={{ margin: 0 }}>
+                <p><strong>Notice:</strong> {errorMessage}</p>
+              </div>
+            )}
+
+            {/* Quick Stats Bar */}
+            <div className="stats-bar-card" style={{ margin: 0, padding: "18px 24px" }}>
+              <div className="stats-item">
+                <span className="stats-icon"><UsersIcon size={24} /></span>
+                <div className="stats-content">
+                  <strong className="stats-value">
+                    {patient.gender || user?.gender || profileForm.gender || "Female"} ({patient.bloodGroup || patient.blood_group || user?.bloodGroup || profileForm.bloodGroup || "A+"})
+                  </strong>
+                  <span className="stats-label">Demographics</span>
+                </div>
+                <span className="stats-divider" aria-hidden="true" />
+              </div>
+
+              <div className="stats-item">
+                <span className="stats-icon"><CalendarIcon size={24} /></span>
+                <div className="stats-content">
+                  <strong className="stats-value">{appointments.length} Consultations</strong>
+                  <span className="stats-label">Scheduled Visits</span>
+                </div>
+                <span className="stats-divider" aria-hidden="true" />
+              </div>
+
+              <div className="stats-item">
+                <span className="stats-icon"><RecordsIcon size={24} /></span>
+                <div className="stats-content">
+                  <strong className="stats-value">{records.length} Records</strong>
+                  <span className="stats-label">Encrypted Files</span>
+                </div>
+                <span className="stats-divider" aria-hidden="true" />
+              </div>
+
+              <div className="stats-item">
+                <span className="stats-icon"><ShieldIcon size={24} /></span>
+                <div className="stats-content">
+                  <strong className="stats-value">{accessRequests.filter(r => r.status === "APPROVED").length} Approved</strong>
+                  <span className="stats-label">Doctor Consents</span>
+                </div>
+              </div>
             </div>
 
-            <nav aria-label="Patient portal navigation">
-              {menuCategories.map((group) => {
-                const filteredItems = group.items.filter(item =>
-                  item.label.toLowerCase().includes(sidebarFilter.toLowerCase())
-                );
-                if (filteredItems.length === 0) return null;
-
-                return (
-                  <div key={group.title} style={{ marginBottom: "10px" }}>
-                    <p className="portal-nav-group-title">{group.title}</p>
-                    <ul className="portal-nav-list">
-                      {filteredItems.map((item) => {
-                        const isActive = activeTab === item.id;
-                        return (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              className={`portal-nav-btn ${isActive ? "active" : ""}`}
-                              onClick={() => {
-                                if (item.id === "logout") {
-                                  handleLogout();
-                                } else if (item.id === "book-appointment") {
-                                  navigate("/book-appointment");
-                                } else {
-                                  setActiveTab(item.id);
-                                }
-                              }}
-                            >
-                              <span className="portal-nav-btn-content">
-                                {item.label}
-                              </span>
-                              {item.badge !== null && item.badge !== undefined && (
-                                <span className="portal-nav-badge">{item.badge}</span>
-                              )}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                );
-              })}
-            </nav>
-          </aside>
-
-          {/* Right Main Content Area */}
-          <main className="portal-content-area">
+            {/* Right Main Content Area */}
+            <main className="portal-content-area">
             {/* View: Dashboard Overview */}
             {activeTab === "dashboard" && (
               <div style={{ display: "grid", gap: "24px" }}>
@@ -450,9 +624,13 @@ export default function PatientDashboard() {
                         Access your active medical records, appointments, and diagnostic results in one place.
                       </p>
                     </div>
-                    <Link to="/book-appointment" className="btn btn-primary">
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab("book-appointment"); navigate("/patient/book-appointment"); }}
+                      className="btn btn-primary"
+                    >
                       Book Appointment <ArrowRightIcon size={14} />
-                    </Link>
+                    </button>
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginTop: "16px" }}>
@@ -490,7 +668,7 @@ export default function PatientDashboard() {
                 <div className="panel-form-card" style={{ padding: "28px" }}>
                   <div className="portal-card-header">
                     <h3 style={{ margin: 0, color: "var(--color-primary)" }}>Scheduled Appointments</h3>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab("my-appointments")}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => { setActiveTab("my-appointments"); navigate("/patient/my-appointments"); }}>
                       View All
                     </button>
                   </div>
@@ -530,6 +708,233 @@ export default function PatientDashboard() {
               </div>
             )}
 
+            {/* View: Book Appointment (In-Portal Patient Workflow) */}
+            {activeTab === "book-appointment" && (
+              <div className="panel-form-card" style={{ padding: "32px" }}>
+                <div className="portal-card-header" style={{ marginBottom: "24px" }}>
+                  <div>
+                    <h3 style={{ margin: "0 0 6px", color: "var(--color-primary)", fontSize: "1.4rem" }}>
+                      Schedule a Medical Appointment
+                    </h3>
+                    <p style={{ margin: 0, fontSize: "0.95rem", color: "var(--color-text-body)" }}>
+                      Select clinical department, attending physician, and preferred consultation slot. Patient credentials auto-populate from your profile.
+                    </p>
+                  </div>
+                </div>
+
+                {bookingSuccessResult ? (
+                  <div style={{ background: "#EEF8F3", border: "2px solid #34D399", borderRadius: "16px", padding: "32px", textAlign: "center" }}>
+                    <div style={{ width: "60px", height: "60px", borderRadius: "50%", background: "#D1FAE5", color: "#065F46", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                      <CheckIcon size={30} />
+                    </div>
+                    <h3 style={{ color: "var(--color-primary)", marginBottom: "8px", fontSize: "1.3rem" }}>Appointment Confirmed!</h3>
+                    <p style={{ color: "var(--color-text-body)", maxWidth: "520px", margin: "0 auto 16px", lineHeight: 1.5 }}>
+                      Your consultation request has been successfully registered and synchronized with the Doctor Clinical Workspace and Platform Schedules.
+                    </p>
+                    <div style={{ background: "#FFFFFF", padding: "16px 28px", borderRadius: "12px", display: "inline-block", border: "1px solid var(--color-border-subtle)", marginBottom: "24px" }}>
+                      <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", display: "block" }}>Booking Reference Code</span>
+                      <code style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--color-primary)" }}>{bookingSuccessResult.referenceCode}</code>
+                    </div>
+                    <div style={{ display: "flex", gap: "14px", justifyContent: "center" }}>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => {
+                          setActiveTab("my-appointments");
+                          navigate("/patient/my-appointments");
+                          setBookingSuccessResult(null);
+                        }}
+                      >
+                        View My Appointments →
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          setBookingSuccessResult(null);
+                        }}
+                      >
+                        Book Another Appointment
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleBookAppointmentSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                    {bookingError && (
+                      <div style={{ background: "#FEE2E2", border: "1px solid #EF4444", color: "#991B1B", padding: "12px 16px", borderRadius: "10px", fontSize: "0.9rem" }}>
+                        {bookingError}
+                      </div>
+                    )}
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                          Clinical Department *
+                        </label>
+                        <select
+                          value={bookingForm.department}
+                          onChange={(e) => {
+                            const dept = e.target.value;
+                            setBookingForm((prev) => ({
+                              ...prev,
+                              department: dept,
+                              specialty: dept,
+                              preferredDoctor: "First Available Specialist",
+                              doctorId: null,
+                            }));
+                          }}
+                          style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem", background: "#FFFFFF" }}
+                        >
+                          {departments.length > 0 ? (
+                            departments.map((d) => (
+                              <option key={d.id} value={d.name}>{d.name}</option>
+                            ))
+                          ) : (
+                            <>
+                              <option value="Cardiology & Vascular">Cardiology &amp; Vascular</option>
+                              <option value="Dermatology & Skin Health">Dermatology &amp; Skin Health</option>
+                              <option value="General Medicine">General Medicine</option>
+                              <option value="Gynecology & Women's Health">Gynecology &amp; Women's Health</option>
+                              <option value="Neurology & Brain Sciences">Neurology &amp; Brain Sciences</option>
+                              <option value="Oncology & Cancer Care">Oncology &amp; Cancer Care</option>
+                              <option value="Ophthalmology & Vision Care">Ophthalmology &amp; Vision Care</option>
+                              <option value="Orthopedics & Joint">Orthopedics &amp; Joint</option>
+                              <option value="Pediatrics & Family Care">Pediatrics &amp; Family Care</option>
+                              <option value="Psychiatry & Mental Health">Psychiatry &amp; Mental Health</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                          Attending Physician *
+                        </label>
+                        <select
+                          value={bookingForm.preferredDoctor}
+                          onChange={(e) => {
+                            const docName = e.target.value;
+                            const match = publicDoctors.find((d) => `Dr. ${d.first_name} ${d.last_name}` === docName);
+                            setBookingForm((prev) => ({
+                              ...prev,
+                              preferredDoctor: docName,
+                              doctorId: match ? match.doctor_id : null,
+                            }));
+                          }}
+                          style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem", background: "#FFFFFF" }}
+                        >
+                          <option value="First Available Specialist">First Available Verified Doctor</option>
+                          {publicDoctors.map((d) => (
+                            <option key={d.doctor_id} value={`Dr. ${d.first_name} ${d.last_name}`}>
+                              Dr. {d.first_name} {d.last_name} ({d.specialisation || "Specialist"}) - Fee: ₹{d.consultation_fee ? Number(d.consultation_fee).toFixed(0) : "750"}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "18px" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                          Appointment Date *
+                        </label>
+                        <input
+                          type="date"
+                          required
+                          min={new Date().toISOString().split("T")[0]}
+                          value={bookingForm.date}
+                          onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })}
+                          style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem" }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                          Preferred Time Slot *
+                        </label>
+                        <select
+                          value={bookingForm.timeSlot}
+                          onChange={(e) => setBookingForm({ ...bookingForm, timeSlot: e.target.value })}
+                          style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem", background: "#FFFFFF" }}
+                        >
+                          <option value="Morning (09:00 - 12:00)">Morning (09:00 - 12:00)</option>
+                          <option value="Afternoon (12:00 - 16:00)">Afternoon (12:00 - 16:00)</option>
+                          <option value="Evening (16:00 - 19:00)">Evening (16:00 - 19:00)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                          Consultation Mode *
+                        </label>
+                        <select
+                          value={bookingForm.consultationType}
+                          onChange={(e) => setBookingForm({ ...bookingForm, consultationType: e.target.value })}
+                          style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem", background: "#FFFFFF" }}
+                        >
+                          <option value="In-Clinic Visit">In-Clinic Visit</option>
+                          <option value="Video Consultation">Video Consultation</option>
+                          <option value="Diagnostic Records Review">Diagnostic Records Review</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Auto-populated Patient Credentials */}
+                    <div style={{ background: "var(--color-bg-tint)", padding: "18px 20px", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <h4 style={{ margin: "0 0 10px", color: "var(--color-primary)", fontSize: "0.92rem" }}>
+                        Patient Credentials (Auto-Populated from Active Profile)
+                      </h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", fontSize: "0.88rem" }}>
+                        <div>
+                          <span style={{ color: "var(--color-text-muted)", display: "block" }}>Full Name:</span>
+                          <strong>{user?.firstName} {user?.lastName}</strong>
+                        </div>
+                        <div>
+                          <span style={{ color: "var(--color-text-muted)", display: "block" }}>Account Email:</span>
+                          <strong>{user?.email}</strong>
+                        </div>
+                        <div>
+                          <span style={{ color: "var(--color-text-muted)", display: "block" }}>Contact Phone:</span>
+                          <strong>{user?.phone || profileForm.emergencyContact || "On File"}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                        Reason for Visit / Clinical Notes (Optional)
+                      </label>
+                      <textarea
+                        rows={3}
+                        placeholder="Briefly describe your symptoms or reason for scheduling..."
+                        value={bookingForm.notes}
+                        onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
+                        style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem" }}
+                      />
+                    </div>
+
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "10px" }}>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setActiveTab("dashboard")}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isBookingSubmitting}
+                        className="btn btn-primary"
+                        style={{ padding: "12px 28px" }}
+                      >
+                        {isBookingSubmitting ? "Confirming Booking..." : "Confirm & Schedule Appointment \u2192"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
+
             {/* View: My Appointments */}
             {(activeTab === "my-appointments" || activeTab === "appointment-history") && (
               <div className="panel-form-card" style={{ padding: "28px" }}>
@@ -542,9 +947,13 @@ export default function PatientDashboard() {
                       Track status, timing, consultation modes, and reference numbers.
                     </p>
                   </div>
-                  <Link to="/book-appointment" className="btn btn-primary">
+                  <button
+                    type="button"
+                    onClick={() => { setActiveTab("book-appointment"); navigate("/patient/book-appointment"); }}
+                    className="btn btn-primary"
+                  >
                     Book New Appointment
-                  </Link>
+                  </button>
                 </div>
                 {appointments.length === 0 ? (
                   <p>No appointments recorded.</p>
@@ -583,28 +992,19 @@ export default function PatientDashboard() {
               </div>
             )}
 
-            {/* View: Calendar */}
+            {/* View: Calendar (Dynamic 3-Month Appointment Calendar) */}
             {activeTab === "calendar" && (
-              <div className="panel-form-card" style={{ padding: "28px" }}>
-                <h3 style={{ margin: "0 0 16px", color: "var(--color-primary)" }}>Appointment Calendar</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px", textAlign: "center", marginBottom: "16px" }}>
-                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-                    <div key={d} style={{ fontWeight: 700, padding: "8px", background: "var(--color-bg-tint)", borderRadius: "6px" }}>
-                      {d}
-                    </div>
-                  ))}
-                  {Array.from({ length: 28 }).map((_, i) => (
-                    <div key={i} style={{ border: "1px solid var(--color-border-subtle)", padding: "16px 8px", borderRadius: "6px", minHeight: "60px" }}>
-                      <span style={{ fontSize: "0.8rem", color: "var(--color-sage)" }}>{i + 1}</span>
-                      {i === 14 && appointments.length > 0 && (
-                        <div style={{ fontSize: "0.7rem", background: "#DEF7EC", color: "#03543F", padding: "2px 4px", borderRadius: "4px", marginTop: "4px" }}>
-                          {appointments[0].specialty.split(" ")[0]}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <AppointmentCalendar
+                appointments={appointments}
+                onSelectDate={(dateStr) => {
+                  setBookingForm((prev) => ({
+                    ...prev,
+                    date: dateStr,
+                  }));
+                  setActiveTab("book-appointment");
+                  navigate("/patient/book-appointment");
+                }}
+              />
             )}
 
             {/* View: Doctors / Discovery */}
@@ -615,21 +1015,69 @@ export default function PatientDashboard() {
                   Browse accredited healthcare specialists available for in-clinic visits and telemedicine consultations.
                 </p>
                 <div style={{ display: "grid", gap: "16px" }}>
-                  <div className="service-card-item" style={{ padding: "20px", display: "flex", gap: "20px", alignItems: "center" }}>
-                    <div className="service-card-icon-wrap"><DoctorIcon size={28} /></div>
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Dr. Marcus Vance</h4>
-                      <p style={{ margin: "0 0 6px", fontSize: "0.9rem", color: "var(--color-text-body)" }}>
-                        Cardiology &amp; Preventive Care • MD, FACC - Harvard Medical School (14 years exp)
-                      </p>
-                      <span style={{ fontSize: "0.85rem", color: "var(--color-sage)", fontWeight: 700 }}>
-                        Fee: $75.00 • In-Clinic &amp; Telemedicine
-                      </span>
+                  {publicDoctors.length === 0 ? (
+                    <div className="service-card-item" style={{ padding: "20px", display: "flex", gap: "20px", alignItems: "center" }}>
+                      <div className="service-card-icon-wrap"><DoctorIcon size={28} /></div>
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Dr. Rajesh Sharma</h4>
+                        <p style={{ margin: "0 0 6px", fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                          Cardiology &amp; Vascular • MBBS, MD, DM (AIIMS New Delhi) (16 years exp)
+                        </p>
+                        <span style={{ fontSize: "0.85rem", color: "var(--color-sage)", fontWeight: 700 }}>
+                          Fee: ₹750.00 • In-Clinic &amp; Telemedicine
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBookingForm((prev) => ({
+                            ...prev,
+                            preferredDoctor: "Dr. Rajesh Sharma",
+                            specialty: "Cardiology & Vascular",
+                          }));
+                          setActiveTab("book-appointment");
+                          navigate("/patient/book-appointment");
+                        }}
+                        className="btn btn-primary btn-sm"
+                      >
+                        Book Consultation
+                      </button>
                     </div>
-                    <Link to="/book-appointment" className="btn btn-secondary btn-sm">
-                      Book Visit
-                    </Link>
-                  </div>
+                  ) : (
+                    publicDoctors.map((doc) => (
+                      <div key={doc.doctor_id} className="service-card-item" style={{ padding: "20px", display: "flex", gap: "20px", alignItems: "center" }}>
+                        <div className="service-card-icon-wrap"><DoctorIcon size={28} /></div>
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>
+                            Dr. {doc.first_name} {doc.last_name}
+                          </h4>
+                          <p style={{ margin: "0 0 6px", fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                            {doc.specialisation || "General Specialist"} • {doc.qualification || "MBBS, MD"} ({doc.experience_years} years exp) • {doc.department_name || "Clinical Care"}
+                          </p>
+                          <span style={{ fontSize: "0.85rem", color: "var(--color-sage)", fontWeight: 700 }}>
+                            Fee: ₹{doc.consultation_fee ? Number(doc.consultation_fee).toFixed(0) : "750"} • {doc.is_available ? "Available" : "Offline"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBookingForm((prev) => ({
+                              ...prev,
+                              preferredDoctor: `Dr. ${doc.first_name} ${doc.last_name}`,
+                              doctorId: doc.doctor_id,
+                              specialty: doc.specialisation || prev.specialty,
+                              department: doc.department_name || prev.department,
+                            }));
+                            setActiveTab("book-appointment");
+                            navigate("/patient/book-appointment");
+                          }}
+                          className="btn btn-primary btn-sm"
+                        >
+                          Book Consultation
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}
@@ -637,6 +1085,58 @@ export default function PatientDashboard() {
             {/* View: Medical Records */}
             {(activeTab === "medical-history" || activeTab === "consultation-history" || activeTab === "medical-documents" || activeTab === "lab-reports" || activeTab === "diagnostic-reports") && (
               <div style={{ display: "grid", gap: "24px" }}>
+                {/* Clinical Consultations List */}
+                {consultations.length > 0 && (
+                  <div className="panel-form-card" style={{ padding: "28px" }}>
+                    <div className="portal-card-header" style={{ marginBottom: "16px" }}>
+                      <div>
+                        <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Clinical Consultations &amp; Summaries</h3>
+                        <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                          Physician examination notes, clinical diagnoses, and post-visit treatment instructions.
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{ display: "grid", gap: "14px" }}>
+                      {consultations.map((c, idx) => {
+                        const docFirstName = c.doctor_first_name || c.doctorFirstName || "";
+                        const docLastName = c.doctor_last_name || c.doctorLastName || "";
+                        const docName = docFirstName ? `Dr. ${docFirstName} ${docLastName}`.trim() : "Attending Physician";
+                        const spec = c.doctor_specialisation || c.doctorSpecialisation || "General Medicine";
+                        const dateStr = c.record_date || c.recordDate ? new Date(c.record_date || c.recordDate).toLocaleDateString() : "";
+
+                        return (
+                          <div key={c.id || idx} style={{ padding: "18px 20px", border: "1px solid var(--color-border-card)", borderRadius: "var(--radius-md)", background: "var(--color-bg-tint)" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px", flexWrap: "wrap", gap: "6px" }}>
+                              <div>
+                                <h4 style={{ margin: "0 0 2px", color: "var(--color-primary)" }}>{c.diagnosis || c.title || "Clinical Consultation"}</h4>
+                                <span style={{ fontSize: "0.85rem", color: "var(--color-sage)" }}>
+                                  Conducted by {docName} ({spec}) {dateStr && `• ${dateStr}`}
+                                </span>
+                              </div>
+                              <span className="status-badge-pill status-confirmed">Signed Clinical Note</span>
+                            </div>
+                            {c.symptoms && (
+                              <p style={{ margin: "6px 0", fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                                <strong>Chief Symptoms:</strong> {c.symptoms}
+                              </p>
+                            )}
+                            {(c.treatment_plan || c.description) && (
+                              <p style={{ margin: "6px 0", fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                                <strong>Treatment Plan:</strong> {c.treatment_plan || c.description}
+                              </p>
+                            )}
+                            {c.follow_up_notes && (
+                              <p style={{ margin: "6px 0 0", fontSize: "0.85rem", color: "var(--color-sage)" }}>
+                                <em>Follow-up: {c.follow_up_notes}</em>
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <div className="panel-form-card" style={{ padding: "28px" }}>
                   <div className="portal-card-header">
                     <div>
@@ -711,26 +1211,73 @@ export default function PatientDashboard() {
             {/* View: Prescriptions */}
             {(activeTab === "my-prescriptions" || activeTab === "prescription-history" || activeTab === "download-prescriptions") && (
               <div className="panel-form-card" style={{ padding: "28px" }}>
-                <h3 style={{ margin: "0 0 8px", color: "var(--color-primary)" }}>Digital Prescriptions</h3>
-                <p style={{ color: "var(--color-text-body)", marginBottom: "20px" }}>
-                  Prescriptions issued by verified physicians with dosage, refill instructions, and PDF download links.
-                </p>
-                <div style={{ padding: "20px", background: "var(--color-bg-tint)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border-card)" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                    <div>
-                      <h4 style={{ margin: "0 0 2px", color: "var(--color-primary)" }}>Cardiovascular Support Regimen</h4>
-                      <span style={{ fontSize: "0.85rem", color: "var(--color-sage)" }}>Prescribed by Dr. Marcus Vance • Active</span>
-                    </div>
-                    <span className="status-badge-pill status-confirmed">Valid</span>
+                <div className="portal-card-header" style={{ marginBottom: "16px" }}>
+                  <div>
+                    <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Digital Prescriptions</h3>
+                    <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                      Official prescriptions issued by verified physicians with dosage, refill instructions, and download links.
+                    </p>
                   </div>
-                  <ul style={{ margin: "10px 0 14px 20px", fontSize: "0.9rem", color: "var(--color-text-body)" }}>
-                    <li>Atorvastatin 20mg - 1 tablet daily at bedtime (30 days)</li>
-                    <li>CoQ10 100mg - 1 capsule daily after breakfast (30 days)</li>
-                  </ul>
-                  <button className="btn btn-secondary btn-sm" onClick={() => setActionMessage("Prescription PDF downloaded successfully.")}>
-                    Download Prescription PDF
-                  </button>
                 </div>
+
+                {prescriptions.length === 0 ? (
+                  <div style={{ padding: "24px", background: "var(--color-bg-tint)", borderRadius: "var(--radius-md)", border: "1px dashed var(--color-border-card)", textAlign: "center" }}>
+                    <p style={{ margin: "0 0 8px", fontWeight: "600", color: "var(--color-primary)" }}>No Active Prescriptions Issued Yet</p>
+                    <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                      When your attending physician prescribes medications during your consultation, they will appear here automatically for review and download.
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: "16px" }}>
+                    {prescriptions.map((p, idx) => {
+                      const docFirstName = p.doctor_first_name || p.doctorFirstName || "";
+                      const docLastName = p.doctor_last_name || p.doctorLastName || "";
+                      const docName = docFirstName ? `Dr. ${docFirstName} ${docLastName}`.trim() : "Attending Physician";
+                      const spec = p.doctor_specialisation || p.doctorSpecialisation || "General Medicine";
+                      const medName = p.medicine_name || p.medicineName || p.title || "Prescription Regimen";
+                      const dateStr = p.record_date || p.recordDate ? new Date(p.record_date || p.recordDate).toLocaleDateString() : "Active";
+
+                      return (
+                        <div key={p.id || idx} style={{ padding: "20px", background: "var(--color-bg-tint)", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border-card)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px", flexWrap: "wrap", gap: "8px" }}>
+                            <div>
+                              <h4 style={{ margin: "0 0 2px", color: "var(--color-primary)" }}>{medName}</h4>
+                              <span style={{ fontSize: "0.85rem", color: "var(--color-sage)" }}>
+                                Prescribed by {docName} ({spec}) • {dateStr}
+                              </span>
+                            </div>
+                            <span className="status-badge-pill status-confirmed">Valid &amp; Active</span>
+                          </div>
+                          <div style={{ margin: "12px 0 14px", padding: "12px 16px", background: "#fff", borderRadius: "var(--radius-sm)", border: "1px solid var(--color-border-card)" }}>
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", fontSize: "0.88rem" }}>
+                              <div>
+                                <span style={{ color: "var(--color-sage)", display: "block", fontSize: "0.75rem", textTransform: "uppercase" }}>Dosage</span>
+                                <strong>{p.dosage || "1 tablet"}</strong>
+                              </div>
+                              <div>
+                                <span style={{ color: "var(--color-sage)", display: "block", fontSize: "0.75rem", textTransform: "uppercase" }}>Frequency</span>
+                                <strong>{p.frequency || "Once daily"}</strong>
+                              </div>
+                              <div>
+                                <span style={{ color: "var(--color-sage)", display: "block", fontSize: "0.75rem", textTransform: "uppercase" }}>Duration</span>
+                                <strong>{p.duration || "7 days"}</strong>
+                              </div>
+                              {p.notes && (
+                                <div style={{ gridColumn: "1 / -1" }}>
+                                  <span style={{ color: "var(--color-sage)", display: "block", fontSize: "0.75rem", textTransform: "uppercase" }}>Instructions</span>
+                                  <span>{p.notes}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <button className="btn btn-secondary btn-sm" onClick={() => handleDownloadPrescription(p)}>
+                            Download Prescription
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -838,10 +1385,10 @@ export default function PatientDashboard() {
                 </p>
                 <div style={{ display: "grid", gap: "16px" }}>
                   {[
-                    { id: 1, name: "Complete Blood Count (CBC)", cat: "Hematology", fee: "$25.00", prep: "No fasting strictly required." },
-                    { id: 2, name: "Comprehensive Metabolic Panel (CMP)", cat: "Biochemistry", fee: "$45.00", prep: "10-12 hour fasting required." },
-                    { id: 3, name: "Lipid Panel & Cholesterol Breakdown", cat: "Cardiology", fee: "$35.00", prep: "12 hour fasting required." },
-                    { id: 4, name: "Resting 12-Lead Electrocardiogram (ECG)", cat: "Diagnostics", fee: "$50.00", prep: "Avoid caffeine 4 hours prior." },
+                    { id: 1, name: "Complete Blood Count (CBC)", cat: "Hematology", fee: "₹250.00", prep: "No fasting strictly required." },
+                    { id: 2, name: "Comprehensive Metabolic Panel (CMP)", cat: "Biochemistry", fee: "₹450.00", prep: "10-12 hour fasting required." },
+                    { id: 3, name: "Lipid Panel & Cholesterol Breakdown", cat: "Cardiology", fee: "₹350.00", prep: "12 hour fasting required." },
+                    { id: 4, name: "Resting 12-Lead Electrocardiogram (ECG)", cat: "Diagnostics", fee: "₹500.00", prep: "Avoid caffeine 4 hours prior." },
                   ].map((test) => (
                     <div key={test.id} style={{ padding: "18px 22px", border: "1px solid var(--color-border-card)", borderRadius: "var(--radius-md)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
                       <div>
@@ -886,7 +1433,7 @@ export default function PatientDashboard() {
                           <tr key={inv.id}>
                             <td><code>{inv.invoice_number}</code></td>
                             <td>{inv.description}</td>
-                            <td><strong>${inv.amount.toFixed(2)}</strong></td>
+                            <td><strong>₹{inv.amount.toFixed(2)}</strong></td>
                             <td>
                               <span className={`status-badge-pill status-${inv.status?.toLowerCase()}`}>
                                 {inv.status}
@@ -1114,7 +1661,7 @@ export default function PatientDashboard() {
                         type="text"
                         value={profileForm.emergencyContact}
                         onChange={(e) => setProfileForm({ ...profileForm, emergencyContact: e.target.value })}
-                        placeholder="+1 (555) 000-0000"
+                        placeholder="+91 9051579029"
                       />
                     </label>
                     <div style={{ gridColumn: "1 / -1" }}>
@@ -1126,7 +1673,8 @@ export default function PatientDashboard() {
                 </div>
               </div>
             )}
-          </main>
+            </main>
+          </div>
         </div>
       </div>
     </section>

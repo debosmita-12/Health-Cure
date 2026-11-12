@@ -10,11 +10,10 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 8, message = "Password must be at least 8 characters")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    @NotBlank(message = "Role is required (PATIENT, DOCTOR)")
-    private String role;
+    private String role = "PATIENT";
 
     @NotBlank(message = "First name is required")
     private String firstName;
@@ -29,12 +28,21 @@ public class RegisterRequest {
     private String licenceNumber;
     private String qualification;
     private Integer experienceYears;
+    private String hospitalAffiliation;
+    private Double consultationFee;
+    private String biography;
 
     // Patient specific fields
     private String dateOfBirth;
     private String gender;
     private String bloodGroup;
     private String address;
+    private String emergencyContact;
+
+    // Admin specific fields
+    private String designation;
+    private String department;
+    private String adminKey;
 
     public RegisterRequest() {}
 
@@ -68,6 +76,15 @@ public class RegisterRequest {
     public Integer getExperienceYears() { return experienceYears; }
     public void setExperienceYears(Integer experienceYears) { this.experienceYears = experienceYears; }
 
+    public String getHospitalAffiliation() { return hospitalAffiliation; }
+    public void setHospitalAffiliation(String hospitalAffiliation) { this.hospitalAffiliation = hospitalAffiliation; }
+
+    public Double getConsultationFee() { return consultationFee; }
+    public void setConsultationFee(Double consultationFee) { this.consultationFee = consultationFee; }
+
+    public String getBiography() { return biography; }
+    public void setBiography(String biography) { this.biography = biography; }
+
     public String getDateOfBirth() { return dateOfBirth; }
     public void setDateOfBirth(String dateOfBirth) { this.dateOfBirth = dateOfBirth; }
 
@@ -79,4 +96,16 @@ public class RegisterRequest {
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
+
+    public String getEmergencyContact() { return emergencyContact; }
+    public void setEmergencyContact(String emergencyContact) { this.emergencyContact = emergencyContact; }
+
+    public String getDesignation() { return designation; }
+    public void setDesignation(String designation) { this.designation = designation; }
+
+    public String getDepartment() { return department; }
+    public void setDepartment(String department) { this.department = department; }
+
+    public String getAdminKey() { return adminKey; }
+    public void setAdminKey(String adminKey) { this.adminKey = adminKey; }
 }

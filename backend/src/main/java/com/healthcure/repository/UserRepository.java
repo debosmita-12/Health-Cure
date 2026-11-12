@@ -33,6 +33,10 @@ public class UserRepository {
         user.setPhone(rs.getString("phone"));
         user.setIsActive(rs.getBoolean("is_active"));
         user.setIsVerified(rs.getBoolean("is_verified"));
+        try {
+            user.setProvider(rs.getString("provider"));
+            user.setProviderId(rs.getString("provider_id"));
+        } catch (Exception ignored) {}
         Timestamp cat = rs.getTimestamp("created_at");
         if (cat != null) user.setCreatedAt(cat.toLocalDateTime());
         Timestamp uat = rs.getTimestamp("updated_at");
@@ -52,6 +56,12 @@ public class UserRepository {
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 
+    public Optional<User> findByProviderAndProviderId(String provider, String providerId) {
+        String sql = "SELECT * FROM users WHERE provider = ? AND provider_id = ?";
+        List<User> list = jdbcTemplate.query(sql, rowMapper, provider, providerId);
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
+    }
+
     public boolean existsByEmail(String email) {
         String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, email);
@@ -60,8 +70,8 @@ public class UserRepository {
 
     public User save(User user) {
         if (user.getId() == null) {
-            String sql = "INSERT INTO users (email, password_hash, role, first_name, last_name, phone, is_active, is_verified, created_at, updated_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
+            String sql = "INSERT INTO users (email, password_hash, role, first_name, last_name, phone, is_active, is_verified, provider, provider_id, created_at, updated_at) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
             KeyHolder keyHolder = new GeneratedKeyHolder();
 
             jdbcTemplate.update(connection -> {
@@ -74,6 +84,8 @@ public class UserRepository {
                 ps.setString(6, user.getPhone());
                 ps.setBoolean(7, user.getIsActive() != null ? user.getIsActive() : true);
                 ps.setBoolean(8, user.getIsVerified() != null ? user.getIsVerified() : false);
+                ps.setString(9, user.getProvider() != null ? user.getProvider() : "LOCAL");
+                ps.setString(10, user.getProviderId());
                 return ps;
             }, keyHolder);
 
@@ -84,8 +96,8 @@ public class UserRepository {
             }
             return user;
         } else {
-            String sql = "UPDATE users SET email = ?, role = ?, first_name = ?, last_name = ?, phone = ?, is_active = ?, is_verified = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-            jdbcTemplate.update(sql, user.getEmail(), user.getRole(), user.getFirstName(), user.getLastName(), user.getPhone(), user.getIsActive(), user.getIsVerified(), user.getId());
+            String sql = "UPDATE users SET email = ?, role = ?, first_name = ?, last_name = ?, phone = ?, is_active = ?, is_verified = ?, provider = ?, provider_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+            jdbcTemplate.update(sql, user.getEmail(), user.getRole(), user.getFirstName(), user.getLastName(), user.getPhone(), user.getIsActive(), user.getIsVerified(), user.getProvider(), user.getProviderId(), user.getId());
             return user;
         }
     }

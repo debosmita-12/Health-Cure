@@ -11,15 +11,31 @@ export default function SiteLayout() {
   }, [location.pathname, location.search]);
 
   return (
-    <>
+    <div
+      className="site-layout-wrapper"
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+      }}
+    >
       <a className="skip-link" href="#content">
         Skip to content
       </a>
       <Navbar />
-      <main id="content">
+      <main
+        id="content"
+        style={{
+          flex: "1 0 auto",
+          display: "flex",
+          flexDirection: "column",
+          width: "100%",
+        }}
+      >
         <Outlet />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }

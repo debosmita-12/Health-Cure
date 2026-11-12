@@ -3,13 +3,23 @@ package com.healthcure.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healthcure.dto.AppointmentRequest;
 import com.healthcure.model.Appointment;
+import com.healthcure.model.Doctor;
+import com.healthcure.model.Patient;
+import com.healthcure.model.User;
 import com.healthcure.repository.AppointmentRepository;
+import com.healthcure.repository.DoctorRepository;
+import com.healthcure.repository.PatientRepository;
+import com.healthcure.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,10 +43,51 @@ class AppointmentControllerTest {
         }
     }
 
+    static class TestUserRepository extends UserRepository {
+        public TestUserRepository() {
+            super(null);
+        }
+
+        @Override
+        public Optional<User> findByEmail(String email) {
+            return Optional.empty();
+        }
+    }
+
+    static class TestPatientRepository extends PatientRepository {
+        public TestPatientRepository() {
+            super(null);
+        }
+
+        @Override
+        public Optional<Patient> findByUserId(Long userId) {
+            return Optional.empty();
+        }
+    }
+
+    static class TestDoctorRepository extends DoctorRepository {
+        public TestDoctorRepository() {
+            super(null);
+        }
+
+        @Override
+        public Optional<Doctor> findById(Long id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public List<Doctor> findAll() {
+            return Collections.emptyList();
+        }
+    }
+
     @BeforeEach
     void setUp() {
         AppointmentRepository repository = new TestAppointmentRepository();
-        AppointmentController controller = new AppointmentController(repository);
+        UserRepository userRepository = new TestUserRepository();
+        PatientRepository patientRepository = new TestPatientRepository();
+        DoctorRepository doctorRepository = new TestDoctorRepository();
+        AppointmentController controller = new AppointmentController(repository, userRepository, patientRepository, doctorRepository);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
     }

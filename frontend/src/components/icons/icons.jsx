@@ -547,3 +547,29 @@ export function CodeIcon({ size = 24 }) {
     </Svg>
   );
 }
+
+export function LightningIcon({ size = 24 }) {
+  return (
+    <Svg size={size}>
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" {...stroke} />
+    </Svg>
+  );
+}
+
+export function SupportIcon({ size = 24 }) {
+  return (
+    <Svg size={size}>
+      <path d="M3 18v-6a9 9 0 0 1 18 0v6" {...stroke} />
+      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" {...stroke} />
+    </Svg>
+  );
+}
+
+export function LeafIcon({ size = 24 }) {
+  return (
+    <Svg size={size}>
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.5 1 9.2a7 7 0 0 1-9 8.8Z" {...stroke} />
+      <path d="M2 21c0-3 1.85-5.36 5.08-6" {...stroke} />
+    </Svg>
+  );
+}

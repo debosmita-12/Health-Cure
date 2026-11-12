@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import {
@@ -20,10 +20,11 @@ import {
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { tab } = useParams();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState(tab || "dashboard");
   const [sidebarFilter, setSidebarFilter] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -64,7 +65,7 @@ export default function AdminDashboard() {
 
   const [settingsForm, setSettingsForm] = useState({
     center_name: "Health & Cure Connected Care Centre",
-    emergency_phone: "+1 (555) 911-CURE",
+    emergency_phone: "+91 9051579029",
     consultation_buffer_minutes: "15",
     record_retention_years: "7",
   });
@@ -87,6 +88,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab.replace(/_/g, "-"));
+    } else {
+      setActiveTab("dashboard");
+    }
+  }, [tab]);
 
   async function handleVerifyDoctor(doctorId) {
     setActionMessage("");
@@ -198,7 +207,7 @@ export default function AdminDashboard() {
     return (
       <section className="subpage">
         <div className="container" style={{ textAlign: "center", padding: "80px 20px" }}>
-          <p>Loading superadmin governance console...</p>
+          <p>Loading Admin governance console...</p>
         </div>
       </section>
     );
@@ -402,80 +411,20 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <section className="subpage admin-dashboard">
-      <div className="container">
-        {/* Top Header */}
-        <div className="subpage-header">
-          <p className="eyebrow-text">PLATFORM SECURITY, CREDENTIALS &amp; AUDIT GOVERNANCE</p>
-          <h1 className="subpage-main-title">
-            Superadmin <span>Console</span>
-          </h1>
-          <p className="subpage-lede">
-            Administrative oversight across physicians, departments, clinical staff, billing invoices, and cryptographic audit logs. In accordance with zero-trust privacy rules, administrators have zero access to view private patient health documents.
-          </p>
-        </div>
-
-        {/* Global Notifications */}
-        {actionMessage && (
-          <div className="form-success-card" style={{ marginBottom: "20px", padding: "14px 20px" }}>
-            <p><strong>Success:</strong> {actionMessage}</p>
-          </div>
-        )}
-        {errorMessage && (
-          <div className="form-error-alert" style={{ marginBottom: "20px" }}>
-            <p><strong>Notice:</strong> {errorMessage}</p>
-          </div>
-        )}
-
-        {/* Quick Stats Bar */}
-        <div className="stats-bar-card" style={{ marginBottom: "28px", padding: "18px 24px" }}>
-          <div className="stats-item">
-            <span className="stats-icon"><DoctorIcon size={24} /></span>
-            <div className="stats-content">
-              <strong className="stats-value">{doctors.length} Doctors</strong>
-              <span className="stats-label">Registered Physicians</span>
-            </div>
-            <span className="stats-divider" aria-hidden="true" />
-          </div>
-
-          <div className="stats-item">
-            <span className="stats-icon"><HospitalIcon size={24} /></span>
-            <div className="stats-content">
-              <strong className="stats-value">{departments.length} Departments</strong>
-              <span className="stats-label">Clinical Units</span>
-            </div>
-            <span className="stats-divider" aria-hidden="true" />
-          </div>
-
-          <div className="stats-item">
-            <span className="stats-icon"><UsersIcon size={24} /></span>
-            <div className="stats-content">
-              <strong className="stats-value">{staff.length} Staff</strong>
-              <span className="stats-label">Active Employees</span>
-            </div>
-            <span className="stats-divider" aria-hidden="true" />
-          </div>
-
-          <div className="stats-item">
-            <span className="stats-icon"><AuditIcon size={24} /></span>
-            <div className="stats-content">
-              <strong className="stats-value">{auditLogs.length} Events</strong>
-              <span className="stats-label">Immutable Audit Trail</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 21-Category Two-Column Grid */}
-        <div className="portal-grid-layout">
-          {/* Left Sidebar */}
-          <aside className="portal-sidebar-card">
+    <section className="subpage admin-dashboard" style={{ paddingTop: "20px" }}>
+      <div className="container" style={{ maxWidth: "1440px" }}>
+        {/* Full-Height Layout: Dark Green Sidebar on the Left starting from the Top */}
+        <div className="portal-grid-layout" style={{ marginTop: 0 }}>
+          {/* Left Sidebar Column */}
+          <div className="portal-sidebar-column">
+            <aside className="portal-sidebar-card dark-green-sidebar">
             <div className="portal-user-profile-box">
               <div className="portal-user-avatar">
                 {(user?.firstName || "S")[0].toUpperCase()}
               </div>
               <div className="portal-user-info">
                 <h4 className="portal-user-name">{user?.firstName} {user?.lastName}</h4>
-                <span className="portal-user-role-badge">SUPERADMIN</span>
+                <span className="portal-user-role-badge">ADMIN</span>
               </div>
             </div>
 
@@ -489,7 +438,7 @@ export default function AdminDashboard() {
               />
             </div>
 
-            <nav aria-label="Superadmin console navigation">
+            <nav aria-label="Admin console navigation">
               {menuCategories.map((group) => {
                 const filteredItems = group.items.filter(item =>
                   item.label.toLowerCase().includes(sidebarFilter.toLowerCase())
@@ -512,6 +461,7 @@ export default function AdminDashboard() {
                                   handleLogout();
                                 } else {
                                   setActiveTab(item.id);
+                                  navigate(`/admin/${item.id}`);
                                 }
                               }}
                             >
@@ -531,9 +481,86 @@ export default function AdminDashboard() {
               })}
             </nav>
           </aside>
+        </div>
 
-          {/* Right Main Content Area */}
-          <main className="portal-content-area">
+          {/* Right Main Column: Banner, Stats & Content */}
+          <div className="portal-main-column" style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: "20px" }}>
+            {/* Executive Clinical Portal Dashboard Banner in exact Register Button Green (#174C40) */}
+            <div className="portal-hero-banner" style={{ margin: 0 }}>
+              <div>
+                <p className="portal-hero-eyebrow">
+                  <ShieldIcon size={16} />
+                  Platform Security, Credentials &amp; Audit Governance
+                </p>
+                <h1 className="portal-hero-title">
+                  Admin <span>Console</span>
+                </h1>
+                <p className="portal-hero-lede">
+                  Administrative oversight across physicians, departments, clinical staff, billing invoices, and cryptographic audit logs under zero-trust privacy governance.
+                </p>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-end" }}>
+                <span className="portal-hero-badge">
+                  <strong>Role:</strong> ADMIN
+                </span>
+                <span className="portal-hero-badge" style={{ background: "rgba(52, 211, 153, 0.25)", borderColor: "#34D399" }}>
+                  <CheckIcon size={14} /> Security Status: Enforced
+                </span>
+              </div>
+            </div>
+
+            {/* Global Notifications */}
+            {actionMessage && (
+              <div className="form-success-card" style={{ margin: 0, padding: "14px 20px" }}>
+                <p><strong>Success:</strong> {actionMessage}</p>
+              </div>
+            )}
+            {errorMessage && (
+              <div className="form-error-alert" style={{ margin: 0 }}>
+                <p><strong>Notice:</strong> {errorMessage}</p>
+              </div>
+            )}
+
+            {/* Quick Stats Bar */}
+            <div className="stats-bar-card" style={{ margin: 0, padding: "18px 24px" }}>
+              <div className="stats-item">
+                <span className="stats-icon"><DoctorIcon size={24} /></span>
+                <div className="stats-content">
+                  <strong className="stats-value">{doctors.length} Doctors</strong>
+                  <span className="stats-label">Registered Physicians</span>
+                </div>
+                <span className="stats-divider" aria-hidden="true" />
+              </div>
+
+              <div className="stats-item">
+                <span className="stats-icon"><HospitalIcon size={24} /></span>
+                <div className="stats-content">
+                  <strong className="stats-value">{departments.length} Departments</strong>
+                  <span className="stats-label">Clinical Units</span>
+                </div>
+                <span className="stats-divider" aria-hidden="true" />
+              </div>
+
+              <div className="stats-item">
+                <span className="stats-icon"><UsersIcon size={24} /></span>
+                <div className="stats-content">
+                  <strong className="stats-value">{staff.length} Staff</strong>
+                  <span className="stats-label">Active Employees</span>
+                </div>
+                <span className="stats-divider" aria-hidden="true" />
+              </div>
+
+              <div className="stats-item">
+                <span className="stats-icon"><AuditIcon size={24} /></span>
+                <div className="stats-content">
+                  <strong className="stats-value">{auditLogs.length} Events</strong>
+                  <span className="stats-label">Immutable Audit Trail</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Main Content Area */}
+            <main className="portal-content-area">
             {/* View: Dashboard Overview */}
             {activeTab === "dashboard" && (
               <div style={{ display: "grid", gap: "24px" }}>
@@ -551,7 +578,7 @@ export default function AdminDashboard() {
                     <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "var(--radius-md)" }}>
                       <span style={{ fontSize: "0.82rem", color: "var(--color-sage)", fontWeight: 700 }}>Total Revenue</span>
                       <h4 style={{ margin: "6px 0", color: "var(--color-primary)" }}>
-                        ${billing.reduce((sum, b) => sum + (b.amount || 0), 0).toFixed(2)}
+                        ₹{billing.reduce((sum, b) => sum + (b.amount || 0), 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
                       </h4>
                       <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-body)" }}>{billing.length} Invoices issued</p>
                     </div>
@@ -576,7 +603,7 @@ export default function AdminDashboard() {
                 <div className="panel-form-card" style={{ padding: "28px" }}>
                   <div className="portal-card-header">
                     <h3 style={{ margin: 0, color: "var(--color-primary)" }}>Recent Immutable Audit Events</h3>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab("audit-logs")}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => { setActiveTab("audit-logs"); navigate("/admin/audit-logs"); }}>
                       View Full Trail
                     </button>
                   </div>
@@ -908,7 +935,7 @@ export default function AdminDashboard() {
                         <tr>
                           <th>Test Name</th>
                           <th>Category</th>
-                          <th>Price</th>
+                          <th>Price (₹ INR)</th>
                           <th>Preparation</th>
                           <th>Status</th>
                         </tr>
@@ -918,7 +945,7 @@ export default function AdminDashboard() {
                           <tr key={t.id}>
                             <td><strong>{t.name}</strong></td>
                             <td>{t.category}</td>
-                            <td>${t.price.toFixed(2)}</td>
+                            <td>₹{t.price.toFixed(2)}</td>
                             <td><small>{t.preparation_instructions}</small></td>
                             <td>
                               <span className="status-badge-pill status-active">Available</span>
@@ -1055,7 +1082,7 @@ export default function AdminDashboard() {
                           <td><code>{inv.invoice_number}</code></td>
                           <td>{inv.first_name} {inv.last_name}</td>
                           <td>{inv.description}</td>
-                          <td><strong>${inv.amount.toFixed(2)}</strong></td>
+                          <td><strong>₹{inv.amount.toFixed(2)}</strong></td>
                           <td>
                             <span className={`status-badge-pill status-${inv.status?.toLowerCase()}`}>
                               {inv.status}
@@ -1184,7 +1211,8 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
-          </main>
+            </main>
+          </div>
         </div>
       </div>
     </section>

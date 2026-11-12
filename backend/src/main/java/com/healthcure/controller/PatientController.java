@@ -82,6 +82,8 @@ public class PatientController {
         ));
         data.put("patient", patient);
         data.put("records", recordRepository.findByPatientId(patient.getId()));
+        data.put("prescriptions", recordRepository.findPrescriptionsByPatientId(patient.getId()));
+        data.put("consultations", recordRepository.findConsultationsByPatientId(patient.getId()));
         data.put("appointments", appointmentRepository.findByPatientId(patient.getId()));
         data.put("accessRequests", accessRepository.findByPatientId(patient.getId()));
         data.put("vitals", vitalsRepository.findByPatientId(patient.getId()));

@@ -26,10 +26,15 @@ public class DoctorRepository {
         Doctor doc = new Doctor();
         doc.setId(rs.getLong("id"));
         doc.setUserId(rs.getLong("user_id"));
+        try { doc.setDepartmentId(rs.getObject("department_id") != null ? rs.getLong("department_id") : null); } catch (Exception ignored) {}
         doc.setSpecialisation(rs.getString("specialisation"));
         doc.setLicenceNumber(rs.getString("licence_number"));
         doc.setQualification(rs.getString("qualification"));
         doc.setExperienceYears(rs.getInt("experience_years"));
+        try { doc.setConsultationFee(rs.getDouble("consultation_fee")); } catch (Exception ignored) {}
+        try { doc.setHospitalAffiliation(rs.getString("hospital_affiliation")); } catch (Exception ignored) {}
+        try { doc.setBiography(rs.getString("biography")); } catch (Exception ignored) {}
+        try { doc.setProfileImageUrl(rs.getString("profile_image_url")); } catch (Exception ignored) {}
         doc.setVerifiedByAdmin(rs.getBoolean("verified_by_admin"));
         Timestamp vat = rs.getTimestamp("verified_at");
         if (vat != null) doc.setVerifiedAt(vat.toLocalDateTime());
@@ -59,17 +64,26 @@ public class DoctorRepository {
 
     public Doctor save(Doctor doctor) {
         if (doctor.getId() == null) {
-            String sql = "INSERT INTO doctors (user_id, specialisation, licence_number, qualification, experience_years, verified_by_admin, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO doctors (user_id, department_id, specialisation, licence_number, qualification, experience_years, consultation_fee, hospital_affiliation, biography, profile_image_url, verified_by_admin, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(con -> {
                 PreparedStatement ps = con.prepareStatement(sql, new String[] { "id" });
                 ps.setLong(1, doctor.getUserId());
-                ps.setString(2, doctor.getSpecialisation());
-                ps.setString(3, doctor.getLicenceNumber());
-                ps.setString(4, doctor.getQualification());
-                ps.setInt(5, doctor.getExperienceYears() != null ? doctor.getExperienceYears() : 0);
-                ps.setBoolean(6, doctor.getVerifiedByAdmin() != null ? doctor.getVerifiedByAdmin() : false);
-                ps.setTimestamp(7, doctor.getVerifiedAt() != null ? Timestamp.valueOf(doctor.getVerifiedAt()) : null);
+                if (doctor.getDepartmentId() != null) {
+                    ps.setLong(2, doctor.getDepartmentId());
+                } else {
+                    ps.setNull(2, java.sql.Types.BIGINT);
+                }
+                ps.setString(3, doctor.getSpecialisation());
+                ps.setString(4, doctor.getLicenceNumber());
+                ps.setString(5, doctor.getQualification());
+                ps.setInt(6, doctor.getExperienceYears() != null ? doctor.getExperienceYears() : 0);
+                ps.setDouble(7, doctor.getConsultationFee() != null ? doctor.getConsultationFee() : 75.0);
+                ps.setString(8, doctor.getHospitalAffiliation());
+                ps.setString(9, doctor.getBiography());
+                ps.setString(10, doctor.getProfileImageUrl());
+                ps.setBoolean(11, doctor.getVerifiedByAdmin() != null ? doctor.getVerifiedByAdmin() : false);
+                ps.setTimestamp(12, doctor.getVerifiedAt() != null ? Timestamp.valueOf(doctor.getVerifiedAt()) : null);
                 return ps;
             }, keyHolder);
             if (keyHolder.getKey() != null) {
@@ -79,12 +93,17 @@ public class DoctorRepository {
             }
             return doctor;
         } else {
-            String sql = "UPDATE doctors SET specialisation = ?, licence_number = ?, qualification = ?, experience_years = ?, verified_by_admin = ?, verified_at = ? WHERE id = ?";
+            String sql = "UPDATE doctors SET department_id = ?, specialisation = ?, licence_number = ?, qualification = ?, experience_years = ?, consultation_fee = ?, hospital_affiliation = ?, biography = ?, profile_image_url = ?, verified_by_admin = ?, verified_at = ? WHERE id = ?";
             jdbcTemplate.update(sql,
+                    doctor.getDepartmentId(),
                     doctor.getSpecialisation(),
                     doctor.getLicenceNumber(),
                     doctor.getQualification(),
                     doctor.getExperienceYears(),
+                    doctor.getConsultationFee() != null ? doctor.getConsultationFee() : 75.0,
+                    doctor.getHospitalAffiliation(),
+                    doctor.getBiography(),
+                    doctor.getProfileImageUrl(),
                     doctor.getVerifiedByAdmin(),
                     doctor.getVerifiedAt() != null ? Timestamp.valueOf(doctor.getVerifiedAt()) : null,
                     doctor.getId());

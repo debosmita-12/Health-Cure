@@ -5,10 +5,15 @@ import java.time.LocalDateTime;
 public class Doctor {
     private Long id;
     private Long userId;
+    private Long departmentId;
     private String specialisation;
     private String licenceNumber;
     private String qualification;
     private Integer experienceYears;
+    private Double consultationFee;
+    private String hospitalAffiliation;
+    private String biography;
+    private String profileImageUrl;
     private Boolean verifiedByAdmin;
     private LocalDateTime verifiedAt;
 
@@ -19,6 +24,9 @@ public class Doctor {
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+
+    public Long getDepartmentId() { return departmentId; }
+    public void setDepartmentId(Long departmentId) { this.departmentId = departmentId; }
 
     public String getSpecialisation() { return specialisation; }
     public void setSpecialisation(String specialisation) { this.specialisation = specialisation; }
@@ -31,6 +39,18 @@ public class Doctor {
 
     public Integer getExperienceYears() { return experienceYears; }
     public void setExperienceYears(Integer experienceYears) { this.experienceYears = experienceYears; }
+
+    public Double getConsultationFee() { return consultationFee; }
+    public void setConsultationFee(Double consultationFee) { this.consultationFee = consultationFee; }
+
+    public String getHospitalAffiliation() { return hospitalAffiliation; }
+    public void setHospitalAffiliation(String hospitalAffiliation) { this.hospitalAffiliation = hospitalAffiliation; }
+
+    public String getBiography() { return biography; }
+    public void setBiography(String biography) { this.biography = biography; }
+
+    public String getProfileImageUrl() { return profileImageUrl; }
+    public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 
     public Boolean getVerifiedByAdmin() { return verifiedByAdmin; }
     public void setVerifiedByAdmin(Boolean verifiedByAdmin) { this.verifiedByAdmin = verifiedByAdmin; }

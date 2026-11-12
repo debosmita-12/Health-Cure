@@ -3,10 +3,13 @@ import SiteLayout from "./layouts/SiteLayout";
 import AboutPage from "./pages/public/AboutPage";
 import BookAppointmentPage from "./pages/public/BookAppointmentPage";
 import ContactPage from "./pages/public/ContactPage";
+import DevelopersPage from "./pages/public/DevelopersPage";
 import GetStartedPage from "./pages/public/GetStartedPage";
 import HomePage from "./pages/public/HomePage";
 import HowItWorksPage from "./pages/public/HowItWorksPage";
 import LoginPage from "./pages/public/LoginPage";
+import ForgotPasswordPage from "./pages/public/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/public/ResetPasswordPage";
 import NotFoundPage from "./pages/public/NotFoundPage";
 import SecurityRulesPage from "./pages/public/SecurityRulesPage";
 import ServicesPage from "./pages/public/ServicesPage";
@@ -32,12 +35,16 @@ function App() {
             <Route path="/security" element={<SecurityRulesPage />} />
             <Route path="/book-appointment" element={<BookAppointmentPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/developers" element={<DevelopersPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<GetStartedPage />} />
             <Route path="/get-started" element={<GetStartedPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* Authenticated Role Portals */}
             <Route
-              path="/patient/dashboard"
+              path="/patient"
               element={
                 <ProtectedRoute allowedRoles={["PATIENT", "ADMIN"]}>
                   <PatientDashboard />
@@ -45,7 +52,15 @@ function App() {
               }
             />
             <Route
-              path="/doctor/dashboard"
+              path="/patient/:tab"
+              element={
+                <ProtectedRoute allowedRoles={["PATIENT", "ADMIN"]}>
+                  <PatientDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/doctor"
               element={
                 <ProtectedRoute allowedRoles={["DOCTOR", "ADMIN"]}>
                   <DoctorDashboard />
@@ -53,7 +68,23 @@ function App() {
               }
             />
             <Route
-              path="/admin/dashboard"
+              path="/doctor/:tab"
+              element={
+                <ProtectedRoute allowedRoles={["DOCTOR", "ADMIN"]}>
+                  <DoctorDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/:tab"
               element={
                 <ProtectedRoute allowedRoles={["SUPERADMIN", "ADMIN"]}>
                   <AdminDashboard />
