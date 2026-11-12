@@ -461,7 +461,7 @@ export default function AdminDashboard() {
                                   handleLogout();
                                 } else {
                                   setActiveTab(item.id);
-                                  navigate(`/admin/${item.id}`);
+                                  navigate(`/admin/${item.id}`, { preventScrollReset: true });
                                 }
                               }}
                             >

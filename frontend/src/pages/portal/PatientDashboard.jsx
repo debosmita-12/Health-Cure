@@ -508,10 +508,10 @@ export default function PatientDashboard() {
                                     handleLogout();
                                   } else if (item.id === "book-appointment") {
                                     setActiveTab("book-appointment");
-                                    navigate("/patient/book-appointment");
+                                    navigate("/patient/book-appointment", { preventScrollReset: true });
                                   } else {
                                     setActiveTab(item.id);
-                                    navigate(`/patient/${item.id}`);
+                                    navigate(`/patient/${item.id}`, { preventScrollReset: true });
                                   }
                                 }}
                               >

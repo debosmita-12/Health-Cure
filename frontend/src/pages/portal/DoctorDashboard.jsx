@@ -358,7 +358,7 @@ export default function DoctorDashboard() {
                                     handleLogout();
                                   } else {
                                     setActiveTab(item.id);
-                                    navigate(`/doctor/${item.id}`);
+                                    navigate(`/doctor/${item.id}`, { preventScrollReset: true });
                                   }
                                 }}
                               >
