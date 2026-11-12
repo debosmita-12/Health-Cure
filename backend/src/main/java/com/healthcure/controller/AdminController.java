@@ -144,11 +144,14 @@ public class AdminController {
     public ResponseEntity<?> addStaff(@RequestBody Map<String, Object> body, Authentication auth) {
         User user = getAuthenticatedUser(auth);
         String empId = (String) body.get("employeeId");
+        if (empId == null || empId.isBlank()) {
+            empId = "EMP-" + (System.currentTimeMillis() % 100000);
+        }
         String name = (String) body.get("name");
         String email = (String) body.get("email");
-        String group = (String) body.get("roleGroup");
+        String group = (String) body.getOrDefault("roleGroup", (String) body.getOrDefault("role", "General Staff"));
         Long deptId = body.get("departmentId") != null ? Long.valueOf(body.get("departmentId").toString()) : null;
-        String phone = (String) body.getOrDefault("phone", "");
+        String phone = (String) body.getOrDefault("phone", "+91 9051579029");
 
         staffRepository.save(empId, name, email, group, deptId, phone);
         auditLogRepository.log(user.getId(), "STAFF_ADDED", "STAFF", null, "Staff member registered: " + name, "127.0.0.1");

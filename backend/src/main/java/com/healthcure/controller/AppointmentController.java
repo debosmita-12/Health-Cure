@@ -40,18 +40,43 @@ public class AppointmentController {
     }
 
     @PostMapping("/book")
-    public ResponseEntity<Map<String, Object>> bookAppointment(@Valid @RequestBody AppointmentRequest request,
+    public ResponseEntity<Map<String, Object>> bookAppointment(@RequestBody AppointmentRequest request,
                                                                Authentication auth) {
         Appointment appointment = new Appointment();
-        appointment.setPatientName(request.getFullName().trim());
-        
+
+        // Resolve authenticated user if available
+        User authUser = null;
+        if (userRepository != null && auth != null && auth.getName() != null) {
+            authUser = userRepository.findByEmail(auth.getName()).orElse(null);
+        }
+
+        String name = request.getFullName();
+        if ((name == null || name.isBlank()) && authUser != null) {
+            name = (authUser.getFirstName() + " " + authUser.getLastName()).trim();
+        }
+        if (name == null || name.isBlank()) {
+            name = "Patient";
+        }
+        appointment.setPatientName(name);
+
+        String phone = request.getPhone();
+        if ((phone == null || phone.isBlank()) && authUser != null) {
+            phone = authUser.getPhone();
+        }
+        if (phone == null || phone.isBlank()) {
+            phone = "+91 9051579029";
+        }
+        appointment.setPatientPhone(phone.trim());
+
         String email = request.getEmail();
+        if ((email == null || email.isBlank()) && authUser != null) {
+            email = authUser.getEmail();
+        }
         if (email == null || email.isBlank()) {
-            String cleanPhone = request.getPhone().replaceAll("[^0-9]", "");
+            String cleanPhone = phone.replaceAll("[^0-9]", "");
             email = (cleanPhone.isEmpty() ? "patient" : cleanPhone) + "@patient.healthcure.local";
         }
         appointment.setPatientEmail(email.trim().toLowerCase());
-        appointment.setPatientPhone(request.getPhone().trim());
         appointment.setSpecialty(request.getSpecialty());
         appointment.setConsultationType(request.getConsultationType());
         appointment.setTimeSlot(request.getTimeSlot());

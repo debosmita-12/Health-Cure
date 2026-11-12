@@ -1,16 +1,9 @@
 package com.healthcure.dto;
 
-import jakarta.validation.constraints.NotBlank;
-
 public class AppointmentRequest {
-    @NotBlank(message = "Full name is required")
     private String fullName;
-
     private String email;
-
-    @NotBlank(message = "Phone number is required")
     private String phone;
-
     private String appointmentDate;
     private String timeSlot;
     private String consultationType;
