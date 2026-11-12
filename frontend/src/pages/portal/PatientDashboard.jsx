@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import {
@@ -21,10 +21,11 @@ import {
 export default function PatientDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { tab } = useParams();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState(tab || "dashboard");
   const [sidebarFilter, setSidebarFilter] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -58,6 +59,14 @@ export default function PatientDashboard() {
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab);
+    } else {
+      setActiveTab("dashboard");
+    }
+  }, [tab]);
 
   async function handleConsent(requestId, approve) {
     setActionMessage("");
@@ -417,6 +426,7 @@ export default function PatientDashboard() {
                                   navigate("/book-appointment");
                                 } else {
                                   setActiveTab(item.id);
+                                  navigate(`/patient/${item.id}`);
                                 }
                               }}
                             >
@@ -490,7 +500,7 @@ export default function PatientDashboard() {
                 <div className="panel-form-card" style={{ padding: "28px" }}>
                   <div className="portal-card-header">
                     <h3 style={{ margin: 0, color: "var(--color-primary)" }}>Scheduled Appointments</h3>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab("my-appointments")}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => { setActiveTab("my-appointments"); navigate("/patient/my-appointments"); }}>
                       View All
                     </button>
                   </div>

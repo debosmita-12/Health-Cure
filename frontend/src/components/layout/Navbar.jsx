@@ -23,6 +23,9 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Normalize role label (never Superadmin)
+  const displayRole = role === "SUPERADMIN" || role === "ADMIN" ? "Admin" : role === "DOCTOR" ? "Doctor" : "Patient";
+
   // Handle URL hash on initial load or navigation
   useEffect(() => {
     if (location.pathname === "/" && location.hash) {
@@ -95,7 +98,6 @@ export default function Navbar() {
         setActiveSection(link.targetId);
       }
     } else {
-      // Navigate to homepage with section hash
       e.preventDefault();
       navigate(link.targetId === "hero" ? "/" : `/#${link.targetId}`);
     }
@@ -113,6 +115,13 @@ export default function Navbar() {
     navigate(path);
   }
 
+  const portalDashboardPath =
+    role === "PATIENT"
+      ? "/patient/dashboard"
+      : role === "DOCTOR"
+      ? "/doctor/dashboard"
+      : "/admin/dashboard";
+
   return (
     <header className="site-header">
       <div className="container nav-container">
@@ -124,7 +133,7 @@ export default function Navbar() {
         {/* Center: Desktop Navigation */}
         <nav className="desktop-nav" aria-label="Primary Navigation">
           {!isAuthenticated ? (
-            /* Unauthenticated / Public Users */
+            /* Unauthenticated / Public Visitors */
             publicNavLinks.map((link) => {
               const isSectionActive =
                 location.pathname === "/"
@@ -148,39 +157,39 @@ export default function Navbar() {
               <NavLink to="/patient/dashboard" end className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
                 Dashboard
               </NavLink>
-              <NavLink to="/patient/dashboard" className="nav-link">
+              <NavLink to="/patient/my-appointments" className="nav-link">
                 Appointments
               </NavLink>
-              <NavLink to="/patient/dashboard" className="nav-link">
+              <NavLink to="/patient/medical-documents" className="nav-link">
                 My Records
               </NavLink>
-              <NavLink to="/patient/dashboard" className="nav-link">
+              <NavLink to="/patient/privacy-consent" className="nav-link">
                 Consent Control
               </NavLink>
             </>
           ) : role === "DOCTOR" ? (
-            /* Doctor Portal Navigation */
+            /* Doctor Portal Navigation (NO BOOK APPOINTMENT) */
             <>
               <NavLink to="/doctor/dashboard" end className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
                 Dashboard
               </NavLink>
-              <NavLink to="/doctor/dashboard" className="nav-link">
+              <NavLink to="/doctor/all-appointments" className="nav-link">
                 Appointments
               </NavLink>
-              <NavLink to="/doctor/dashboard" className="nav-link">
+              <NavLink to="/doctor/patient-history" className="nav-link">
                 Patient Consents
               </NavLink>
             </>
           ) : role === "SUPERADMIN" || role === "ADMIN" ? (
-            /* Superadmin Navigation */
+            /* Admin Navigation (Canonical Role: ADMIN) */
             <>
               <NavLink to="/admin/dashboard" end className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>
                 Dashboard
               </NavLink>
-              <NavLink to="/admin/dashboard" className="nav-link">
+              <NavLink to="/admin/doctor-directory" className="nav-link">
                 Doctors Queue
               </NavLink>
-              <NavLink to="/admin/dashboard" className="nav-link">
+              <NavLink to="/admin/audit-logs" className="nav-link">
                 Audit Trail
               </NavLink>
             </>
@@ -203,20 +212,24 @@ export default function Navbar() {
           </button>
 
           {!isAuthenticated ? (
-            <>
-              <Link to="/login" className="login-link">
+            <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+              <Link to="/login" className="nav-link" style={{ fontWeight: 600, color: "var(--color-text-title)" }}>
                 Login
               </Link>
-              <Link to="/book-appointment" className="btn btn-primary nav-cta">
-                Book Appointment <ArrowRightIcon size={14} />
+              <Link
+                to="/book-appointment"
+                className="btn btn-primary nav-cta"
+                style={{ padding: "9px 22px", borderRadius: "9999px", fontWeight: 600, fontSize: "0.88rem" }}
+              >
+                Book Appointment &rarr;
               </Link>
-            </>
+            </div>
           ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span className="nav-user-chip">
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <Link to={portalDashboardPath} className="nav-user-chip" title="Go to my portal">
                 <UsersIcon size={16} />
-                <span>{user?.firstName || role} ({role?.toLowerCase()})</span>
-              </span>
+                <span>{user?.firstName || displayRole} ({displayRole.toLowerCase()})</span>
+              </Link>
               <button
                 type="button"
                 className="btn-logout"
@@ -243,36 +256,23 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Search Overlay */}
+      {/* Search Modal */}
       {searchOpen && (
-        <div className="search-layer" role="presentation" onClick={() => setSearchOpen(false)}>
+        <div
+          className="search-dropdown-backdrop"
+          onClick={() => setSearchOpen(false)}
+        >
           <div
-            className="search-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Search"
+            className="container search-dropdown-container"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="search-header">
-              <label htmlFor="site-search" className="search-label">
-                Search Health &amp; Cure
-              </label>
-              <button
-                type="button"
-                className="icon-button close-search-btn"
-                onClick={() => setSearchOpen(false)}
-                aria-label="Close search"
-              >
-                <CloseIcon size={18} />
-              </button>
-            </div>
             <div className="search-input-wrap">
               <SearchIcon size={18} />
               <input
                 id="site-search"
                 autoFocus
                 value={query}
-                placeholder="Search services, records, security rules, booking..."
+                placeholder="Search services, records, security rules, departments..."
                 onChange={(event) => setQuery(event.target.value)}
               />
             </div>
@@ -316,41 +316,50 @@ export default function Navbar() {
                 <Link to="/patient/dashboard" className="mobile-link" onClick={() => setOpen(false)}>
                   Patient Dashboard
                 </Link>
-                <Link to="/book-appointment" className="mobile-link" onClick={() => setOpen(false)}>
-                  Book Appointment
+                <Link to="/patient/my-appointments" className="mobile-link" onClick={() => setOpen(false)}>
+                  My Appointments
+                </Link>
+                <Link to="/patient/medical-documents" className="mobile-link" onClick={() => setOpen(false)}>
+                  Medical Vault
                 </Link>
               </>
             ) : role === "DOCTOR" ? (
               <>
                 <Link to="/doctor/dashboard" className="mobile-link" onClick={() => setOpen(false)}>
-                  Physician Dashboard
+                  Doctor Clinical Workspace
+                </Link>
+                <Link to="/doctor/all-appointments" className="mobile-link" onClick={() => setOpen(false)}>
+                  My Appointments
                 </Link>
               </>
             ) : role === "SUPERADMIN" || role === "ADMIN" ? (
               <>
                 <Link to="/admin/dashboard" className="mobile-link" onClick={() => setOpen(false)}>
-                  Superadmin Console
+                  Admin Management Console
+                </Link>
+                <Link to="/admin/doctor-directory" className="mobile-link" onClick={() => setOpen(false)}>
+                  Doctor Directory
                 </Link>
               </>
             ) : null}
           </nav>
           <div className="mobile-actions">
             {!isAuthenticated ? (
-              <>
-                <Link to="/login" className="btn btn-secondary mobile-login">
-                  Login to Portal
+              <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+                <Link to="/register" className="btn btn-secondary" style={{ flex: 1, textAlign: "center" }} onClick={() => setOpen(false)}>
+                  Register
                 </Link>
-                <Link to="/book-appointment" className="btn btn-primary mobile-cta">
-                  Book Appointment <ArrowRightIcon size={14} />
+                <Link to="/login" className="btn btn-primary" style={{ flex: 1, textAlign: "center" }} onClick={() => setOpen(false)}>
+                  Login
                 </Link>
-              </>
+              </div>
             ) : (
               <button
                 type="button"
                 className="btn btn-secondary btn-block"
                 onClick={handleLogout}
               >
-                Logout ({user?.firstName || role})
+                Logout ({user?.firstName || displayRole})
               </button>
             )}
           </div>

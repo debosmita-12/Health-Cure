@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import {
@@ -20,10 +20,11 @@ import {
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { tab } = useParams();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState(tab || "dashboard");
   const [sidebarFilter, setSidebarFilter] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -87,6 +88,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab);
+    } else {
+      setActiveTab("dashboard");
+    }
+  }, [tab]);
 
   async function handleVerifyDoctor(doctorId) {
     setActionMessage("");
@@ -198,7 +207,7 @@ export default function AdminDashboard() {
     return (
       <section className="subpage">
         <div className="container" style={{ textAlign: "center", padding: "80px 20px" }}>
-          <p>Loading superadmin governance console...</p>
+          <p>Loading Admin governance console...</p>
         </div>
       </section>
     );
@@ -408,7 +417,7 @@ export default function AdminDashboard() {
         <div className="subpage-header">
           <p className="eyebrow-text">PLATFORM SECURITY, CREDENTIALS &amp; AUDIT GOVERNANCE</p>
           <h1 className="subpage-main-title">
-            Superadmin <span>Console</span>
+            Admin <span>Console</span>
           </h1>
           <p className="subpage-lede">
             Administrative oversight across physicians, departments, clinical staff, billing invoices, and cryptographic audit logs. In accordance with zero-trust privacy rules, administrators have zero access to view private patient health documents.
@@ -475,7 +484,7 @@ export default function AdminDashboard() {
               </div>
               <div className="portal-user-info">
                 <h4 className="portal-user-name">{user?.firstName} {user?.lastName}</h4>
-                <span className="portal-user-role-badge">SUPERADMIN</span>
+                <span className="portal-user-role-badge">ADMIN</span>
               </div>
             </div>
 
@@ -489,7 +498,7 @@ export default function AdminDashboard() {
               />
             </div>
 
-            <nav aria-label="Superadmin console navigation">
+            <nav aria-label="Admin console navigation">
               {menuCategories.map((group) => {
                 const filteredItems = group.items.filter(item =>
                   item.label.toLowerCase().includes(sidebarFilter.toLowerCase())
@@ -512,6 +521,7 @@ export default function AdminDashboard() {
                                   handleLogout();
                                 } else {
                                   setActiveTab(item.id);
+                                  navigate(`/admin/${item.id}`);
                                 }
                               }}
                             >
@@ -576,7 +586,7 @@ export default function AdminDashboard() {
                 <div className="panel-form-card" style={{ padding: "28px" }}>
                   <div className="portal-card-header">
                     <h3 style={{ margin: 0, color: "var(--color-primary)" }}>Recent Immutable Audit Events</h3>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setActiveTab("audit-logs")}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => { setActiveTab("audit-logs"); navigate("/admin/audit-logs"); }}>
                       View Full Trail
                     </button>
                   </div>

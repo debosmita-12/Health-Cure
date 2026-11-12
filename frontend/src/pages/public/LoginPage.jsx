@@ -1,26 +1,27 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import GoogleAuthButton from "../../components/common/GoogleAuthButton";
 import {
   ArrowRightIcon,
   EyeIcon,
   EyeOffIcon,
-  GoogleIcon,
   LockIcon,
 } from "../../components/icons/icons";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [values, setValues] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [loginRole, setLoginRole] = useState("");
-  const [googleNotice, setGoogleNotice] = useState(false);
-  const navigate = useNavigate();
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const noticeMessage = location.state?.notice;
 
   function update(event) {
     setErrors({});
@@ -30,23 +31,6 @@ export default function LoginPage() {
   function fillDemoAccount(email, password) {
     setValues({ email, password });
     setErrors({});
-  }
-
-  function handleGoogleLogin() {
-    if (!googleClientId || googleClientId === "YOUR_GOOGLE_CLIENT_ID_HERE") {
-      setGoogleNotice(true);
-      return;
-    }
-
-    const redirectUri = window.location.origin + "/login";
-    const scope = encodeURIComponent("openid email profile");
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
-      googleClientId
-    )}&redirect_uri=${encodeURIComponent(
-      redirectUri
-    )}&response_type=token&scope=${scope}&prompt=select_account`;
-
-    window.location.href = authUrl;
   }
 
   async function submit(event) {
@@ -67,10 +51,11 @@ export default function LoginPage() {
       if (res.success) {
         setLoginRole(res.user.role);
         setLoginSuccess(true);
+        navigate(getDashboardPath(res.user.role));
       } else {
         setErrors({ general: res.error });
       }
-    } catch (err) {
+    } catch {
       setErrors({ general: "Authentication service unavailable. Please try again." });
     } finally {
       setIsLoading(false);
@@ -131,7 +116,7 @@ export default function LoginPage() {
                 style={{ textAlign: "left", justifyContent: "flex-start", padding: "8px 12px" }}
                 onClick={() => fillDemoAccount("admin@healthcure.local", "Admin@123")}
               >
-                🛡️ <strong>Superadmin:</strong> admin@healthcure.local
+                🛡️ <strong>Admin:</strong> admin@healthcure.local
               </button>
             </div>
             <ul>
@@ -167,34 +152,9 @@ export default function LoginPage() {
             </div>
           ) : (
             <div className="panel-form-card">
-              {/* Google Login Option */}
-              <div className="form-google-section">
-                <button
-                  type="button"
-                  className="btn btn-google btn-block"
-                  onClick={handleGoogleLogin}
-                >
-                  <GoogleIcon size={18} />
-                  <span>Sign in with Google</span>
-                </button>
-                <div className="form-divider-or">
-                  <span>or sign in with email</span>
-                </div>
-              </div>
-
-              {googleNotice && (
-                <div className="google-config-notice">
-                  <p>
-                    Google OAuth is awaiting <code>VITE_GOOGLE_CLIENT_ID</code> in <code>.env</code>. You can log in
-                    with your email and password below.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => setGoogleNotice(false)}
-                  >
-                    Dismiss
-                  </button>
+              {noticeMessage && (
+                <div style={{ padding: "12px 16px", background: "#FEF3C7", borderRadius: "10px", border: "1px solid #FCD34D", color: "#92400E", marginBottom: "16px", fontSize: "0.88rem", lineHeight: 1.5 }}>
+                  ℹ️ {noticeMessage}
                 </div>
               )}
 
@@ -203,7 +163,7 @@ export default function LoginPage() {
               <form className="panel-form" onSubmit={submit} noValidate>
                 <div className="panel-form-header">
                   <h2>Portal Sign-In</h2>
-                  <p>Use your registered patient, verified doctor, or superadmin credentials.</p>
+                  <p>Use your registered patient, verified doctor, or admin credentials.</p>
                 </div>
 
                 <label>
@@ -242,6 +202,11 @@ export default function LoginPage() {
                     </button>
                   </div>
                   {errors.password && <small>{errors.password}</small>}
+                  <div style={{ textAlign: "right", marginTop: "6px" }}>
+                    <Link to="/forgot-password" style={{ fontSize: "0.85rem", color: "var(--color-primary)", textDecoration: "none", fontWeight: 600 }}>
+                      Forgot Password?
+                    </Link>
+                  </div>
                 </label>
 
                 <button
@@ -252,6 +217,16 @@ export default function LoginPage() {
                   {isLoading ? "Authenticating..." : "Sign In to Portal"}{" "}
                   <ArrowRightIcon size={14} />
                 </button>
+
+                {/* Continue with Google button below the standard email/password form */}
+                <GoogleAuthButton mode="login" />
+
+                <div style={{ textAlign: "center", margin: "14px 0 6px", fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                  Need a patient account?{" "}
+                  <Link to="/register" style={{ color: "var(--color-primary)", fontWeight: 700 }}>
+                    Register here
+                  </Link>
+                </div>
 
                 <p className="secure-note">
                   <LockIcon size={14} /> 256-bit encrypted authentication tunnel.

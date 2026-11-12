@@ -12,6 +12,8 @@ public class User {
     private String phone;
     private Boolean isActive;
     private Boolean isVerified;
+    private String provider = "LOCAL";
+    private String providerId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -27,6 +29,8 @@ public class User {
         this.phone = phone;
         this.isActive = isActive;
         this.isVerified = isVerified;
+        this.provider = "LOCAL";
+        this.providerId = null;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -57,6 +61,12 @@ public class User {
 
     public Boolean getIsVerified() { return isVerified; }
     public void setIsVerified(Boolean verified) { isVerified = verified; }
+
+    public String getProvider() { return provider; }
+    public void setProvider(String provider) { this.provider = provider; }
+
+    public String getProviderId() { return providerId; }
+    public void setProviderId(String providerId) { this.providerId = providerId; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

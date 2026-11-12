@@ -49,6 +49,39 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function loginWithGoogle(payload) {
+    setLoading(true);
+    try {
+      const res = await api.post("/api/auth/google", payload);
+      const authData = res.data;
+      if (authData && authData.pendingVerification) {
+        return {
+          success: true,
+          pendingVerification: true,
+          message: authData.message,
+          user: authData,
+        };
+      }
+      if (authData && authData.token) {
+        localStorage.setItem("hc_token", authData.token);
+        localStorage.setItem("hc_user", JSON.stringify(authData));
+        setToken(authData.token);
+        setUser(authData);
+        api.defaults.headers.common["Authorization"] = `Bearer ${authData.token}`;
+        return { success: true, user: authData };
+      }
+      return { success: false, error: "Invalid response from server" };
+    } catch (err) {
+      const errorMsg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        "Google authentication failed. Please try again.";
+      return { success: false, error: errorMsg };
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function logout() {
     localStorage.removeItem("hc_token");
     localStorage.removeItem("hc_user");
@@ -69,6 +102,7 @@ export function AuthProvider({ children }) {
         isAuthenticated,
         loading,
         login,
+        loginWithGoogle,
         logout,
       }}
     >

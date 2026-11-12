@@ -30,6 +30,7 @@ public class DoctorRepository {
         doc.setLicenceNumber(rs.getString("licence_number"));
         doc.setQualification(rs.getString("qualification"));
         doc.setExperienceYears(rs.getInt("experience_years"));
+        try { doc.setConsultationFee(rs.getDouble("consultation_fee")); } catch (Exception ignored) {}
         doc.setVerifiedByAdmin(rs.getBoolean("verified_by_admin"));
         Timestamp vat = rs.getTimestamp("verified_at");
         if (vat != null) doc.setVerifiedAt(vat.toLocalDateTime());
@@ -59,7 +60,7 @@ public class DoctorRepository {
 
     public Doctor save(Doctor doctor) {
         if (doctor.getId() == null) {
-            String sql = "INSERT INTO doctors (user_id, specialisation, licence_number, qualification, experience_years, verified_by_admin, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO doctors (user_id, specialisation, licence_number, qualification, experience_years, consultation_fee, verified_by_admin, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(con -> {
                 PreparedStatement ps = con.prepareStatement(sql, new String[] { "id" });
@@ -68,8 +69,9 @@ public class DoctorRepository {
                 ps.setString(3, doctor.getLicenceNumber());
                 ps.setString(4, doctor.getQualification());
                 ps.setInt(5, doctor.getExperienceYears() != null ? doctor.getExperienceYears() : 0);
-                ps.setBoolean(6, doctor.getVerifiedByAdmin() != null ? doctor.getVerifiedByAdmin() : false);
-                ps.setTimestamp(7, doctor.getVerifiedAt() != null ? Timestamp.valueOf(doctor.getVerifiedAt()) : null);
+                ps.setDouble(6, doctor.getConsultationFee() != null ? doctor.getConsultationFee() : 75.0);
+                ps.setBoolean(7, doctor.getVerifiedByAdmin() != null ? doctor.getVerifiedByAdmin() : false);
+                ps.setTimestamp(8, doctor.getVerifiedAt() != null ? Timestamp.valueOf(doctor.getVerifiedAt()) : null);
                 return ps;
             }, keyHolder);
             if (keyHolder.getKey() != null) {
@@ -79,12 +81,13 @@ public class DoctorRepository {
             }
             return doctor;
         } else {
-            String sql = "UPDATE doctors SET specialisation = ?, licence_number = ?, qualification = ?, experience_years = ?, verified_by_admin = ?, verified_at = ? WHERE id = ?";
+            String sql = "UPDATE doctors SET specialisation = ?, licence_number = ?, qualification = ?, experience_years = ?, consultation_fee = ?, verified_by_admin = ?, verified_at = ? WHERE id = ?";
             jdbcTemplate.update(sql,
                     doctor.getSpecialisation(),
                     doctor.getLicenceNumber(),
                     doctor.getQualification(),
                     doctor.getExperienceYears(),
+                    doctor.getConsultationFee() != null ? doctor.getConsultationFee() : 75.0,
                     doctor.getVerifiedByAdmin(),
                     doctor.getVerifiedAt() != null ? Timestamp.valueOf(doctor.getVerifiedAt()) : null,
                     doctor.getId());

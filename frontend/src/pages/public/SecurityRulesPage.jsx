@@ -27,7 +27,7 @@ export default function SecurityRulesPage() {
           </p>
         </div>
 
-        {/* Highlight Banner: Doctor Search Limitation & Superadmin Restrictions */}
+        {/* Highlight Banner: Doctor Search Limitation & Admin Restrictions */}
         <div className="security-critical-banner">
           <div className="critical-banner-badge">
             <ShieldAlertIcon size={32} />
@@ -60,7 +60,7 @@ export default function SecurityRulesPage() {
               <div className="critical-rule-item">
                 <span className="check-bullet"><CheckIcon size={14} /></span>
                 <p>
-                  <strong>Superadmin Access Prohibited:</strong> System administrators oversee user verification and
+                  <strong>Admin Access Prohibited:</strong> System administrators oversee user verification and
                   audit logs, but have zero architectural permission to view private patient health documents.
                 </p>
               </div>

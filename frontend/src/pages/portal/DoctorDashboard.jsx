@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import {
@@ -19,10 +19,11 @@ import {
 export default function DoctorDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { tab } = useParams();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState(tab || "dashboard");
   const [sidebarFilter, setSidebarFilter] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -48,6 +49,14 @@ export default function DoctorDashboard() {
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab);
+    } else {
+      setActiveTab("dashboard");
+    }
+  }, [tab]);
 
   async function handleRequestAccess(e) {
     e.preventDefault();
@@ -348,6 +357,7 @@ export default function DoctorDashboard() {
                                   handleLogout();
                                 } else {
                                   setActiveTab(item.id);
+                                  navigate(`/doctor/${item.id}`);
                                 }
                               }}
                             >
@@ -559,12 +569,13 @@ export default function DoctorDashboard() {
                                     onClick={() => {
                                       setReqPatientId(String(a.patientId || 1));
                                       setActiveTab("consultations");
+                                      navigate("/doctor/consultations");
                                     }}
                                   >
                                     Request Vault Access
                                   </button>
                                 ) : (
-                                  <button className="btn btn-primary btn-sm" onClick={() => setActiveTab("consultations")}>
+                                  <button className="btn btn-primary btn-sm" onClick={() => { setActiveTab("consultations"); navigate("/doctor/consultations"); }}>
                                     Open Clinical Vault
                                   </button>
                                 )}

@@ -122,7 +122,7 @@ export default function AboutPage() {
                     <ShieldIcon size={22} />
                   </div>
                   <div>
-                    <h4>Superadmin Portal</h4>
+                    <h4>Admin Portal</h4>
                     <p>
                       Platform governance, physician license verification, and forensic audit logging.
                       Architecturally barred from viewing private patient medical documents by default.

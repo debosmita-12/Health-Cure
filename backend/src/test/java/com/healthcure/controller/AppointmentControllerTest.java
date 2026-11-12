@@ -36,7 +36,7 @@ class AppointmentControllerTest {
     @BeforeEach
     void setUp() {
         AppointmentRepository repository = new TestAppointmentRepository();
-        AppointmentController controller = new AppointmentController(repository);
+        AppointmentController controller = new AppointmentController(repository, null, null, null);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
     }
@@ -79,7 +79,6 @@ class AppointmentControllerTest {
     @DisplayName("POST /api/appointments/book fails when required fields are missing")
     void testBookAppointmentValidationFailure() throws Exception {
         AppointmentRequest invalid = new AppointmentRequest();
-        // Missing required full name, email, phone, etc.
 
         mockMvc.perform(post("/api/appointments/book")
                         .contentType(MediaType.APPLICATION_JSON)

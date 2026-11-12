@@ -7,6 +7,8 @@ public class AuthResponse {
     private String firstName;
     private String lastName;
     private Long userId;
+    private Boolean pendingVerification = false;
+    private String message;
 
     public AuthResponse() {}
 
@@ -17,6 +19,18 @@ public class AuthResponse {
         this.firstName = firstName;
         this.lastName = lastName;
         this.userId = userId;
+        this.pendingVerification = false;
+    }
+
+    public AuthResponse(String token, String email, String role, String firstName, String lastName, Long userId, Boolean pendingVerification, String message) {
+        this.token = token;
+        this.email = email;
+        this.role = role;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.userId = userId;
+        this.pendingVerification = pendingVerification;
+        this.message = message;
     }
 
     public String getToken() { return token; }
@@ -36,4 +50,10 @@ public class AuthResponse {
 
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
+
+    public Boolean getPendingVerification() { return pendingVerification; }
+    public void setPendingVerification(Boolean pendingVerification) { this.pendingVerification = pendingVerification; }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
 }

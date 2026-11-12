@@ -15,9 +15,15 @@ CREATE TABLE IF NOT EXISTS users (
     phone VARCHAR(25),
     is_active BOOLEAN DEFAULT TRUE,
     is_verified BOOLEAN DEFAULT FALSE,
+    provider VARCHAR(50) DEFAULT 'LOCAL',
+    provider_id VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS provider VARCHAR(50) DEFAULT 'LOCAL';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS provider_id VARCHAR(255);
+CREATE INDEX IF NOT EXISTS idx_users_provider ON users(provider, provider_id);
 
 -- Departments Table
 CREATE TABLE IF NOT EXISTS departments (
@@ -237,6 +243,18 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     entity_id BIGINT,
     details TEXT,
     ip_address VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Contact & Public Enquiries
+CREATE TABLE IF NOT EXISTS contact_enquiries (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(50),
+    subject VARCHAR(150),
+    message TEXT NOT NULL,
+    status VARCHAR(30) DEFAULT 'NEW',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

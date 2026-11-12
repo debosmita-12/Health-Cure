@@ -9,6 +9,9 @@ public class Doctor {
     private String licenceNumber;
     private String qualification;
     private Integer experienceYears;
+    private Double consultationFee;
+    private String hospitalAffiliation;
+    private String biography;
     private Boolean verifiedByAdmin;
     private LocalDateTime verifiedAt;
 
@@ -31,6 +34,15 @@ public class Doctor {
 
     public Integer getExperienceYears() { return experienceYears; }
     public void setExperienceYears(Integer experienceYears) { this.experienceYears = experienceYears; }
+
+    public Double getConsultationFee() { return consultationFee; }
+    public void setConsultationFee(Double consultationFee) { this.consultationFee = consultationFee; }
+
+    public String getHospitalAffiliation() { return hospitalAffiliation; }
+    public void setHospitalAffiliation(String hospitalAffiliation) { this.hospitalAffiliation = hospitalAffiliation; }
+
+    public String getBiography() { return biography; }
+    public void setBiography(String biography) { this.biography = biography; }
 
     public Boolean getVerifiedByAdmin() { return verifiedByAdmin; }
     public void setVerifiedByAdmin(Boolean verifiedByAdmin) { this.verifiedByAdmin = verifiedByAdmin; }
