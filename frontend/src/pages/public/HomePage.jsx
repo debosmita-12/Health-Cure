@@ -246,16 +246,16 @@ export default function HomePage() {
               </p>
 
               <div className="ref-hero-buttons">
-                <a href="#services" className="ref-btn-primary">
-                  Explore Our Services →
+                <a href="#book-appointment" className="ref-btn-primary">
+                  Book Appointment →
                 </a>
-                <a href="#about" className="ref-btn-secondary">
+                <a href="#services" className="ref-btn-secondary">
                   <span className="ref-btn-play-circle">
                     <svg width="9" height="9" viewBox="0 0 10 10" fill="currentColor">
                       <polygon points="2.5,1.5 8.5,5 2.5,8.5" />
                     </svg>
                   </span>
-                  Learn More
+                  Explore Our Services
                 </a>
               </div>
             </div>
@@ -321,7 +321,7 @@ export default function HomePage() {
               </div>
               <div className="ref-why-body">
                 <h3>For Everyone</h3>
-                <p>Dedicated tools for patients, clinical workflows for doctors, and transparent operations for administrators.</p>
+                <p>Care for patients, tools for doctors, and powerful management for admins.</p>
               </div>
             </div>
 
@@ -332,7 +332,7 @@ export default function HomePage() {
               </div>
               <div className="ref-why-body">
                 <h3>Trusted &amp; Secure</h3>
-                <p>Role-based access boundaries, patient-consented medical history, and encrypted health records.</p>
+                <p>Your data and health are always protected.</p>
               </div>
             </div>
 
@@ -343,12 +343,102 @@ export default function HomePage() {
               </div>
               <div className="ref-why-body">
                 <h3>Accessible Anytime</h3>
-                <p>Digital medical records, diagnostic tests, verified prescriptions, and communication in one portal.</p>
+                <p>Book, consult and manage from anywhere, anytime.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* ========================================================
+          4. HOW IT WORKS (Directly follows Why Choose as in Reference Image)
+          ======================================================== */}
+      <section className="ref-how-section" id="how-it-works" aria-label="How It Works">
+        <div className="container">
+          <div className="ref-how-header">
+            <span className="ref-how-line" aria-hidden="true" />
+            <h2>How It Works</h2>
+            <span className="ref-how-line" aria-hidden="true" />
+          </div>
+
+          <div className="ref-how-row">
+            <div className="ref-how-item">
+              <div className="ref-how-icon-circle">
+                <CalendarStepIcon />
+              </div>
+              <span className="ref-how-label">Book an<br />Appointment</span>
+            </div>
+
+            <span className="ref-how-arrow-mark" aria-hidden="true">→</span>
+
+            <div className="ref-how-item">
+              <div className="ref-how-icon-circle">
+                <DoctorStepIcon />
+              </div>
+              <span className="ref-how-label">Consult with a<br />Professional</span>
+            </div>
+
+            <span className="ref-how-arrow-mark" aria-hidden="true">→</span>
+
+            <div className="ref-how-item">
+              <div className="ref-how-icon-circle">
+                <ClipboardStepIcon />
+              </div>
+              <span className="ref-how-label">Access Your<br />Health Records</span>
+            </div>
+
+            <span className="ref-how-arrow-mark" aria-hidden="true">→</span>
+
+            <div className="ref-how-item">
+              <div className="ref-how-icon-circle">
+                <HeartPulseStepIcon />
+              </div>
+              <span className="ref-how-label">Stay Healthier,<br />Happier</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          5. HEALTH JOURNEY BANNER (Directly follows How It Works as in Reference Image)
+          ======================================================== */}
+      <div className="ref-cta-banner-wrap">
+        <div className="ref-cta-banner">
+          <LeafCorner className="ref-banner-leaf leaf-left" />
+
+          <div className="ref-cta-left">
+            <h2 className="ref-cta-heading">
+              Your Health Journey
+              <br />
+              <span className="ref-journey-wrapper">
+                Starts Here
+                <svg className="banner-title-arc" viewBox="0 0 100 14" fill="none" preserveAspectRatio="none" aria-hidden="true">
+                  <path d="M4 10C35 2 65 2 96 10" stroke="#48A682" strokeWidth="3.5" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h2>
+          </div>
+
+          <div className="ref-cta-center">
+            <p>
+              Book an appointment today and take the first step towards a healthier tomorrow.
+            </p>
+          </div>
+
+          <div className="ref-cta-right">
+            <a href="#book-appointment" className="ref-btn-primary ref-cta-btn-nowrap">
+              Book Appointment →
+            </a>
+            <div className="banner-heart-icon" aria-hidden="true">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#73B69A" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </div>
+          </div>
+
+          <LeafCorner className="ref-banner-leaf leaf-right" />
+        </div>
+      </div>
 
       {/* ========================================================
           4. SERVICES SECTION
@@ -620,54 +710,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========================================================
-          7. HOW IT WORKS
-          ======================================================== */}
-      <section className="ref-how-section" id="how-it-works" aria-label="How It Works">
-        <div className="container">
-          <div className="ref-how-header">
-            <span className="ref-how-line" aria-hidden="true" />
-            <h2>How It Works</h2>
-            <span className="ref-how-line" aria-hidden="true" />
-          </div>
-
-          <div className="ref-how-row">
-            <div className="ref-how-item">
-              <div className="ref-how-icon-circle">
-                <CalendarStepIcon />
-              </div>
-              <span className="ref-how-label">Register &amp;<br />Discover Care</span>
-            </div>
-
-            <span className="ref-how-arrow-mark" aria-hidden="true">→</span>
-
-            <div className="ref-how-item">
-              <div className="ref-how-icon-circle">
-                <DoctorStepIcon />
-              </div>
-              <span className="ref-how-label">Consult with a<br />Professional</span>
-            </div>
-
-            <span className="ref-how-arrow-mark" aria-hidden="true">→</span>
-
-            <div className="ref-how-item">
-              <div className="ref-how-icon-circle">
-                <ClipboardStepIcon />
-              </div>
-              <span className="ref-how-label">Access Digital<br />Health Records</span>
-            </div>
-
-            <span className="ref-how-arrow-mark" aria-hidden="true">→</span>
-
-            <div className="ref-how-item">
-              <div className="ref-how-icon-circle">
-                <HeartPulseStepIcon />
-              </div>
-              <span className="ref-how-label">Stay Healthier,<br />Happier</span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ========================================================
           8. TESTIMONIALS & REVIEWS (Live Database)
@@ -913,46 +955,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========================================================
-          11. BOTTOM BANNER
-          ======================================================== */}
-      <div className="ref-cta-banner-wrap">
-        <div className="ref-cta-banner">
-          <LeafCorner className="ref-banner-leaf leaf-left" />
-
-          <div className="ref-cta-left">
-            <h2 className="ref-cta-heading">
-              Your Health Journey
-              <br />
-              <span className="ref-journey-wrapper">
-                Starts Here
-                <svg className="banner-title-arc" viewBox="0 0 100 14" fill="none" preserveAspectRatio="none" aria-hidden="true">
-                  <path d="M4 10C35 2 65 2 96 10" stroke="#48A682" strokeWidth="3.5" strokeLinecap="round" />
-                </svg>
-              </span>
-            </h2>
-          </div>
-
-          <div className="ref-cta-center">
-            <p>
-              Join Health &amp; Cure today to access trusted healthcare professionals, manage digital medical records, and experience seamless care.
-            </p>
-          </div>
-
-          <div className="ref-cta-right">
-            <Link to="/register" className="ref-btn-primary ref-cta-btn-nowrap">
-              Get Started →
-            </Link>
-            <div className="banner-heart-icon" aria-hidden="true">
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#5E8F7C" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-            </div>
-          </div>
-
-          <LeafCorner className="ref-banner-leaf leaf-right" />
-        </div>
-      </div>
     </div>
   );
 }

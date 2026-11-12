@@ -167,17 +167,26 @@ export default function Navbar() {
           </button>
 
           {!isAuthenticated ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
               <Link to="/login" className="nav-link" style={{ fontWeight: 600 }}>
                 Login
               </Link>
-              <Link
-                to="/register"
+              <a
+                href="/#book-appointment"
                 className="ref-btn-primary"
                 style={{ padding: "10px 22px", fontSize: "0.88rem" }}
+                onClick={(e) => {
+                  if (location.pathname === "/") {
+                    e.preventDefault();
+                    const el = document.getElementById("book-appointment");
+                    if (el) {
+                      el.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }
+                }}
               >
-                Register →
-              </Link>
+                Book Appointment →
+              </a>
             </div>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -200,19 +209,6 @@ export default function Navbar() {
               </button>
             </div>
           )}
-
-          <button
-            className="icon-button menu-button"
-            type="button"
-            aria-label={open ? "Close menu" : "Open menu"}
-            aria-expanded={open}
-            onClick={() => {
-              setOpen((value) => !value);
-              setSearchOpen(false);
-            }}
-          >
-            {open ? <CloseIcon size={22} /> : <MenuIcon size={22} />}
-          </button>
         </div>
       </div>
 
