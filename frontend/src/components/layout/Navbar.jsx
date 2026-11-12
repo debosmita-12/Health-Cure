@@ -168,7 +168,7 @@ export default function Navbar() {
 
           {!isAuthenticated ? (
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <Link to="/login" className="nav-link" style={{ fontWeight: 600, color: "var(--color-text-title)" }}>
+              <Link to="/login" className="nav-link" style={{ fontWeight: 600 }}>
                 Login
               </Link>
               <Link
