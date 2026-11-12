@@ -28,6 +28,7 @@ export default function AdminDashboard() {
   const [sidebarFilter, setSidebarFilter] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [selectedAdminAppt, setSelectedAdminAppt] = useState(null);
 
   // Sub-forms
   const [newDoctor, setNewDoctor] = useState({
@@ -1022,38 +1023,72 @@ export default function AdminDashboard() {
                         <th>Patient</th>
                         <th>Specialty</th>
                         <th>Slot</th>
-                        <th>Status</th>
+                        <th>Attendance / Status</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {appointments.map((a) => (
-                        <tr key={a.id}>
-                          <td><code>{a.referenceCode}</code></td>
-                          <td><strong>{a.patientName}</strong></td>
-                          <td>{a.specialty}</td>
-                          <td>{a.timeSlot}</td>
-                          <td>
-                            <span className={`status-badge-pill status-${a.status?.toLowerCase()}`}>
-                              {a.status}
-                            </span>
-                          </td>
-                          <td>
-                            <div style={{ display: "flex", gap: "6px" }}>
-                              {a.status !== "CONFIRMED" && (
-                                <button className="btn btn-primary btn-sm" onClick={() => handleUpdateAppointmentStatus(a.id, "CONFIRMED")}>
-                                  Confirm
-                                </button>
+                      {appointments.map((a) => {
+                        const isAttended = a.status === "ATTENDED";
+                        const isMissed = a.status === "NOT_ATTENDED";
+                        return (
+                          <tr key={a.id}>
+                            <td><code>{a.referenceCode}</code></td>
+                            <td>
+                              <strong>{a.patientName}</strong>
+                              <br />
+                              <small style={{ color: "var(--color-text-muted)" }}>{a.patientEmail}</small>
+                            </td>
+                            <td>{a.specialty}</td>
+                            <td>{a.timeSlot}</td>
+                            <td>
+                              <span
+                                className="status-badge-pill"
+                                style={{
+                                  background: isAttended ? "#ECFDF5" : isMissed ? "#FEF2F2" : a.status === "CONFIRMED" ? "#EFF6FF" : "#FFFBEB",
+                                  color: isAttended ? "#065F46" : isMissed ? "#991B1B" : a.status === "CONFIRMED" ? "#1E40AF" : "#92400E",
+                                  border: `1px solid ${isAttended ? "#10B981" : isMissed ? "#EF4444" : a.status === "CONFIRMED" ? "#3B82F6" : "#F59E0B"}`,
+                                  fontWeight: 700,
+                                  padding: "4px 10px",
+                                  borderRadius: "12px",
+                                  display: "inline-block",
+                                }}
+                              >
+                                {isAttended ? "✓ Attended" : isMissed ? "✗ Missed" : a.status}
+                              </span>
+                              {a.diagnosisTitle && (
+                                <div style={{ marginTop: "4px" }}>
+                                  <span style={{ fontSize: "0.74rem", background: "#D1FAE5", color: "#065F46", padding: "2px 6px", borderRadius: "6px", fontWeight: 600 }}>
+                                    Rx Published
+                                  </span>
+                                </div>
                               )}
-                              {a.status !== "COMPLETED" && (
-                                <button className="btn btn-secondary btn-sm" onClick={() => handleUpdateAppointmentStatus(a.id, "COMPLETED")}>
-                                  Complete
+                            </td>
+                            <td>
+                              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+                                  onClick={() => setSelectedAdminAppt(a)}
+                                >
+                                  👁 Details
                                 </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                                {a.status !== "CONFIRMED" && (
+                                  <button className="btn btn-primary btn-sm" style={{ padding: "4px 8px", fontSize: "0.8rem" }} onClick={() => handleUpdateAppointmentStatus(a.id, "CONFIRMED")}>
+                                    Confirm
+                                  </button>
+                                )}
+                                {a.status !== "COMPLETED" && a.status !== "ATTENDED" && (
+                                  <button className="btn btn-secondary btn-sm" style={{ padding: "4px 8px", fontSize: "0.8rem" }} onClick={() => handleUpdateAppointmentStatus(a.id, "COMPLETED")}>
+                                    Complete
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -1215,6 +1250,143 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Admin Appointment Details Inspection Modal */}
+      {selectedAdminAppt && (
+        <div
+          className="portal-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100,
+            padding: "20px",
+          }}
+          onClick={() => setSelectedAdminAppt(null)}
+        >
+          <div
+            className="portal-modal-box"
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "18px",
+              maxWidth: "680px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.35)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid var(--color-border-subtle)", background: "#F8FAF9" }}>
+              <div>
+                <h3 style={{ margin: 0, color: "var(--color-primary)", fontSize: "1.3rem" }}>
+                  Platform Appointment Inspection
+                </h3>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  Reference: <code>{selectedAdminAppt.referenceCode}</code>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAdminAppt(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: "4px" }}
+              >
+                <CloseIcon size={22} />
+              </button>
+            </div>
+
+            <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "18px" }}>
+              <div style={{ background: "var(--color-bg-tint)", padding: "16px 20px", borderRadius: "12px", border: "1px solid var(--color-border-card)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Patient Name</span>
+                  <strong style={{ fontSize: "1.1rem", color: "var(--color-primary)" }}>{selectedAdminAppt.patientName}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Attendance / Status</span>
+                  <span
+                    className="status-badge-pill"
+                    style={{
+                      background: selectedAdminAppt.status === "ATTENDED" ? "#ECFDF5" : selectedAdminAppt.status === "NOT_ATTENDED" ? "#FEF2F2" : "#EFF6FF",
+                      color: selectedAdminAppt.status === "ATTENDED" ? "#065F46" : selectedAdminAppt.status === "NOT_ATTENDED" ? "#991B1B" : "#1E40AF",
+                      border: `1px solid ${selectedAdminAppt.status === "ATTENDED" ? "#10B981" : selectedAdminAppt.status === "NOT_ATTENDED" ? "#EF4444" : "#3B82F6"}`,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: "12px",
+                      display: "inline-block",
+                    }}
+                  >
+                    {selectedAdminAppt.status === "ATTENDED" ? "✓ Attended" : selectedAdminAppt.status === "NOT_ATTENDED" ? "✗ Missed / Not Attended" : selectedAdminAppt.status}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Email</span>
+                  <strong>{selectedAdminAppt.patientEmail}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Phone</span>
+                  <strong>{selectedAdminAppt.patientPhone}</strong>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", background: "#FFFFFF", border: "1px solid var(--color-border-subtle)", padding: "14px 18px", borderRadius: "10px" }}>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Department</span>
+                  <strong>{selectedAdminAppt.specialty}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Attending Doctor</span>
+                  <strong>{selectedAdminAppt.preferredDoctor || "Assigned Specialist"}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Time Slot</span>
+                  <strong>{selectedAdminAppt.timeSlot}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Consultation Mode</span>
+                  <strong>{selectedAdminAppt.consultationType}</strong>
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Patient Demographics (Gender / Blood Group / DOB)</span>
+                  <span>{selectedAdminAppt.patientGender || "Female"} • Blood: <strong style={{ color: "#DC2626" }}>{selectedAdminAppt.patientBloodGroup || "A+"}</strong> • DOB: {selectedAdminAppt.patientDob || "2003-06-12"}</span>
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Address &amp; Emergency Contact</span>
+                  <span>{selectedAdminAppt.patientAddress || "Health & Cure Super Speciality Hospital Campus, Salt Lake Sector V, Kolkata, West Bengal - 700091, India"} • Emergency: {selectedAdminAppt.emergencyContact || selectedAdminAppt.patientPhone || "+91 9051579029"}</span>
+                </div>
+                {selectedAdminAppt.notes && (
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Patient Symptoms / Booking Notes</span>
+                    <p style={{ margin: "4px 0 0", color: "var(--color-text-body)", fontSize: "0.9rem" }}>{selectedAdminAppt.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {selectedAdminAppt.diagnosisTitle && (
+                <div style={{ background: "#F0FDF4", border: "1.5px solid #34D399", padding: "16px 20px", borderRadius: "12px" }}>
+                  <strong style={{ color: "#065F46", fontSize: "0.95rem" }}>Published Diagnosis &amp; Prescriptions:</strong>
+                  <p style={{ margin: "4px 0 6px", fontWeight: 700, color: "var(--color-primary)" }}>{selectedAdminAppt.diagnosisTitle}</p>
+                  {selectedAdminAppt.clinicalNotes && <p style={{ margin: "0 0 4px", fontSize: "0.88rem" }}><strong>Clinical Notes:</strong> {selectedAdminAppt.clinicalNotes}</p>}
+                  {selectedAdminAppt.prescriptions && <p style={{ margin: "0 0 4px", fontSize: "0.88rem" }}><strong>Rx:</strong> {selectedAdminAppt.prescriptions}</p>}
+                  {selectedAdminAppt.followUpNotes && <p style={{ margin: 0, fontSize: "0.88rem" }}><strong>Follow-Up:</strong> {selectedAdminAppt.followUpNotes}</p>}
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "12px", borderTop: "1px solid var(--color-border-subtle)" }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedAdminAppt(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

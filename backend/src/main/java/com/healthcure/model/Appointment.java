@@ -18,6 +18,16 @@ public class Appointment {
     private String notes;
     private Boolean googleAuthenticated;
     private String referenceCode;
+    private String diagnosisTitle;
+    private String clinicalNotes;
+    private String prescriptions;
+    private String followUpNotes;
+    private LocalDateTime diagnosisPublishedAt;
+    private String patientGender;
+    private String patientBloodGroup;
+    private String patientDob;
+    private String patientAddress;
+    private String emergencyContact;
     private LocalDateTime createdAt;
 
     public Appointment() {}
@@ -66,6 +76,36 @@ public class Appointment {
 
     public String getReferenceCode() { return referenceCode; }
     public void setReferenceCode(String referenceCode) { this.referenceCode = referenceCode; }
+
+    public String getDiagnosisTitle() { return diagnosisTitle; }
+    public void setDiagnosisTitle(String diagnosisTitle) { this.diagnosisTitle = diagnosisTitle; }
+
+    public String getClinicalNotes() { return clinicalNotes; }
+    public void setClinicalNotes(String clinicalNotes) { this.clinicalNotes = clinicalNotes; }
+
+    public String getPrescriptions() { return prescriptions; }
+    public void setPrescriptions(String prescriptions) { this.prescriptions = prescriptions; }
+
+    public String getFollowUpNotes() { return followUpNotes; }
+    public void setFollowUpNotes(String followUpNotes) { this.followUpNotes = followUpNotes; }
+
+    public LocalDateTime getDiagnosisPublishedAt() { return diagnosisPublishedAt; }
+    public void setDiagnosisPublishedAt(LocalDateTime diagnosisPublishedAt) { this.diagnosisPublishedAt = diagnosisPublishedAt; }
+
+    public String getPatientGender() { return patientGender; }
+    public void setPatientGender(String patientGender) { this.patientGender = patientGender; }
+
+    public String getPatientBloodGroup() { return patientBloodGroup; }
+    public void setPatientBloodGroup(String patientBloodGroup) { this.patientBloodGroup = patientBloodGroup; }
+
+    public String getPatientDob() { return patientDob; }
+    public void setPatientDob(String patientDob) { this.patientDob = patientDob; }
+
+    public String getPatientAddress() { return patientAddress; }
+    public void setPatientAddress(String patientAddress) { this.patientAddress = patientAddress; }
+
+    public String getEmergencyContact() { return emergencyContact; }
+    public void setEmergencyContact(String emergencyContact) { this.emergencyContact = emergencyContact; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

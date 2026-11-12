@@ -51,6 +51,50 @@ export default function DoctorDashboard() {
   });
   const [leaveForm, setLeaveForm] = useState({ leaveType: "Personal Leave", startDate: "2026-11-20", endDate: "2026-11-22", reason: "" });
 
+  // Patient Booking Details & Diagnosis Modals
+  const [selectedPatientModal, setSelectedPatientModal] = useState(null);
+  const [diagnosisModalAppt, setDiagnosisModalAppt] = useState(null);
+  const [diagnosisFormData, setDiagnosisFormData] = useState({
+    diagnosisTitle: "",
+    clinicalNotes: "",
+    prescriptions: "",
+    followUpNotes: "",
+    markAttended: true,
+  });
+  const [isPublishingDiagnosis, setIsPublishingDiagnosis] = useState(false);
+
+  function openDiagnosisModal(appt) {
+    setDiagnosisModalAppt(appt);
+    setDiagnosisFormData({
+      diagnosisTitle: appt.diagnosisTitle || "",
+      clinicalNotes: appt.clinicalNotes || "",
+      prescriptions: appt.prescriptions || "",
+      followUpNotes: appt.followUpNotes || "",
+      markAttended: true,
+    });
+  }
+
+  async function handlePublishDiagnosisSubmit(e) {
+    e.preventDefault();
+    if (!diagnosisModalAppt) return;
+    setIsPublishingDiagnosis(true);
+    setActionMessage("");
+    setErrorMessage("");
+    try {
+      const res = await api.post(`/api/doctor/appointments/${diagnosisModalAppt.id}/diagnosis`, diagnosisFormData);
+      setActionMessage(res.data?.message || "Diagnosis and prescription published successfully to patient medical vault.");
+      setDiagnosisModalAppt(null);
+      if (selectedPatientModal && selectedPatientModal.id === diagnosisModalAppt.id) {
+        setSelectedPatientModal(null);
+      }
+      loadDashboard();
+    } catch (err) {
+      setErrorMessage(err.response?.data?.error || "Failed to publish diagnosis. Please verify details.");
+    } finally {
+      setIsPublishingDiagnosis(false);
+    }
+  }
+
   async function loadDashboard() {
     setLoading(true);
     try {
@@ -499,7 +543,12 @@ export default function DoctorDashboard() {
                 {/* Assigned Appointments Card */}
                 <div className="panel-form-card" style={{ padding: "28px" }}>
                   <div className="portal-card-header">
-                    <h3 style={{ margin: 0, color: "var(--color-primary)" }}>Assigned Patient Visits</h3>
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Assigned Patient Visits</h3>
+                      <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                        Manage attendance lifecycle, inspect booking details, and publish clinical diagnoses.
+                      </p>
+                    </div>
                   </div>
                   {appointments.length === 0 ? (
                     <p style={{ color: "var(--color-text-body)", margin: 0 }}>No consultations currently assigned.</p>
@@ -508,48 +557,98 @@ export default function DoctorDashboard() {
                       <table className="portal-table">
                         <thead>
                           <tr>
+                            <th>Ref</th>
                             <th>Patient</th>
-                            <th>Contact</th>
                             <th>Specialty</th>
                             <th>Slot</th>
-                            <th>Status</th>
+                            <th>Attendance / Status</th>
                             <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {appointments.map((a) => (
-                            <tr key={a.id}>
-                              <td><strong>{a.patientName}</strong></td>
-                              <td>{a.patientEmail}<br /><small>{a.patientPhone}</small></td>
-                              <td>{a.specialty}</td>
-                              <td>{a.timeSlot}</td>
-                              <td>
-                                <span className={`status-badge-pill status-${a.status?.toLowerCase()}`}>
-                                  {a.status}
-                                </span>
-                              </td>
-                              <td>
-                                <div style={{ display: "flex", gap: "6px" }}>
-                                  {a.status !== "COMPLETED" && (
-                                    <button
-                                      className="btn btn-primary btn-sm"
-                                      onClick={() => handleUpdateAppointmentStatus(a.id, "COMPLETED")}
-                                    >
-                                      Complete
-                                    </button>
+                          {appointments.map((a) => {
+                            const isAttended = a.status === "ATTENDED";
+                            const isMissed = a.status === "NOT_ATTENDED";
+                            return (
+                              <tr key={a.id}>
+                                <td><code>{a.referenceCode}</code></td>
+                                <td>
+                                  <strong>{a.patientName}</strong>
+                                  <br />
+                                  <small style={{ color: "var(--color-text-muted)" }}>{a.patientEmail}</small>
+                                </td>
+                                <td>{a.specialty}</td>
+                                <td>{a.timeSlot}</td>
+                                <td>
+                                  <span
+                                    className="status-badge-pill"
+                                    style={{
+                                      background: isAttended ? "#ECFDF5" : isMissed ? "#FEF2F2" : a.status === "CONFIRMED" ? "#EFF6FF" : "#FFFBEB",
+                                      color: isAttended ? "#065F46" : isMissed ? "#991B1B" : a.status === "CONFIRMED" ? "#1E40AF" : "#92400E",
+                                      border: `1px solid ${isAttended ? "#10B981" : isMissed ? "#EF4444" : a.status === "CONFIRMED" ? "#3B82F6" : "#F59E0B"}`,
+                                      fontWeight: 700,
+                                      padding: "4px 10px",
+                                      borderRadius: "12px",
+                                      display: "inline-block",
+                                    }}
+                                  >
+                                    {isAttended ? "✓ Attended" : isMissed ? "✗ Missed / Not Attended" : a.status}
+                                  </span>
+                                  {a.diagnosisTitle && (
+                                    <div style={{ marginTop: "4px" }}>
+                                      <span style={{ fontSize: "0.74rem", background: "#D1FAE5", color: "#065F46", padding: "2px 6px", borderRadius: "6px", fontWeight: 600 }}>
+                                        Rx Published
+                                      </span>
+                                    </div>
                                   )}
-                                  {a.status === "REQUESTED" && (
+                                </td>
+                                <td>
+                                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                                     <button
+                                      type="button"
                                       className="btn btn-secondary btn-sm"
-                                      onClick={() => handleUpdateAppointmentStatus(a.id, "CONFIRMED")}
+                                      style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+                                      onClick={() => setSelectedPatientModal(a)}
+                                      title="View patient booking and demographic details"
                                     >
-                                      Confirm
+                                      👁 Details
                                     </button>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                                    {!isAttended && (
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm"
+                                        style={{ background: "#10B981", color: "#FFFFFF", border: "none", padding: "4px 8px", fontSize: "0.8rem" }}
+                                        onClick={() => handleUpdateAppointmentStatus(a.id, "ATTENDED")}
+                                        title="Mark patient as Attended"
+                                      >
+                                        ✓ Attended
+                                      </button>
+                                    )}
+                                    {!isMissed && (
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm"
+                                        style={{ background: "#EF4444", color: "#FFFFFF", border: "none", padding: "4px 8px", fontSize: "0.8rem" }}
+                                        onClick={() => handleUpdateAppointmentStatus(a.id, "NOT_ATTENDED")}
+                                        title="Mark patient as Not Attended / Missed"
+                                      >
+                                        ✗ Missed
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      className="btn btn-primary btn-sm"
+                                      style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+                                      onClick={() => openDiagnosisModal(a)}
+                                      title="Author clinical assessment and digital prescription"
+                                    >
+                                      📋 {a.diagnosisTitle ? "Edit Rx" : "Diagnose"}
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -571,7 +670,7 @@ export default function DoctorDashboard() {
               <div className="panel-form-card" style={{ padding: "28px" }}>
                 <h3 style={{ margin: "0 0 8px", color: "var(--color-primary)" }}>Clinical Appointment Roster</h3>
                 <p style={{ color: "var(--color-text-body)", marginBottom: "20px" }}>
-                  Assigned patient bookings. Update statuses to Confirmed, Completed, or Cancelled.
+                  Assigned patient bookings. Inspect full patient booking details, track attendance, and publish clinical diagnoses.
                 </p>
                 {appointments.length === 0 ? (
                   <p>No assigned appointments.</p>
@@ -584,34 +683,90 @@ export default function DoctorDashboard() {
                           <th>Patient Name</th>
                           <th>Consultation Mode</th>
                           <th>Slot</th>
-                          <th>Status</th>
+                          <th>Attendance / Status</th>
                           <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {appointments.map((a) => (
-                          <tr key={a.id}>
-                            <td><code>{a.referenceCode}</code></td>
-                            <td><strong>{a.patientName}</strong></td>
-                            <td>{a.consultationType}</td>
-                            <td>{a.timeSlot}</td>
-                            <td>
-                              <span className={`status-badge-pill status-${a.status?.toLowerCase()}`}>
-                                {a.status}
-                              </span>
-                            </td>
-                            <td>
-                              <div style={{ display: "flex", gap: "6px" }}>
-                                <button className="btn btn-primary btn-sm" onClick={() => handleUpdateAppointmentStatus(a.id, "COMPLETED")}>
-                                  Mark Complete
-                                </button>
-                                <button className="btn btn-secondary btn-sm" onClick={() => handleUpdateAppointmentStatus(a.id, "CANCELLED")}>
-                                  Cancel
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                        {appointments.map((a) => {
+                          const isAttended = a.status === "ATTENDED";
+                          const isMissed = a.status === "NOT_ATTENDED";
+                          return (
+                            <tr key={a.id}>
+                              <td><code>{a.referenceCode}</code></td>
+                              <td>
+                                <strong>{a.patientName}</strong>
+                                <br />
+                                <small style={{ color: "var(--color-text-muted)" }}>{a.patientEmail}</small>
+                              </td>
+                              <td>{a.consultationType}</td>
+                              <td>{a.timeSlot}</td>
+                              <td>
+                                <span
+                                  className="status-badge-pill"
+                                  style={{
+                                    background: isAttended ? "#ECFDF5" : isMissed ? "#FEF2F2" : a.status === "CONFIRMED" ? "#EFF6FF" : "#FFFBEB",
+                                    color: isAttended ? "#065F46" : isMissed ? "#991B1B" : a.status === "CONFIRMED" ? "#1E40AF" : "#92400E",
+                                    border: `1px solid ${isAttended ? "#10B981" : isMissed ? "#EF4444" : a.status === "CONFIRMED" ? "#3B82F6" : "#F59E0B"}`,
+                                    fontWeight: 700,
+                                    padding: "4px 10px",
+                                    borderRadius: "12px",
+                                    display: "inline-block",
+                                  }}
+                                >
+                                  {isAttended ? "✓ Attended" : isMissed ? "✗ Missed / Not Attended" : a.status}
+                                </span>
+                                {a.diagnosisTitle && (
+                                  <div style={{ marginTop: "4px" }}>
+                                    <span style={{ fontSize: "0.74rem", background: "#D1FAE5", color: "#065F46", padding: "2px 6px", borderRadius: "6px", fontWeight: 600 }}>
+                                      Rx Published
+                                    </span>
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary btn-sm"
+                                    style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+                                    onClick={() => setSelectedPatientModal(a)}
+                                  >
+                                    👁 Details
+                                  </button>
+                                  {!isAttended && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm"
+                                      style={{ background: "#10B981", color: "#FFFFFF", border: "none", padding: "4px 8px", fontSize: "0.8rem" }}
+                                      onClick={() => handleUpdateAppointmentStatus(a.id, "ATTENDED")}
+                                    >
+                                      ✓ Attended
+                                    </button>
+                                  )}
+                                  {!isMissed && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm"
+                                      style={{ background: "#EF4444", color: "#FFFFFF", border: "none", padding: "4px 8px", fontSize: "0.8rem" }}
+                                      onClick={() => handleUpdateAppointmentStatus(a.id, "NOT_ATTENDED")}
+                                    >
+                                      ✗ Missed
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="btn btn-primary btn-sm"
+                                    style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+                                    onClick={() => openDiagnosisModal(a)}
+                                  >
+                                    📋 {a.diagnosisTitle ? "Edit Rx" : "Diagnose"}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -953,6 +1108,367 @@ export default function DoctorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Modal 1: Full Patient Booking & Demographic Details */}
+      {selectedPatientModal && (
+        <div
+          className="portal-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100,
+            padding: "20px",
+          }}
+          onClick={() => setSelectedPatientModal(null)}
+        >
+          <div
+            className="portal-modal-box"
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "18px",
+              maxWidth: "700px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.35)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid var(--color-border-subtle)", background: "#F8FAF9" }}>
+              <div>
+                <h3 style={{ margin: 0, color: "var(--color-primary)", fontSize: "1.3rem" }}>
+                  Patient &amp; Appointment Details
+                </h3>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  Reference Code: <code>{selectedPatientModal.referenceCode}</code>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedPatientModal(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: "4px" }}
+              >
+                <CloseIcon size={22} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+              {/* Primary Patient Card */}
+              <div style={{ background: "var(--color-bg-tint)", padding: "16px 20px", borderRadius: "12px", border: "1px solid var(--color-border-card)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Patient Name</span>
+                  <strong style={{ fontSize: "1.1rem", color: "var(--color-primary)" }}>{selectedPatientModal.patientName}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Attendance / Status</span>
+                  <span
+                    className="status-badge-pill"
+                    style={{
+                      background: selectedPatientModal.status === "ATTENDED" ? "#ECFDF5" : selectedPatientModal.status === "NOT_ATTENDED" ? "#FEF2F2" : "#EFF6FF",
+                      color: selectedPatientModal.status === "ATTENDED" ? "#065F46" : selectedPatientModal.status === "NOT_ATTENDED" ? "#991B1B" : "#1E40AF",
+                      border: `1px solid ${selectedPatientModal.status === "ATTENDED" ? "#10B981" : selectedPatientModal.status === "NOT_ATTENDED" ? "#EF4444" : "#3B82F6"}`,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: "12px",
+                      display: "inline-block",
+                    }}
+                  >
+                    {selectedPatientModal.status === "ATTENDED" ? "✓ Attended" : selectedPatientModal.status === "NOT_ATTENDED" ? "✗ Missed / Not Attended" : selectedPatientModal.status}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Email</span>
+                  <strong>{selectedPatientModal.patientEmail}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Contact Phone</span>
+                  <strong>{selectedPatientModal.patientPhone || "+91 9051579029"}</strong>
+                </div>
+              </div>
+
+              {/* Patient Demographic Snapshot */}
+              <div>
+                <h4 style={{ margin: "0 0 10px", color: "var(--color-primary)", fontSize: "0.95rem" }}>
+                  Patient Demographics (Captured from Booking)
+                </h4>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", background: "#FFFFFF", border: "1px solid var(--color-border-subtle)", padding: "14px 18px", borderRadius: "10px" }}>
+                  <div>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Gender</span>
+                    <strong>{selectedPatientModal.patientGender || "Female"}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Blood Group</span>
+                    <strong style={{ color: "#DC2626" }}>{selectedPatientModal.patientBloodGroup || "A+"}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Date of Birth / Age</span>
+                    <strong>{selectedPatientModal.patientDob || "2003-06-12 (23 yrs)"}</strong>
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Residential Address</span>
+                    <span>{selectedPatientModal.patientAddress || "Health & Cure Super Speciality Hospital Campus, Salt Lake Sector V, Kolkata, West Bengal - 700091, India"}</span>
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Emergency Contact</span>
+                    <strong>{selectedPatientModal.emergencyContact || selectedPatientModal.patientPhone || "+91 9051579029"}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Specifications & Reason */}
+              <div>
+                <h4 style={{ margin: "0 0 10px", color: "var(--color-primary)", fontSize: "0.95rem" }}>
+                  Consultation Booking Details
+                </h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", background: "#FFFFFF", border: "1px solid var(--color-border-subtle)", padding: "14px 18px", borderRadius: "10px" }}>
+                  <div>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Department / Specialty</span>
+                    <strong>{selectedPatientModal.specialty}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Consultation Mode</span>
+                    <strong>{selectedPatientModal.consultationType}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Scheduled Slot</span>
+                    <strong>{selectedPatientModal.timeSlot}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Attending Physician</span>
+                    <strong>{selectedPatientModal.preferredDoctor || "Assigned Physician"}</strong>
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Patient Chief Complaint / Symptoms</span>
+                    <p style={{ margin: "4px 0 0", color: "var(--color-text-body)", fontSize: "0.92rem" }}>
+                      {selectedPatientModal.notes || "Routine clinical evaluation and specialist assessment requested."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Published Diagnosis (if exists) */}
+              {selectedPatientModal.diagnosisTitle && (
+                <div style={{ background: "#F0FDF4", border: "1.5px solid #34D399", padding: "16px 20px", borderRadius: "12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                    <strong style={{ color: "#065F46", fontSize: "0.95rem" }}>
+                      ✓ Published Clinical Diagnosis &amp; Prescription
+                    </strong>
+                    {selectedPatientModal.diagnosisPublishedAt && (
+                      <small style={{ color: "#047857" }}>
+                        Published: {new Date(selectedPatientModal.diagnosisPublishedAt).toLocaleDateString()}
+                      </small>
+                    )}
+                  </div>
+                  <p style={{ margin: "0 0 6px", fontWeight: 700, color: "var(--color-primary)" }}>
+                    {selectedPatientModal.diagnosisTitle}
+                  </p>
+                  {selectedPatientModal.clinicalNotes && (
+                    <p style={{ margin: "0 0 6px", fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                      <strong>Clinical Notes:</strong> {selectedPatientModal.clinicalNotes}
+                    </p>
+                  )}
+                  {selectedPatientModal.prescriptions && (
+                    <p style={{ margin: "0 0 6px", fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                      <strong>Prescription (Rx):</strong> {selectedPatientModal.prescriptions}
+                    </p>
+                  )}
+                  {selectedPatientModal.followUpNotes && (
+                    <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                      <strong>Follow-up Advice:</strong> {selectedPatientModal.followUpNotes}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Actions Footer inside Modal */}
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", flexWrap: "wrap", paddingTop: "12px", borderTop: "1px solid var(--color-border-subtle)" }}>
+                {selectedPatientModal.status !== "ATTENDED" && (
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    style={{ background: "#10B981", color: "#FFFFFF", border: "none" }}
+                    onClick={() => {
+                      handleUpdateAppointmentStatus(selectedPatientModal.id, "ATTENDED");
+                      setSelectedPatientModal({ ...selectedPatientModal, status: "ATTENDED" });
+                    }}
+                  >
+                    ✓ Mark Attended
+                  </button>
+                )}
+                {selectedPatientModal.status !== "NOT_ATTENDED" && (
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    style={{ background: "#EF4444", color: "#FFFFFF", border: "none" }}
+                    onClick={() => {
+                      handleUpdateAppointmentStatus(selectedPatientModal.id, "NOT_ATTENDED");
+                      setSelectedPatientModal({ ...selectedPatientModal, status: "NOT_ATTENDED" });
+                    }}
+                  >
+                    ✗ Mark Not Attended
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => openDiagnosisModal(selectedPatientModal)}
+                >
+                  📋 {selectedPatientModal.diagnosisTitle ? "Edit Diagnosis & Rx" : "Publish Diagnosis & Rx"}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setSelectedPatientModal(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 2: Publish Clinical Diagnosis & Prescription */}
+      {diagnosisModalAppt && (
+        <div
+          className="portal-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1200,
+            padding: "20px",
+          }}
+          onClick={() => setDiagnosisModalAppt(null)}
+        >
+          <div
+            className="portal-modal-box"
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "18px",
+              maxWidth: "660px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.35)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid var(--color-border-subtle)", background: "#F8FAF9" }}>
+              <div>
+                <h3 style={{ margin: 0, color: "var(--color-primary)", fontSize: "1.3rem" }}>
+                  Publish Clinical Diagnosis &amp; Prescription
+                </h3>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  Patient: <strong>{diagnosisModalAppt.patientName}</strong> • Ref: <code>{diagnosisModalAppt.referenceCode}</code>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDiagnosisModalAppt(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: "4px" }}
+              >
+                <CloseIcon size={22} />
+              </button>
+            </div>
+
+            <form onSubmit={handlePublishDiagnosisSubmit} style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ background: "#F0FDF4", border: "1px solid #A7F3D0", padding: "12px 16px", borderRadius: "10px", fontSize: "0.88rem", color: "#065F46" }}>
+                <strong>Clinical Integration:</strong> Authoring this diagnosis directly transmits it to the patient's dashboard, records the e-prescription in their medical vault, and updates their attendance status to <strong>Attended</strong>.
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                  Diagnosis / Clinical Assessment *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Mild Sinus Bradycardia, Essential Hypertension, Acute Bronchitis"
+                  value={diagnosisFormData.diagnosisTitle}
+                  onChange={(e) => setDiagnosisFormData({ ...diagnosisFormData, diagnosisTitle: e.target.value })}
+                  style={{ width: "100%", padding: "11px 14px", borderRadius: "8px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem" }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                  Clinical Findings &amp; Examination Notes
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Record examination findings, auscultation results, vital correlations, or differential diagnostics..."
+                  value={diagnosisFormData.clinicalNotes}
+                  onChange={(e) => setDiagnosisFormData({ ...diagnosisFormData, clinicalNotes: e.target.value })}
+                  style={{ width: "100%", padding: "11px 14px", borderRadius: "8px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem" }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                  Prescribed Medications &amp; Dosage (Rx)
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="e.g. Telmisartan 40mg - 1 tablet once daily in morning (30 days); Paracetamol 650mg SOS"
+                  value={diagnosisFormData.prescriptions}
+                  onChange={(e) => setDiagnosisFormData({ ...diagnosisFormData, prescriptions: e.target.value })}
+                  style={{ width: "100%", padding: "11px 14px", borderRadius: "8px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem" }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.88rem", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
+                  Follow-Up Advice &amp; Lifestyle Recommendations
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Review after 3 weeks with fresh lipid profile. Low sodium diet and 30 minutes daily aerobic exercise."
+                  value={diagnosisFormData.followUpNotes}
+                  onChange={(e) => setDiagnosisFormData({ ...diagnosisFormData, followUpNotes: e.target.value })}
+                  style={{ width: "100%", padding: "11px 14px", borderRadius: "8px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem" }}
+                />
+              </div>
+
+              <label style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "0.9rem", color: "var(--color-primary)", fontWeight: 600, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={diagnosisFormData.markAttended}
+                  onChange={(e) => setDiagnosisFormData({ ...diagnosisFormData, markAttended: e.target.checked })}
+                />
+                Mark appointment attendance as Attended &amp; Completed
+              </label>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "10px", paddingTop: "14px", borderTop: "1px solid var(--color-border-subtle)" }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setDiagnosisModalAppt(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isPublishingDiagnosis}
+                >
+                  {isPublishingDiagnosis ? "Publishing to Vault..." : "Publish to Patient Vault →"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

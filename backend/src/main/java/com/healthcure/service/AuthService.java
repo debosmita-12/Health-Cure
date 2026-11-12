@@ -110,7 +110,7 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
         String email = request.getEmail().trim().toLowerCase();
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("An account with this email already exists");
+            throw new IllegalArgumentException("An account with this email is already registered. Please log in to your account.");
         }
 
         String rawRole = request.getRole() != null ? request.getRole().trim().toUpperCase() : "PATIENT";

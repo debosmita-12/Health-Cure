@@ -84,7 +84,15 @@ public class PatientController {
         data.put("records", recordRepository.findByPatientId(patient.getId()));
         data.put("prescriptions", recordRepository.findPrescriptionsByPatientId(patient.getId()));
         data.put("consultations", recordRepository.findConsultationsByPatientId(patient.getId()));
-        data.put("appointments", appointmentRepository.findByPatientId(patient.getId()));
+        List<com.healthcure.model.Appointment> patientAppts = appointmentRepository.findByPatientId(patient.getId());
+        for (var a : patientAppts) {
+            if (a.getPatientGender() == null || a.getPatientGender().isBlank()) a.setPatientGender(patient.getGender());
+            if (a.getPatientBloodGroup() == null || a.getPatientBloodGroup().isBlank()) a.setPatientBloodGroup(patient.getBloodGroup());
+            if ((a.getPatientDob() == null || a.getPatientDob().isBlank()) && patient.getDateOfBirth() != null) a.setPatientDob(patient.getDateOfBirth().toString());
+            if (a.getPatientAddress() == null || a.getPatientAddress().isBlank()) a.setPatientAddress(patient.getAddress());
+            if (a.getEmergencyContact() == null || a.getEmergencyContact().isBlank()) a.setEmergencyContact(patient.getEmergencyContact());
+        }
+        data.put("appointments", patientAppts);
         data.put("accessRequests", accessRepository.findByPatientId(patient.getId()));
         data.put("vitals", vitalsRepository.findByPatientId(patient.getId()));
         data.put("invoices", billingRepository.findByPatientId(patient.getId()));

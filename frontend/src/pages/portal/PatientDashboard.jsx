@@ -36,6 +36,8 @@ export default function PatientDashboard() {
   const [newFeedback, setNewFeedback] = useState({ doctorId: 1, rating: 5, comment: "" });
   const [uploadDoc, setUploadDoc] = useState({ title: "", description: "", recordType: "LAB_REPORT" });
   const [profileForm, setProfileForm] = useState({ gender: "", bloodGroup: "", address: "", emergencyContact: "" });
+  const [viewDiagnosisModalAppt, setViewDiagnosisModalAppt] = useState(null);
+  const [selectedApptModal, setSelectedApptModal] = useState(null);
 
   // In-Portal Appointment Booking State
   const [departments, setDepartments] = useState([]);
@@ -105,6 +107,18 @@ export default function PatientDashboard() {
     e.preventDefault();
     setBookingError("");
     setBookingSuccessResult(null);
+
+    const activeDeptBooking = (appointments || []).find(
+      (a) =>
+        (a.specialty?.toLowerCase() === (bookingForm.specialty || bookingForm.department)?.toLowerCase()) &&
+        !["CANCELLED", "COMPLETED", "ATTENDED", "NOT_ATTENDED"].includes(a.status?.toUpperCase())
+    );
+    if (activeDeptBooking) {
+      setBookingError(
+        `You already have an active appointment scheduled in ${bookingForm.department} (Reference: ${activeDeptBooking.referenceCode}). You can book appointments across different departments, but only one active appointment per department at a time.`
+      );
+      return;
+    }
 
     if (!bookingForm.date) {
       setBookingError("Please select an appointment date.");
@@ -667,7 +681,12 @@ export default function PatientDashboard() {
                 {/* Recent Appointments Card */}
                 <div className="panel-form-card" style={{ padding: "28px" }}>
                   <div className="portal-card-header">
-                    <h3 style={{ margin: 0, color: "var(--color-primary)" }}>Scheduled Appointments</h3>
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Scheduled Appointments</h3>
+                      <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                        Upcoming consultations, attendance statuses, and clinical diagnoses.
+                      </p>
+                    </div>
                     <button className="btn btn-secondary btn-sm" onClick={() => { setActiveTab("my-appointments"); navigate("/patient/my-appointments"); }}>
                       View All
                     </button>
@@ -682,24 +701,64 @@ export default function PatientDashboard() {
                             <th>Specialty</th>
                             <th>Doctor</th>
                             <th>Slot</th>
-                            <th>Status</th>
-                            <th>Reference</th>
+                            <th>Status / Attendance</th>
+                            <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {appointments.slice(0, 3).map((a) => (
-                            <tr key={a.id}>
-                              <td><strong>{a.specialty}</strong></td>
-                              <td>{a.preferredDoctor || "Assigned Physician"}</td>
-                              <td>{a.timeSlot}</td>
-                              <td>
-                                <span className={`status-badge-pill status-${a.status?.toLowerCase()}`}>
-                                  {a.status}
-                                </span>
-                              </td>
-                              <td><code>{a.referenceCode}</code></td>
-                            </tr>
-                          ))}
+                          {appointments.slice(0, 4).map((a) => {
+                            const isAttended = a.status === "ATTENDED";
+                            const isMissed = a.status === "NOT_ATTENDED";
+                            return (
+                              <tr key={a.id}>
+                                <td>
+                                  <strong>{a.specialty}</strong>
+                                  <br />
+                                  <code>{a.referenceCode}</code>
+                                </td>
+                                <td>{a.preferredDoctor || "Assigned Physician"}</td>
+                                <td>{a.timeSlot}</td>
+                                <td>
+                                  <span
+                                    className="status-badge-pill"
+                                    style={{
+                                      background: isAttended ? "#ECFDF5" : isMissed ? "#FEF2F2" : a.status === "CONFIRMED" ? "#EFF6FF" : "#FFFBEB",
+                                      color: isAttended ? "#065F46" : isMissed ? "#991B1B" : a.status === "CONFIRMED" ? "#1E40AF" : "#92400E",
+                                      border: `1px solid ${isAttended ? "#10B981" : isMissed ? "#EF4444" : a.status === "CONFIRMED" ? "#3B82F6" : "#F59E0B"}`,
+                                      fontWeight: 700,
+                                      padding: "4px 10px",
+                                      borderRadius: "12px",
+                                      display: "inline-block",
+                                    }}
+                                  >
+                                    {isAttended ? "✓ Attended" : isMissed ? "✗ Missed" : a.status}
+                                  </span>
+                                </td>
+                                <td>
+                                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary btn-sm"
+                                      style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+                                      onClick={() => setSelectedApptModal(a)}
+                                    >
+                                      👁 Details
+                                    </button>
+                                    {a.diagnosisTitle && (
+                                      <button
+                                        type="button"
+                                        className="btn btn-primary btn-sm"
+                                        style={{ padding: "4px 8px", fontSize: "0.8rem", background: "#059669", borderColor: "#059669" }}
+                                        onClick={() => setViewDiagnosisModalAppt(a)}
+                                      >
+                                        📋 View Rx
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -913,6 +972,21 @@ export default function PatientDashboard() {
                       />
                     </div>
 
+                    {/* Active Department Restriction Warning */}
+                    {(() => {
+                      const activeDeptAppt = (appointments || []).find(
+                        (a) =>
+                          (a.specialty?.toLowerCase() === (bookingForm.specialty || bookingForm.department)?.toLowerCase()) &&
+                          !["CANCELLED", "COMPLETED", "ATTENDED", "NOT_ATTENDED"].includes(a.status?.toUpperCase())
+                      );
+                      if (!activeDeptAppt) return null;
+                      return (
+                        <div style={{ background: "#FFFBEB", border: "1.5px solid #F59E0B", color: "#92400E", padding: "14px 18px", borderRadius: "12px", fontSize: "0.9rem", lineHeight: 1.5 }}>
+                          <strong>⚠️ Department Booking Policy:</strong> You already have an active appointment scheduled in the <strong>{bookingForm.department}</strong> department (Reference: <code>{activeDeptAppt.referenceCode}</code>, Time: {activeDeptAppt.timeSlot}). To ensure clinical care coordination, patients can book multiple appointments across different medical departments, but only one active appointment per department at a time.
+                        </div>
+                      );
+                    })()}
+
                     <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "10px" }}>
                       <button
                         type="button"
@@ -921,14 +995,31 @@ export default function PatientDashboard() {
                       >
                         Cancel
                       </button>
-                      <button
-                        type="submit"
-                        disabled={isBookingSubmitting}
-                        className="btn btn-primary"
-                        style={{ padding: "12px 28px" }}
-                      >
-                        {isBookingSubmitting ? "Confirming Booking..." : "Confirm & Schedule Appointment \u2192"}
-                      </button>
+                      {(() => {
+                        const activeDeptAppt = (appointments || []).find(
+                          (a) =>
+                            (a.specialty?.toLowerCase() === (bookingForm.specialty || bookingForm.department)?.toLowerCase()) &&
+                            !["CANCELLED", "COMPLETED", "ATTENDED", "NOT_ATTENDED"].includes(a.status?.toUpperCase())
+                        );
+                        return (
+                          <button
+                            type="submit"
+                            disabled={isBookingSubmitting || Boolean(activeDeptAppt)}
+                            className="btn btn-primary"
+                            style={{
+                              padding: "12px 28px",
+                              opacity: activeDeptAppt ? 0.6 : 1,
+                              cursor: activeDeptAppt ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {activeDeptAppt
+                              ? "Already Booked in this Department"
+                              : isBookingSubmitting
+                              ? "Confirming Booking..."
+                              : "Confirm & Schedule Appointment \u2192"}
+                          </button>
+                        );
+                      })()}
                     </div>
                   </form>
                 )}
@@ -944,7 +1035,7 @@ export default function PatientDashboard() {
                       {activeTab === "my-appointments" ? "My Appointments" : "Appointment History"}
                     </h3>
                     <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
-                      Track status, timing, consultation modes, and reference numbers.
+                      Track attendance statuses, timing, consultation modes, and clinical diagnoses.
                     </p>
                   </div>
                   <button
@@ -967,24 +1058,62 @@ export default function PatientDashboard() {
                           <th>Doctor</th>
                           <th>Type</th>
                           <th>Slot</th>
-                          <th>Status</th>
+                          <th>Attendance / Status</th>
+                          <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {appointments.map((a) => (
-                          <tr key={a.id}>
-                            <td><code>{a.referenceCode}</code></td>
-                            <td><strong>{a.specialty}</strong></td>
-                            <td>{a.preferredDoctor || "Assigned"}</td>
-                            <td>{a.consultationType}</td>
-                            <td>{a.timeSlot}</td>
-                            <td>
-                              <span className={`status-badge-pill status-${a.status?.toLowerCase()}`}>
-                                {a.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
+                        {appointments.map((a) => {
+                          const isAttended = a.status === "ATTENDED";
+                          const isMissed = a.status === "NOT_ATTENDED";
+                          return (
+                            <tr key={a.id}>
+                              <td><code>{a.referenceCode}</code></td>
+                              <td><strong>{a.specialty}</strong></td>
+                              <td>{a.preferredDoctor || "Assigned"}</td>
+                              <td>{a.consultationType}</td>
+                              <td>{a.timeSlot}</td>
+                              <td>
+                                <span
+                                  className="status-badge-pill"
+                                  style={{
+                                    background: isAttended ? "#ECFDF5" : isMissed ? "#FEF2F2" : a.status === "CONFIRMED" ? "#EFF6FF" : "#FFFBEB",
+                                    color: isAttended ? "#065F46" : isMissed ? "#991B1B" : a.status === "CONFIRMED" ? "#1E40AF" : "#92400E",
+                                    border: `1px solid ${isAttended ? "#10B981" : isMissed ? "#EF4444" : a.status === "CONFIRMED" ? "#3B82F6" : "#F59E0B"}`,
+                                    fontWeight: 700,
+                                    padding: "4px 10px",
+                                    borderRadius: "12px",
+                                    display: "inline-block",
+                                  }}
+                                >
+                                  {isAttended ? "✓ Attended & Completed" : isMissed ? "✗ Missed / Not Attended" : a.status}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                  <button
+                                    type="button"
+                                    className="btn btn-secondary btn-sm"
+                                    style={{ padding: "4px 8px", fontSize: "0.8rem" }}
+                                    onClick={() => setSelectedApptModal(a)}
+                                  >
+                                    👁 Details
+                                  </button>
+                                  {a.diagnosisTitle && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-primary btn-sm"
+                                      style={{ padding: "4px 8px", fontSize: "0.8rem", background: "#059669", borderColor: "#059669" }}
+                                      onClick={() => setViewDiagnosisModalAppt(a)}
+                                    >
+                                      📋 View Diagnosis &amp; Rx
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -1677,6 +1806,285 @@ export default function PatientDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Modal 1: View Doctor Diagnosis & Prescription */}
+      {viewDiagnosisModalAppt && (
+        <div
+          className="portal-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1200,
+            padding: "20px",
+          }}
+          onClick={() => setViewDiagnosisModalAppt(null)}
+        >
+          <div
+            className="portal-modal-box"
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "18px",
+              maxWidth: "680px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.35)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid var(--color-border-subtle)", background: "#ECFDF5" }}>
+              <div>
+                <span style={{ fontSize: "0.8rem", color: "#065F46", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Verified Clinical Record
+                </span>
+                <h3 style={{ margin: "2px 0 0", color: "#064E3B", fontSize: "1.3rem" }}>
+                  Official Doctor Diagnosis &amp; Prescription
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewDiagnosisModalAppt(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "#065F46", padding: "4px" }}
+              >
+                <CloseIcon size={22} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "18px" }}>
+              {/* Doctor & Date Header Card */}
+              <div style={{ background: "var(--color-bg-tint)", padding: "16px 20px", borderRadius: "12px", border: "1px solid var(--color-border-card)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Attending Physician</span>
+                  <strong style={{ fontSize: "1.05rem", color: "var(--color-primary)" }}>{viewDiagnosisModalAppt.preferredDoctor || "Dr. Rajesh Sharma"}</strong>
+                  <span style={{ fontSize: "0.85rem", color: "var(--color-text-body)", display: "block" }}>{viewDiagnosisModalAppt.specialty}</span>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Published / Verified On</span>
+                  <strong>{viewDiagnosisModalAppt.diagnosisPublishedAt ? new Date(viewDiagnosisModalAppt.diagnosisPublishedAt).toLocaleDateString() : "Active Record"}</strong>
+                  <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)", display: "block" }}>Ref: <code>{viewDiagnosisModalAppt.referenceCode}</code></span>
+                </div>
+              </div>
+
+              {/* Diagnosis Assessment */}
+              <div style={{ background: "#FFFFFF", border: "1.5px solid #10B981", borderRadius: "12px", padding: "18px 20px" }}>
+                <span style={{ fontSize: "0.82rem", color: "#059669", fontWeight: 700, textTransform: "uppercase" }}>Primary Diagnosis / Assessment</span>
+                <h4 style={{ margin: "4px 0 0", color: "var(--color-primary)", fontSize: "1.15rem" }}>
+                  {viewDiagnosisModalAppt.diagnosisTitle}
+                </h4>
+              </div>
+
+              {/* Clinical Notes */}
+              {viewDiagnosisModalAppt.clinicalNotes && (
+                <div>
+                  <h5 style={{ margin: "0 0 6px", color: "var(--color-primary)", fontSize: "0.92rem" }}>
+                    Physician Examination Notes &amp; Observations
+                  </h5>
+                  <div style={{ background: "#F9FAFB", border: "1px solid var(--color-border-subtle)", padding: "14px 18px", borderRadius: "10px", fontSize: "0.92rem", color: "var(--color-text-body)", lineHeight: 1.6 }}>
+                    {viewDiagnosisModalAppt.clinicalNotes}
+                  </div>
+                </div>
+              )}
+
+              {/* Prescribed Medications */}
+              {viewDiagnosisModalAppt.prescriptions && (
+                <div style={{ background: "#F0FDF4", border: "1.5px solid #34D399", borderRadius: "12px", padding: "18px 20px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                    <span style={{ fontSize: "0.85rem", color: "#065F46", fontWeight: 700 }}>
+                      💊 Prescribed Medications &amp; Dosage Instructions (Rx)
+                    </span>
+                    <span className="status-badge-pill status-confirmed" style={{ fontSize: "0.75rem" }}>Active Prescription</span>
+                  </div>
+                  <div style={{ whiteSpace: "pre-line", fontSize: "0.95rem", color: "#064E3B", lineHeight: 1.6, fontWeight: 500 }}>
+                    {viewDiagnosisModalAppt.prescriptions}
+                  </div>
+                </div>
+              )}
+
+              {/* Follow-up Notes */}
+              {viewDiagnosisModalAppt.followUpNotes && (
+                <div>
+                  <h5 style={{ margin: "0 0 6px", color: "var(--color-primary)", fontSize: "0.92rem" }}>
+                    Follow-Up Instructions &amp; Lifestyle Advice
+                  </h5>
+                  <div style={{ background: "#FFFBEB", border: "1px solid #FDE68A", padding: "14px 18px", borderRadius: "10px", fontSize: "0.9rem", color: "#92400E", lineHeight: 1.5 }}>
+                    {viewDiagnosisModalAppt.followUpNotes}
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Actions */}
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "6px", paddingTop: "14px", borderTop: "1px solid var(--color-border-subtle)" }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setViewDiagnosisModalAppt(null)}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    handleDownloadPrescription({
+                      id: viewDiagnosisModalAppt.id,
+                      medicineName: viewDiagnosisModalAppt.diagnosisTitle,
+                      doctorName: viewDiagnosisModalAppt.preferredDoctor || "Attending Physician",
+                      specialty: viewDiagnosisModalAppt.specialty,
+                      dosage: viewDiagnosisModalAppt.prescriptions || "Standard Course",
+                      frequency: "As specified in consultation notes",
+                      duration: "Per medical advice",
+                      notes: viewDiagnosisModalAppt.followUpNotes || viewDiagnosisModalAppt.clinicalNotes,
+                    });
+                  }}
+                >
+                  📥 Download Digital Rx
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 2: View Appointment Booking Details */}
+      {selectedApptModal && (
+        <div
+          className="portal-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100,
+            padding: "20px",
+          }}
+          onClick={() => setSelectedApptModal(null)}
+        >
+          <div
+            className="portal-modal-box"
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "18px",
+              maxWidth: "640px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.35)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid var(--color-border-subtle)", background: "#F8FAF9" }}>
+              <div>
+                <h3 style={{ margin: 0, color: "var(--color-primary)", fontSize: "1.3rem" }}>
+                  Appointment Details
+                </h3>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  Reference: <code>{selectedApptModal.referenceCode}</code>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedApptModal(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: "4px" }}
+              >
+                <CloseIcon size={22} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "18px" }}>
+              <div style={{ background: "var(--color-bg-tint)", padding: "16px 20px", borderRadius: "12px", border: "1px solid var(--color-border-card)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Department / Specialty</span>
+                  <strong style={{ fontSize: "1.05rem", color: "var(--color-primary)" }}>{selectedApptModal.specialty}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Attendance / Status</span>
+                  <span
+                    className="status-badge-pill"
+                    style={{
+                      background: selectedApptModal.status === "ATTENDED" ? "#ECFDF5" : selectedApptModal.status === "NOT_ATTENDED" ? "#FEF2F2" : "#EFF6FF",
+                      color: selectedApptModal.status === "ATTENDED" ? "#065F46" : selectedApptModal.status === "NOT_ATTENDED" ? "#991B1B" : "#1E40AF",
+                      border: `1px solid ${selectedApptModal.status === "ATTENDED" ? "#10B981" : selectedApptModal.status === "NOT_ATTENDED" ? "#EF4444" : "#3B82F6"}`,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: "12px",
+                      display: "inline-block",
+                    }}
+                  >
+                    {selectedApptModal.status === "ATTENDED" ? "✓ Attended & Completed" : selectedApptModal.status === "NOT_ATTENDED" ? "✗ Missed / Not Attended" : selectedApptModal.status}
+                  </span>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Attending Physician</span>
+                  <strong>{selectedApptModal.preferredDoctor || "Assigned Physician"}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Consultation Mode</span>
+                  <strong>{selectedApptModal.consultationType}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Scheduled Slot</span>
+                  <strong>{selectedApptModal.timeSlot}</strong>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Patient Contact</span>
+                  <strong>{selectedApptModal.patientPhone || user?.phone || "+91 9051579029"}</strong>
+                </div>
+              </div>
+
+              {selectedApptModal.notes && (
+                <div>
+                  <span style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", display: "block", marginBottom: "4px" }}>
+                    Reason for Scheduling / Reported Symptoms:
+                  </span>
+                  <div style={{ background: "#F9FAFB", padding: "12px 16px", borderRadius: "8px", border: "1px solid var(--color-border-subtle)", fontSize: "0.9rem" }}>
+                    {selectedApptModal.notes}
+                  </div>
+                </div>
+              )}
+
+              {selectedApptModal.diagnosisTitle && (
+                <div style={{ background: "#F0FDF4", border: "1.5px solid #34D399", padding: "16px 20px", borderRadius: "12px" }}>
+                  <span style={{ fontSize: "0.82rem", color: "#065F46", fontWeight: 700 }}>Published Diagnosis:</span>
+                  <p style={{ margin: "4px 0 10px", fontWeight: 700, color: "var(--color-primary)" }}>
+                    {selectedApptModal.diagnosisTitle}
+                  </p>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    style={{ background: "#059669", borderColor: "#059669" }}
+                    onClick={() => {
+                      setViewDiagnosisModalAppt(selectedApptModal);
+                      setSelectedApptModal(null);
+                    }}
+                  >
+                    📋 Open Full Diagnosis &amp; Prescriptions →
+                  </button>
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "12px", borderTop: "1px solid var(--color-border-subtle)" }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedApptModal(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

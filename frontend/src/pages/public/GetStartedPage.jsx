@@ -16,7 +16,7 @@ import {
 
 export default function GetStartedPage() {
   const navigate = useNavigate();
-  const { login, setSession } = useAuth();
+  const { user, isAuthenticated, role, login, setSession, logout } = useAuth();
 
   const [selectedRole, setSelectedRole] = useState("PATIENT");
 
@@ -182,15 +182,81 @@ export default function GetStartedPage() {
       setDoctorPendingNotice(authData?.message || "Your medical application is pending administrator verification.");
       setSubmitted(true);
     } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Registration could not be completed. Please verify your details.";
+      const isAlready =
+        msg.toLowerCase().includes("already registered") ||
+        msg.toLowerCase().includes("already exists") ||
+        msg.toLowerCase().includes("already in use");
       setErrors({
-        general:
-          err.response?.data?.message ||
-          err.response?.data?.error ||
-          "Registration could not be completed. Please verify your details.",
+        general: msg,
+        alreadyRegistered: isAlready,
       });
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (isAuthenticated) {
+    const dashPath =
+      role === "ADMIN"
+        ? "/admin/dashboard"
+        : role === "DOCTOR"
+        ? "/doctor/dashboard"
+        : "/patient/dashboard";
+    return (
+      <section className="subpage get-started-page" style={{ padding: "80px 20px" }}>
+        <div className="container" style={{ maxWidth: "620px", margin: "0 auto", textAlign: "center" }}>
+          <div
+            className="card"
+            style={{
+              padding: "44px 32px",
+              borderRadius: "24px",
+              border: "2px solid #10B981",
+              background: "#FFFFFF",
+              boxShadow: "0 10px 30px rgba(16, 185, 129, 0.08)",
+            }}
+          >
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                borderRadius: "50%",
+                background: "#ECFDF5",
+                color: "#059669",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 20px",
+              }}
+            >
+              <UsersIcon size={34} />
+            </div>
+            <h2 style={{ color: "var(--color-primary)", fontSize: "1.8rem", marginBottom: "12px", fontWeight: 800 }}>
+              Already Registered on Platform
+            </h2>
+            <p style={{ color: "var(--color-text-body)", fontSize: "1.02rem", lineHeight: 1.6, marginBottom: "26px" }}>
+              You are currently signed in as <strong>{user?.firstName} {user?.lastName}</strong> ({user?.email}) with an active <strong>{role}</strong> session. Once registered, patients cannot register again and should access their existing portal directly.
+            </p>
+            <div style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
+              <Link to={dashPath} className="ref-btn-primary" style={{ padding: "12px 26px" }}>
+                Go to My Dashboard →
+              </Link>
+              <button
+                type="button"
+                onClick={logout}
+                className="btn btn-secondary"
+                style={{ padding: "12px 22px", borderRadius: "9999px" }}
+              >
+                Sign Out to Use Another Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -316,8 +382,18 @@ export default function GetStartedPage() {
               </div>
 
               {errors.general && (
-                <div className="form-error-alert" style={{ marginBottom: "16px" }}>
-                  <p>{errors.general}</p>
+                <div style={{ background: "#FEF2F2", border: "1.5px solid #EF4444", borderRadius: "12px", padding: "14px 18px", marginBottom: "18px" }}>
+                  <p style={{ color: "#991B1B", fontWeight: 700, margin: "0 0 6px" }}>{errors.general}</p>
+                  {errors.alreadyRegistered && (
+                    <div style={{ marginTop: "10px" }}>
+                      <p style={{ fontSize: "0.88rem", color: "#7F1D1D", margin: "0 0 10px" }}>
+                        Once registered, a patient cannot register again and can directly sign in to their account.
+                      </p>
+                      <Link to="/login" className="ref-btn-primary" style={{ display: "inline-block", padding: "8px 18px", fontSize: "0.85rem" }}>
+                        Sign In to Your Account →
+                      </Link>
+                    </div>
+                  )}
                 </div>
               )}
 

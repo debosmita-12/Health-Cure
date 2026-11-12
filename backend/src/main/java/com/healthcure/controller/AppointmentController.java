@@ -77,7 +77,8 @@ public class AppointmentController {
             email = (cleanPhone.isEmpty() ? "patient" : cleanPhone) + "@patient.healthcure.local";
         }
         appointment.setPatientEmail(email.trim().toLowerCase());
-        appointment.setSpecialty(request.getSpecialty());
+        String specialty = request.getSpecialty() != null && !request.getSpecialty().isBlank() ? request.getSpecialty() : "General Medicine";
+        appointment.setSpecialty(specialty);
         appointment.setConsultationType(request.getConsultationType());
         appointment.setTimeSlot(request.getTimeSlot());
         appointment.setPreferredDoctor(request.getPreferredDoctor());
@@ -94,7 +95,15 @@ public class AppointmentController {
                 if (patientRepository != null) {
                     Optional<Patient> pOpt = patientRepository.findByUserId(user.getId());
                     if (pOpt.isPresent()) {
-                        appointment.setPatientId(pOpt.get().getId());
+                        Patient p = pOpt.get();
+                        appointment.setPatientId(p.getId());
+                        appointment.setPatientGender(p.getGender());
+                        appointment.setPatientBloodGroup(p.getBloodGroup());
+                        if (p.getDateOfBirth() != null) {
+                            appointment.setPatientDob(p.getDateOfBirth().toString());
+                        }
+                        appointment.setPatientAddress(p.getAddress());
+                        appointment.setEmergencyContact(p.getEmergencyContact());
                     } else if ("PATIENT".equalsIgnoreCase(user.getRole())) {
                         Patient newPat = new Patient();
                         newPat.setUserId(user.getId());
@@ -105,12 +114,42 @@ public class AppointmentController {
             }
         }
 
+        // Department-level uniqueness check for active appointments
+        Long checkPatientId = appointment.getPatientId();
+        String checkPatientEmail = appointment.getPatientEmail();
+        if (appointmentRepository.hasActiveAppointmentInDepartment(checkPatientId, checkPatientEmail, specialty)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", "You already have an active appointment scheduled in " + specialty + ". Patients can book multiple appointments across different departments, but not multiple active appointments in the same department."
+            ));
+        }
+
         // Auto-link doctor if doctor exists
         if (doctorRepository != null) {
             List<Doctor> docs = doctorRepository.findAll();
             if (!docs.isEmpty()) {
-                // Assign first verified doctor or matching
-                appointment.setDoctorId(docs.get(0).getId());
+                Doctor chosenDoc = null;
+                if (request.getPreferredDoctor() != null && !request.getPreferredDoctor().isBlank()) {
+                    String pref = request.getPreferredDoctor().toLowerCase();
+                    for (Doctor d : docs) {
+                        User du = userRepository.findById(d.getUserId()).orElse(null);
+                        if (du != null && (du.getFirstName() + " " + du.getLastName()).toLowerCase().contains(pref)) {
+                            chosenDoc = d;
+                            break;
+                        }
+                    }
+                }
+                if (chosenDoc == null && specialty != null) {
+                    for (Doctor d : docs) {
+                        if (specialty.equalsIgnoreCase(d.getSpecialisation())) {
+                            chosenDoc = d;
+                            break;
+                        }
+                    }
+                }
+                if (chosenDoc == null) {
+                    chosenDoc = docs.get(0);
+                }
+                appointment.setDoctorId(chosenDoc.getId());
             }
         }
 

@@ -1,6 +1,7 @@
 package com.healthcure.controller;
 
 import com.healthcure.model.AccessRequest;
+import com.healthcure.model.Appointment;
 import com.healthcure.model.Doctor;
 import com.healthcure.model.MedicalRecord;
 import com.healthcure.model.User;
@@ -63,6 +64,22 @@ public class DoctorController {
                 .orElseThrow(() -> new IllegalStateException("Doctor profile not found"));
     }
 
+    private List<Appointment> enrichAppointments(List<Appointment> appts) {
+        if (appts == null) return List.of();
+        for (Appointment a : appts) {
+            if ((a.getPatientGender() == null || a.getPatientBloodGroup() == null || a.getPatientDob() == null || a.getPatientAddress() == null || a.getEmergencyContact() == null) && a.getPatientId() != null) {
+                patientRepository.findById(a.getPatientId()).ifPresent(p -> {
+                    if (a.getPatientGender() == null || a.getPatientGender().isBlank()) a.setPatientGender(p.getGender());
+                    if (a.getPatientBloodGroup() == null || a.getPatientBloodGroup().isBlank()) a.setPatientBloodGroup(p.getBloodGroup());
+                    if ((a.getPatientDob() == null || a.getPatientDob().isBlank()) && p.getDateOfBirth() != null) a.setPatientDob(p.getDateOfBirth().toString());
+                    if (a.getPatientAddress() == null || a.getPatientAddress().isBlank()) a.setPatientAddress(p.getAddress());
+                    if (a.getEmergencyContact() == null || a.getEmergencyContact().isBlank()) a.setEmergencyContact(p.getEmergencyContact());
+                });
+            }
+        }
+        return appts;
+    }
+
     @GetMapping("/dashboard")
     public ResponseEntity<?> getDashboard(Authentication auth) {
         User user = getAuthenticatedUser(auth);
@@ -78,7 +95,7 @@ public class DoctorController {
                 "role", user.getRole()
         ));
         data.put("doctor", doctor);
-        data.put("appointments", appointmentRepository.findByDoctorId(doctor.getId()));
+        data.put("appointments", enrichAppointments(appointmentRepository.findByDoctorId(doctor.getId())));
         data.put("accessRequests", accessRepository.findByDoctorId(doctor.getId()));
         data.put("schedules", scheduleRepository.findByDoctorId(doctor.getId()));
         data.put("leaves", leaveRepository.findByDoctorId(doctor.getId()));
@@ -91,20 +108,85 @@ public class DoctorController {
     public ResponseEntity<?> getAppointments(Authentication auth) {
         User user = getAuthenticatedUser(auth);
         Doctor doctor = getDoctor(user);
-        return ResponseEntity.ok(appointmentRepository.findByDoctorId(doctor.getId()));
+        return ResponseEntity.ok(enrichAppointments(appointmentRepository.findByDoctorId(doctor.getId())));
     }
 
     @PostMapping("/appointments/{id}/status")
     public ResponseEntity<?> updateAppointmentStatus(@PathVariable Long id, @RequestBody Map<String, String> body, Authentication auth) {
         User user = getAuthenticatedUser(auth);
         Doctor doctor = getDoctor(user);
-        String status = body.getOrDefault("status", "COMPLETED");
+        String status = body.getOrDefault("status", "ATTENDED").trim().toUpperCase();
         appointmentRepository.findById(id).ifPresent(appt -> {
             appt.setStatus(status);
             appointmentRepository.save(appt);
-            auditLogRepository.log(user.getId(), "APPOINTMENT_UPDATED", "APPOINTMENT", id, "Doctor updated status to " + status, "127.0.0.1");
+            auditLogRepository.log(user.getId(), "APPOINTMENT_UPDATED", "APPOINTMENT", id,
+                    "Doctor updated status to " + status, "127.0.0.1");
         });
-        return ResponseEntity.ok(Map.of("message", "Appointment status updated to " + status));
+        return ResponseEntity.ok(Map.of("message", "Appointment attendance status updated to " + status, "status", status));
+    }
+
+    @PostMapping("/appointments/{id}/diagnosis")
+    public ResponseEntity<?> publishDiagnosis(@PathVariable Long id, @RequestBody Map<String, Object> body, Authentication auth) {
+        User user = getAuthenticatedUser(auth);
+        Doctor doctor = getDoctor(user);
+
+        Appointment appt = appointmentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+
+        String diagnosisTitle = (String) body.getOrDefault("diagnosisTitle", "Clinical Consultation Diagnosis");
+        String clinicalNotes = (String) body.getOrDefault("clinicalNotes", "");
+        String prescriptions = (String) body.getOrDefault("prescriptions", "");
+        String followUpNotes = (String) body.getOrDefault("followUpNotes", "");
+        boolean markAttended = body.get("markAttended") == null || !"false".equalsIgnoreCase(String.valueOf(body.get("markAttended")));
+
+        appt.setDiagnosisTitle(diagnosisTitle);
+        appt.setClinicalNotes(clinicalNotes);
+        appt.setPrescriptions(prescriptions);
+        appt.setFollowUpNotes(followUpNotes);
+        appt.setDiagnosisPublishedAt(LocalDateTime.now());
+        if (markAttended) {
+            appt.setStatus("ATTENDED");
+        }
+        appointmentRepository.save(appt);
+
+        // Also persist to medical_records so patient has lifetime vault access
+        if (appt.getPatientId() != null) {
+            MedicalRecord record = new MedicalRecord();
+            record.setPatientId(appt.getPatientId());
+            record.setDoctorId(doctor.getId());
+            record.setRecordType("CONSULTATION");
+            record.setTitle("Diagnosis: " + diagnosisTitle);
+            record.setDescription("Clinical Findings: " + clinicalNotes +
+                    (prescriptions.isBlank() ? "" : "\nPrescribed Rx: " + prescriptions) +
+                    (followUpNotes.isBlank() ? "" : "\nFollow-up: " + followUpNotes));
+            record.setFileType("text/plain");
+            MedicalRecord savedRec = recordRepository.save(record);
+
+            recordRepository.saveConsultation(savedRec.getId(),
+                    appt.getNotes() != null ? appt.getNotes() : "Scheduled visit consultation",
+                    diagnosisTitle + " — " + clinicalNotes,
+                    prescriptions,
+                    followUpNotes);
+
+            if (!prescriptions.isBlank()) {
+                recordRepository.savePrescription(savedRec.getId(),
+                        prescriptions,
+                        "As directed by physician",
+                        "Daily",
+                        followUpNotes.isBlank() ? "Standard course" : followUpNotes,
+                        "Take with plenty of water after food");
+            }
+        }
+
+        auditLogRepository.log(user.getId(), "DIAGNOSIS_PUBLISHED", "APPOINTMENT", id,
+                "Doctor " + user.getFirstName() + " " + user.getLastName() + " published diagnosis: " + diagnosisTitle, "127.0.0.1");
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Diagnosis published successfully to patient portal and medical record vault.",
+                "appointmentId", id,
+                "status", appt.getStatus(),
+                "diagnosisTitle", diagnosisTitle
+        ));
     }
 
     @GetMapping("/patients")

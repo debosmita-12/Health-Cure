@@ -144,12 +144,33 @@ CREATE TABLE IF NOT EXISTS appointments (
     time_slot VARCHAR(50),
     preferred_doctor VARCHAR(150),
     appointment_date TIMESTAMP NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'REQUESTED' CHECK (status IN ('REQUESTED', 'CONFIRMED', 'CANCELLED', 'COMPLETED')),
+    status VARCHAR(30) NOT NULL DEFAULT 'REQUESTED',
     notes TEXT,
     google_authenticated BOOLEAN DEFAULT FALSE,
     reference_code VARCHAR(50) UNIQUE,
+    diagnosis_title TEXT,
+    clinical_notes TEXT,
+    prescriptions TEXT,
+    follow_up_notes TEXT,
+    diagnosis_published_at TIMESTAMP,
+    patient_gender VARCHAR(20),
+    patient_blood_group VARCHAR(10),
+    patient_dob VARCHAR(50),
+    patient_address TEXT,
+    emergency_contact TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS diagnosis_title TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS clinical_notes TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS prescriptions TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS follow_up_notes TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS diagnosis_published_at TIMESTAMP;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS patient_gender VARCHAR(20);
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS patient_blood_group VARCHAR(10);
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS patient_dob VARCHAR(50);
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS patient_address TEXT;
+ALTER TABLE appointments ADD COLUMN IF NOT EXISTS emergency_contact TEXT;
 
 -- Patient Vital Signs
 CREATE TABLE IF NOT EXISTS vitals (

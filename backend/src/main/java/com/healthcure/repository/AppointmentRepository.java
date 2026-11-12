@@ -45,6 +45,21 @@ public class AppointmentRepository {
         appt.setReferenceCode(rs.getString("reference_code"));
         Timestamp ct = rs.getTimestamp("created_at");
         if (ct != null) appt.setCreatedAt(ct.toLocalDateTime());
+
+        try { appt.setDiagnosisTitle(rs.getString("diagnosis_title")); } catch (Exception ignored) {}
+        try { appt.setClinicalNotes(rs.getString("clinical_notes")); } catch (Exception ignored) {}
+        try { appt.setPrescriptions(rs.getString("prescriptions")); } catch (Exception ignored) {}
+        try { appt.setFollowUpNotes(rs.getString("follow_up_notes")); } catch (Exception ignored) {}
+        try {
+            Timestamp dt = rs.getTimestamp("diagnosis_published_at");
+            if (dt != null) appt.setDiagnosisPublishedAt(dt.toLocalDateTime());
+        } catch (Exception ignored) {}
+        try { appt.setPatientGender(rs.getString("patient_gender")); } catch (Exception ignored) {}
+        try { appt.setPatientBloodGroup(rs.getString("patient_blood_group")); } catch (Exception ignored) {}
+        try { appt.setPatientDob(rs.getString("patient_dob")); } catch (Exception ignored) {}
+        try { appt.setPatientAddress(rs.getString("patient_address")); } catch (Exception ignored) {}
+        try { appt.setEmergencyContact(rs.getString("emergency_contact")); } catch (Exception ignored) {}
+
         return appt;
     };
 
@@ -80,10 +95,21 @@ public class AppointmentRepository {
         return jdbcTemplate.query(sql, rowMapper);
     }
 
+    public boolean hasActiveAppointmentInDepartment(Long patientId, String email, String specialty) {
+        if (specialty == null || specialty.isBlank()) return false;
+        String sql = "SELECT COUNT(*) FROM appointments " +
+                "WHERE (patient_id = ? OR (patient_email IS NOT NULL AND LOWER(patient_email) = LOWER(?))) " +
+                "  AND LOWER(specialty) = LOWER(?) " +
+                "  AND status NOT IN ('CANCELLED', 'COMPLETED', 'ATTENDED', 'NOT_ATTENDED')";
+        Long pId = patientId != null ? patientId : -1L;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, pId, email != null ? email.trim() : "", specialty.trim());
+        return count != null && count > 0;
+    }
+
     public Appointment save(Appointment appt) {
         if (appt.getId() == null) {
-            String sql = "INSERT INTO appointments (patient_id, doctor_id, patient_name, patient_email, patient_phone, specialty, consultation_type, time_slot, preferred_doctor, appointment_date, status, notes, google_authenticated, reference_code, created_at) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+            String sql = "INSERT INTO appointments (patient_id, doctor_id, patient_name, patient_email, patient_phone, specialty, consultation_type, time_slot, preferred_doctor, appointment_date, status, notes, google_authenticated, reference_code, diagnosis_title, clinical_notes, prescriptions, follow_up_notes, diagnosis_published_at, patient_gender, patient_blood_group, patient_dob, patient_address, emergency_contact, created_at) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
             KeyHolder keyHolder = new GeneratedKeyHolder();
             jdbcTemplate.update(con -> {
                 PreparedStatement ps = con.prepareStatement(sql, new String[] { "id" });
@@ -103,6 +129,16 @@ public class AppointmentRepository {
                 ps.setString(12, appt.getNotes());
                 ps.setBoolean(13, appt.getGoogleAuthenticated() != null ? appt.getGoogleAuthenticated() : false);
                 ps.setString(14, appt.getReferenceCode());
+                ps.setString(15, appt.getDiagnosisTitle());
+                ps.setString(16, appt.getClinicalNotes());
+                ps.setString(17, appt.getPrescriptions());
+                ps.setString(18, appt.getFollowUpNotes());
+                ps.setTimestamp(19, appt.getDiagnosisPublishedAt() != null ? Timestamp.valueOf(appt.getDiagnosisPublishedAt()) : null);
+                ps.setString(20, appt.getPatientGender());
+                ps.setString(21, appt.getPatientBloodGroup());
+                ps.setString(22, appt.getPatientDob());
+                ps.setString(23, appt.getPatientAddress());
+                ps.setString(24, appt.getEmergencyContact());
                 return ps;
             }, keyHolder);
             if (keyHolder.getKey() != null) {
@@ -112,11 +148,24 @@ public class AppointmentRepository {
             }
             return appt;
         } else {
-            String sql = "UPDATE appointments SET appointment_date = ?, status = ?, notes = ? WHERE id = ?";
+            String sql = "UPDATE appointments SET appointment_date = ?, status = ?, notes = ?, " +
+                    "diagnosis_title = ?, clinical_notes = ?, prescriptions = ?, follow_up_notes = ?, " +
+                    "diagnosis_published_at = ?, patient_gender = ?, patient_blood_group = ?, " +
+                    "patient_dob = ?, patient_address = ?, emergency_contact = ? WHERE id = ?";
             jdbcTemplate.update(sql,
                     Timestamp.valueOf(appt.getAppointmentDate()),
                     appt.getStatus(),
                     appt.getNotes(),
+                    appt.getDiagnosisTitle(),
+                    appt.getClinicalNotes(),
+                    appt.getPrescriptions(),
+                    appt.getFollowUpNotes(),
+                    appt.getDiagnosisPublishedAt() != null ? Timestamp.valueOf(appt.getDiagnosisPublishedAt()) : null,
+                    appt.getPatientGender(),
+                    appt.getPatientBloodGroup(),
+                    appt.getPatientDob(),
+                    appt.getPatientAddress(),
+                    appt.getEmergencyContact(),
                     appt.getId());
             return appt;
         }
