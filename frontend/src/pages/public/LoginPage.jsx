@@ -86,7 +86,7 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="subpage login-page" style={{ background: "radial-gradient(circle at 10% 20%, rgba(167, 243, 208, 0.35) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(209, 250, 229, 0.4) 0%, transparent 45%), #F4FAF7" }}>
+    <section className="subpage login-page" style={{ background: "transparent" }}>
       <div className="container form-layout">
         <div className="subpage-intro">
           <p className="eyebrow-text">SECURE PORTAL ACCESS</p>

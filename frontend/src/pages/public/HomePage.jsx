@@ -443,7 +443,7 @@ export default function HomePage() {
       {/* ========================================================
           4. SERVICES SECTION
           ======================================================== */}
-      <section className="ref-services-section" id="services" style={{ padding: "80px 0", background: "var(--color-mint-bg)" }}>
+      <section className="ref-services-section" id="services" style={{ padding: "80px 0", background: "transparent" }}>
         <div className="container">
           <div className="ref-why-header" style={{ marginBottom: "40px" }}>
             <p className="eyebrow">COMPREHENSIVE HEALTHCARE</p>
@@ -503,7 +503,7 @@ export default function HomePage() {
       {/* ========================================================
           5. ABOUT HEALTH & CURE
           ======================================================== */}
-      <section id="about" style={{ padding: "80px 0", background: "var(--color-white)" }}>
+      <section id="about" style={{ padding: "80px 0", background: "transparent" }}>
         <div className="container">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "50px", alignItems: "center" }}>
             <div>
@@ -573,7 +573,7 @@ export default function HomePage() {
       {/* ========================================================
           6. DOCTOR DIRECTORY (Live Database)
           ======================================================== */}
-      <section id="doctors" style={{ padding: "80px 0", background: "var(--color-mint-bg)" }}>
+      <section id="doctors" style={{ padding: "80px 0", background: "transparent" }}>
         <div className="container">
           <div className="ref-why-header" style={{ marginBottom: "32px" }}>
             <p className="eyebrow">MEDICAL SPECIALISTS</p>
@@ -709,7 +709,7 @@ export default function HomePage() {
           8. TESTIMONIALS & REVIEWS (Live Database)
           ======================================================== */}
       {testimonials.length > 0 && (
-        <section id="testimonials" style={{ padding: "70px 0", background: "var(--color-white)" }}>
+        <section id="testimonials" style={{ padding: "70px 0", background: "transparent" }}>
           <div className="container">
             <div className="ref-why-header" style={{ marginBottom: "36px" }}>
               <p className="eyebrow">VERIFIED EXPERIENCES</p>
@@ -755,7 +755,7 @@ export default function HomePage() {
       {/* ========================================================
           9. CONTACT SECTION (Working Enquiry Form)
           ======================================================== */}
-      <section id="contact" style={{ padding: "80px 0", background: "var(--color-mint-bg)" }}>
+      <section id="contact" style={{ padding: "80px 0", background: "transparent" }}>
         <div className="container">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "50px", alignItems: "flex-start" }}>
             <div>
@@ -897,7 +897,7 @@ export default function HomePage() {
       {/* ========================================================
           10. DEVELOPERS SECTION
           ======================================================== */}
-      <section id="developers" style={{ padding: "80px 0", background: "var(--color-white)" }}>
+      <section id="developers" style={{ padding: "80px 0", background: "transparent" }}>
         <div className="container">
           <div className="ref-why-header" style={{ marginBottom: "36px" }}>
             <p className="eyebrow">ENGINEERING &amp; ARCHITECTURE</p>

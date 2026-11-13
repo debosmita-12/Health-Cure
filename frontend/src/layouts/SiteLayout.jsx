@@ -31,6 +31,9 @@ export default function SiteLayout() {
         display: "flex",
         flexDirection: "column",
         width: "100%",
+        position: "relative",
+        zIndex: 1,
+        background: "transparent",
       }}
     >
       <a className="skip-link" href="#content">
@@ -44,6 +47,8 @@ export default function SiteLayout() {
           display: "flex",
           flexDirection: "column",
           width: "100%",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         <Outlet />

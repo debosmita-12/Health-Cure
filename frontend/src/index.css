@@ -10,9 +10,9 @@
   --color-primary-light: #2D6B5B;    /* Medium Forest Green */
   --color-sage: #5E8F7C;             /* Sage / Mint Accent */
   --color-sage-light: #7EABA0;       /* Light Sage */
-  --color-mint-bg: #EEF8F3;          /* Soft Mint Background Tint */
-  --color-card-mint: #EDF7F2;        /* Service Card Mint Background */
-  --color-card-mint-hover: #E3F2EB;  /* Card Hover Background */
+  --color-mint-bg: #E6F4EE;          /* Health Journey Banner Mint Tint */
+  --color-card-mint: #DEF4EC;        /* Service Card Mint Background */
+  --color-card-mint-hover: #D6EFE5;  /* Card Hover Background */
   --color-white: #FFFFFF;
 
   /* Typography Colors */
@@ -56,7 +56,8 @@ html {
   font-family: var(--font-sans);
   font-size: 16px;
   color: var(--color-text-body);
-  background-color: var(--color-white);
+  background-color: #E6F4EE;
+  background: linear-gradient(135deg, #DEF4EC 0%, #F4FAF7 50%, #E6F4EE 100%) fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
@@ -69,9 +70,11 @@ body {
   padding: 0;
   overflow-x: hidden;
   max-width: 100%;
-  background-color: var(--color-white);
+  background-color: #E6F4EE;
+  background: linear-gradient(135deg, #DEF4EC 0%, #F4FAF7 50%, #E6F4EE 100%) fixed;
   color: var(--color-text-body);
   line-height: 1.5;
+  min-height: 100vh;
 }
 
 body.nav-lock {

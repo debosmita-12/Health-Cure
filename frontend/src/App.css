@@ -967,9 +967,9 @@
    7. FOOTER
    -------------------------------------------------------------------------- */
 .site-footer {
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid rgba(23, 76, 64, 0.08);
   padding: 30px 0;
-  background-color: var(--color-white);
+  background-color: transparent;
 }
 
 .footer-row {
@@ -4692,4 +4692,10 @@ th {
   position: relative;
   overflow-x: hidden;
   padding-bottom: 30px;
+}
+
+.site-layout-wrapper {
+  position: relative;
+  z-index: 1;
+  background: transparent;
 }

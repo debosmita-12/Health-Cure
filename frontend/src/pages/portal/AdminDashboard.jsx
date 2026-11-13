@@ -516,7 +516,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <section className="subpage admin-dashboard" style={{ paddingTop: "14px", minHeight: "100vh", background: "radial-gradient(circle at 8% 12%, rgba(167, 243, 208, 0.3) 0%, transparent 40%), radial-gradient(circle at 92% 88%, rgba(209, 250, 229, 0.35) 0%, transparent 45%), #F4FAF7" }}>
+    <section className="subpage admin-dashboard" style={{ paddingTop: "14px", minHeight: "100vh", background: "transparent" }}>
       <div style={{ width: "100%", maxWidth: "100%", padding: "0 24px", boxSizing: "border-box" }}>
         {/* Full-Height Layout: Dark Green Sidebar Flush to the Left */}
         <div className="portal-grid-layout" style={{ marginTop: 0, gap: "24px", gridTemplateColumns: "280px minmax(0, 1fr)" }}>
