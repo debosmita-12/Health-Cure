@@ -73,14 +73,22 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
         boolean matches = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
-        if (!matches && ("patient@healthcure.local".equalsIgnoreCase(user.getEmail())
-                || "doctor@healthcure.local".equalsIgnoreCase(user.getEmail())
-                || "admin@healthcure.local".equalsIgnoreCase(user.getEmail()))) {
-            if ("password".equalsIgnoreCase(request.getPassword())
-                    || "admin".equalsIgnoreCase(request.getPassword())
-                    || "patient".equalsIgnoreCase(request.getPassword())
-                    || "doctor".equalsIgnoreCase(request.getPassword())
-                    || "password123".equalsIgnoreCase(request.getPassword())) {
+        if (!matches) {
+            String email = user.getEmail().toLowerCase();
+            String pwd = request.getPassword();
+            // Demo Account 1: Patient - Debosmita Mukhopadhyay, password - 123456789
+            if ((email.equals("patient@healthcure.local") || email.equals("debosmita@healthcure.local") || email.equals("debosmita.mukhopadhyay@healthcure.local"))
+                    && (pwd.equals("123456789") || pwd.equals("Patient@123") || pwd.equals("password") || pwd.equals("patient"))) {
+                matches = true;
+            }
+            // Demo Account 2: Doctor - Debasis Mukhopadhyay, password - De@120603
+            else if ((email.equals("doctor@healthcure.local") || email.equals("debasis@healthcure.local") || email.equals("debasis.mukhopadhyay@healthcure.local"))
+                    && (pwd.equals("De@120603") || pwd.equals("Doctor@123") || pwd.equals("password") || pwd.equals("doctor"))) {
+                matches = true;
+            }
+            // Demo Account 3: Admin - Rakhi Chatterjee, password - Ra@170879
+            else if ((email.equals("admin@healthcure.local") || email.equals("rakhi@healthcure.local") || email.equals("rakhi.chatterjee@healthcure.local"))
+                    && (pwd.equals("Ra@170879") || pwd.equals("Admin@123") || pwd.equals("password") || pwd.equals("admin"))) {
                 matches = true;
             }
         }

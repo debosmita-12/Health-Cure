@@ -3,9 +3,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
   ArrowRightIcon,
+  DoctorIcon,
   EyeIcon,
   EyeOffIcon,
   LockIcon,
+  ShieldIcon,
+  UsersIcon,
 } from "../../components/icons/icons";
 
 export default function LoginPage() {
@@ -83,7 +86,7 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="subpage login-page">
+    <section className="subpage login-page" style={{ background: "radial-gradient(circle at 10% 20%, rgba(167, 243, 208, 0.35) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(209, 250, 229, 0.4) 0%, transparent 45%), #F4FAF7" }}>
       <div className="container form-layout">
         <div className="subpage-intro">
           <p className="eyebrow-text">SECURE PORTAL ACCESS</p>
@@ -97,32 +100,56 @@ export default function LoginPage() {
             prescriptions, or enter the physician clinical workspace.
           </p>
 
-          <div className="portal-access-tips">
-            <h4>Demo Accounts for Instant Evaluation:</h4>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "12px", marginBottom: "16px" }}>
+          <div className="portal-access-tips" style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: "1px solid rgba(23, 76, 64, 0.12)", borderRadius: "16px", padding: "20px", boxShadow: "0 8px 24px rgba(23,76,64,0.06)" }}>
+            <h4 style={{ margin: "0 0 4px", color: "var(--color-primary)", fontSize: "1.05rem" }}>Demo Accounts for Instant Evaluation:</h4>
+            <p style={{ margin: "0 0 12px", fontSize: "0.82rem", color: "var(--color-text-muted)" }}>Click any account below to auto-fill credentials:</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "16px" }}>
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                style={{ textAlign: "left", justifyContent: "flex-start", padding: "8px 12px" }}
-                onClick={() => fillDemoAccount("patient@healthcure.local", "Patient@123")}
+                style={{ textAlign: "left", justifyContent: "flex-start", padding: "10px 14px", borderRadius: "10px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid rgba(23, 76, 64, 0.15)", background: "rgba(255, 255, 255, 0.9)" }}
+                onClick={() => fillDemoAccount("debosmita@healthcure.local", "123456789")}
+                title="Click to fill Patient credentials"
               >
-                👤 <strong>Patient:</strong> patient@healthcure.local
+                <span style={{ width: "30px", height: "30px", borderRadius: "50%", background: "#E8F5E9", color: "#174C40", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <UsersIcon size={16} />
+                </span>
+                <div>
+                  <strong style={{ color: "var(--color-primary)", display: "block", fontSize: "0.88rem" }}>Patient: Debosmita Mukhopadhyay</strong>
+                  <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>debosmita@healthcure.local • <code>123456789</code></span>
+                </div>
               </button>
+
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                style={{ textAlign: "left", justifyContent: "flex-start", padding: "8px 12px" }}
-                onClick={() => fillDemoAccount("doctor@healthcure.local", "Doctor@123")}
+                style={{ textAlign: "left", justifyContent: "flex-start", padding: "10px 14px", borderRadius: "10px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid rgba(23, 76, 64, 0.15)", background: "rgba(255, 255, 255, 0.9)" }}
+                onClick={() => fillDemoAccount("debasis@healthcure.local", "De@120603")}
+                title="Click to fill Doctor credentials"
               >
-                🩺 <strong>Doctor:</strong> doctor@healthcure.local
+                <span style={{ width: "30px", height: "30px", borderRadius: "50%", background: "#E8F5E9", color: "#174C40", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <DoctorIcon size={16} />
+                </span>
+                <div>
+                  <strong style={{ color: "var(--color-primary)", display: "block", fontSize: "0.88rem" }}>Doctor: Dr. Debasis Mukhopadhyay</strong>
+                  <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>debasis@healthcure.local • <code>De@120603</code></span>
+                </div>
               </button>
+
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                style={{ textAlign: "left", justifyContent: "flex-start", padding: "8px 12px" }}
-                onClick={() => fillDemoAccount("admin@healthcure.local", "Admin@123")}
+                style={{ textAlign: "left", justifyContent: "flex-start", padding: "10px 14px", borderRadius: "10px", display: "flex", alignItems: "center", gap: "12px", border: "1px solid rgba(23, 76, 64, 0.15)", background: "rgba(255, 255, 255, 0.9)" }}
+                onClick={() => fillDemoAccount("rakhi@healthcure.local", "Ra@170879")}
+                title="Click to fill Admin credentials"
               >
-                🛡️ <strong>Admin:</strong> admin@healthcure.local
+                <span style={{ width: "30px", height: "30px", borderRadius: "50%", background: "#E8F5E9", color: "#174C40", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <ShieldIcon size={16} />
+                </span>
+                <div>
+                  <strong style={{ color: "var(--color-primary)", display: "block", fontSize: "0.88rem" }}>Admin: Rakhi Chatterjee</strong>
+                  <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>rakhi@healthcure.local • <code>Ra@170879</code></span>
+                </div>
               </button>
             </div>
             <ul>
@@ -139,7 +166,7 @@ export default function LoginPage() {
 
         <div className="form-card-container">
           {loginSuccess ? (
-            <div className="form-success-card">
+            <div className="form-success-card" style={{ background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255, 255, 255, 0.7)", boxShadow: "0 12px 36px rgba(23, 76, 64, 0.09)" }}>
               <span className="success-icon-wrap">
                 <LockIcon size={32} />
               </span>
@@ -157,7 +184,7 @@ export default function LoginPage() {
               </div>
             </div>
           ) : (
-            <div className="panel-form-card">
+            <div className="panel-form-card" style={{ background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255, 255, 255, 0.7)", boxShadow: "0 14px 40px rgba(23, 76, 64, 0.08)" }}>
               {noticeMessage && (
                 <div style={{ padding: "12px 16px", background: "#FEF3C7", borderRadius: "10px", border: "1px solid #FCD34D", color: "#92400E", marginBottom: "16px", fontSize: "0.88rem", lineHeight: 1.5 }}>
                   ℹ️ {noticeMessage}
@@ -209,31 +236,36 @@ export default function LoginPage() {
                   </div>
                   {errors.password && <small>{errors.password}</small>}
                   
-                  {/* Remember Me and Forgot Password row */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "10px", marginBottom: "4px" }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.86rem", color: "var(--color-text-body)", cursor: "pointer", margin: 0, fontWeight: 500 }}>
-                      <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        style={{ accentColor: "var(--color-primary)", width: "16px", height: "16px" }}
-                      />
-                      Remember Me
-                    </label>
+                  {/* Forgot Password aligned right under password */}
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "6px" }}>
                     <Link to="/forgot-password" style={{ fontSize: "0.85rem", color: "var(--color-primary)", textDecoration: "none", fontWeight: 600 }}>
                       Forgot Password?
                     </Link>
                   </div>
                 </label>
 
-                <button
-                  className="btn btn-primary btn-block"
-                  type="submit"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Authenticating..." : "Sign In to Portal"}{" "}
-                  <ArrowRightIcon size={14} />
-                </button>
+                {/* Remember Me on the left of Sign In Button, Sign In button shortened */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", marginTop: "12px" }}>
+                  <label style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", color: "var(--color-text-body)", cursor: "pointer", margin: 0, fontWeight: 500, whiteSpace: "nowrap" }}>
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      style={{ accentColor: "var(--color-primary)", width: "17px", height: "17px", cursor: "pointer" }}
+                    />
+                    Remember Me
+                  </label>
+
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={isLoading}
+                    style={{ flex: 1, padding: "12px 18px", fontSize: "0.95rem", justifyContent: "center" }}
+                  >
+                    {isLoading ? "Authenticating..." : "Sign In to Portal"}{" "}
+                    <ArrowRightIcon size={14} />
+                  </button>
+                </div>
 
                 <div style={{ textAlign: "center", margin: "18px 0 6px", fontSize: "0.88rem", color: "var(--color-text-body)" }}>
                   Need an account?{" "}

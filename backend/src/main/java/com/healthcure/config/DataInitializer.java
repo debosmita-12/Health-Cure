@@ -87,22 +87,40 @@ public class DataInitializer implements CommandLineRunner {
             deptMap.put((String) d.get("name"), ((Number) d.get("id")).longValue());
         }
 
-        // 2. Administrator User (Canonical Role: ADMIN)
+        // 2. Administrator User: Rakhi Chatterjee (Canonical Role: ADMIN)
         User savedAdmin;
         Optional<User> adminOpt = userRepository.findByEmail("admin@healthcure.local");
         if (adminOpt.isEmpty()) {
             User admin = new User();
             admin.setEmail("admin@healthcure.local");
-            admin.setPasswordHash(passwordEncoder.encode("Admin@123"));
+            admin.setPasswordHash(passwordEncoder.encode("Ra@170879"));
             admin.setRole("ADMIN");
-            admin.setFirstName("System");
-            admin.setLastName("Admin");
+            admin.setFirstName("Rakhi");
+            admin.setLastName("Chatterjee");
             admin.setPhone("+91 9051579029");
             admin.setIsActive(true);
             admin.setIsVerified(true);
             savedAdmin = userRepository.save(admin);
         } else {
             savedAdmin = adminOpt.get();
+            savedAdmin.setFirstName("Rakhi");
+            savedAdmin.setLastName("Chatterjee");
+            savedAdmin.setPasswordHash(passwordEncoder.encode("Ra@170879"));
+            userRepository.save(savedAdmin);
+        }
+
+        // Also alias rakhi@healthcure.local
+        if (userRepository.findByEmail("rakhi@healthcure.local").isEmpty()) {
+            User rakhiUser = new User();
+            rakhiUser.setEmail("rakhi@healthcure.local");
+            rakhiUser.setPasswordHash(passwordEncoder.encode("Ra@170879"));
+            rakhiUser.setRole("ADMIN");
+            rakhiUser.setFirstName("Rakhi");
+            rakhiUser.setLastName("Chatterjee");
+            rakhiUser.setPhone("+91 9051579030");
+            rakhiUser.setIsActive(true);
+            rakhiUser.setIsVerified(true);
+            userRepository.save(rakhiUser);
         }
 
         // 3. Seed at least 52 Demo Doctors across all 10 Medical Specialties
@@ -119,11 +137,27 @@ public class DataInitializer implements CommandLineRunner {
 
         Doctor savedFirstDoc = null;
 
-        // Group 1: Cardiology & Vascular (5 Doctors)
-        Doctor d1 = seedDoctorIfMissing("doctor@healthcure.local", "Rajesh", "Sharma", "+91 9051579029",
-                cardioId, "Cardiology & Vascular", "WB-MCI-2010-9921", "MBBS, MD, DM (Cardiology) - AIIMS New Delhi",
-                16, 850.00, "Health & Cure Super Speciality Hospital, Kolkata", "Senior interventional cardiologist with 16 years of clinical excellence in coronary angioplasty, pacemaker implantation, and preventive cardiac healthcare.");
+        // Group 1: Cardiology & Vascular - Demo Doctor: Dr. Debasis Mukhopadhyay
+        Doctor d1 = seedDoctorIfMissing("doctor@healthcure.local", "Debasis", "Mukhopadhyay", "+91 9051579029",
+                cardioId, "Cardiology & Vascular", "WB-MCI-2005-1206", "MBBS, MD, DM (Cardiology) - AIIMS New Delhi",
+                19, 900.00, "Health & Cure Super Speciality Hospital, Kolkata", "Senior consultant cardiologist and clinical director with 19 years of clinical excellence in cardiovascular medicine and interventional care.");
         savedFirstDoc = d1;
+        // Ensure name and password hash updated if already existing
+        userRepository.findByEmail("doctor@healthcure.local").ifPresent(du -> {
+            du.setFirstName("Debasis");
+            du.setLastName("Mukhopadhyay");
+            du.setPasswordHash(passwordEncoder.encode("De@120603"));
+            userRepository.save(du);
+        });
+
+        // Also alias debasis@healthcure.local
+        seedDoctorIfMissing("debasis@healthcure.local", "Debasis", "Mukhopadhyay", "+91 9051579031",
+                cardioId, "Cardiology & Vascular", "WB-MCI-2005-1206-ALT", "MBBS, MD, DM (Cardiology)",
+                19, 900.00, "Health & Cure Super Speciality Hospital, Kolkata", "Senior consultant cardiologist.");
+        userRepository.findByEmail("debasis@healthcure.local").ifPresent(du -> {
+            du.setPasswordHash(passwordEncoder.encode("De@120603"));
+            userRepository.save(du);
+        });
 
         seedDoctorIfMissing("priya.nair@healthcure.local", "Priya", "Nair", "+91 9051579029",
                 cardioId, "Cardiology & Vascular", "WB-MCI-2014-8832", "MBBS, MD, DM (Cardiology) - Christian Medical College (CMC) Vellore",
@@ -338,13 +372,13 @@ public class DataInitializer implements CommandLineRunner {
                 psychId, "Psychiatry & Mental Health", "WB-MCI-2009-6697", "MBBS, DPM, MD (Psychiatry) - R.G. Kar Medical College Kolkata",
                 17, 800.00, "Health & Cure Behavioral Health Wing, Kolkata", "Senior clinician offering holistic family psychiatric care, stress management, marital counseling, and mood stability.");
 
-        // 4. Seed Default Indian Patient (Debosmita Mukhopadhyay)
+        // 4. Seed Default Indian Patient (Debosmita Mukhopadhyay, password - 123456789)
         Optional<User> patientUserOpt = userRepository.findByEmail("patient@healthcure.local");
         Patient savedPatient;
         if (patientUserOpt.isEmpty()) {
             User patientUser = new User();
             patientUser.setEmail("patient@healthcure.local");
-            patientUser.setPasswordHash(passwordEncoder.encode("Patient@123"));
+            patientUser.setPasswordHash(passwordEncoder.encode("123456789"));
             patientUser.setRole("PATIENT");
             patientUser.setFirstName("Debosmita");
             patientUser.setLastName("Mukhopadhyay");
@@ -362,7 +396,35 @@ public class DataInitializer implements CommandLineRunner {
             patient.setEmergencyContact("+91 9051579029");
             savedPatient = patientRepository.save(patient);
         } else {
-            savedPatient = patientRepository.findByUserId(patientUserOpt.get().getId()).orElse(null);
+            User pUser = patientUserOpt.get();
+            pUser.setFirstName("Debosmita");
+            pUser.setLastName("Mukhopadhyay");
+            pUser.setPasswordHash(passwordEncoder.encode("123456789"));
+            userRepository.save(pUser);
+            savedPatient = patientRepository.findByUserId(pUser.getId()).orElse(null);
+        }
+
+        // Also alias debosmita@healthcure.local
+        if (userRepository.findByEmail("debosmita@healthcure.local").isEmpty()) {
+            User deboUser = new User();
+            deboUser.setEmail("debosmita@healthcure.local");
+            deboUser.setPasswordHash(passwordEncoder.encode("123456789"));
+            deboUser.setRole("PATIENT");
+            deboUser.setFirstName("Debosmita");
+            deboUser.setLastName("Mukhopadhyay");
+            deboUser.setPhone("+91 9051579032");
+            deboUser.setIsActive(true);
+            deboUser.setIsVerified(true);
+            User savedDebo = userRepository.save(deboUser);
+
+            Patient deboPat = new Patient();
+            deboPat.setUserId(savedDebo.getId());
+            deboPat.setDateOfBirth(LocalDate.of(2003, 6, 12));
+            deboPat.setGender("Female");
+            deboPat.setBloodGroup("A+");
+            deboPat.setAddress("Health & Cure Super Speciality Hospital Campus, Salt Lake Sector V, Kolkata, West Bengal - 700091, India");
+            deboPat.setEmergencyContact("+91 9051579029");
+            patientRepository.save(deboPat);
         }
 
         if (savedPatient != null && savedFirstDoc != null) {

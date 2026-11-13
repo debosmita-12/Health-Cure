@@ -270,7 +270,6 @@ export default function Footer() {
                     <Icon size={16} />
                   </span>
                   <span style={{ fontWeight: 600 }}>{name}</span>
-                  <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted, #6B7280)" }}>({label})</span>
                 </a>
               ))}
             </div>

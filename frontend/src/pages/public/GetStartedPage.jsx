@@ -262,7 +262,7 @@ export default function GetStartedPage() {
   }
 
   return (
-    <section className="subpage get-started-page">
+    <section className="subpage get-started-page" style={{ background: "radial-gradient(circle at 10% 20%, rgba(167, 243, 208, 0.35) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(209, 250, 229, 0.4) 0%, transparent 45%), #F4FAF7" }}>
       <div className="container form-layout">
         {/* Left Side: Healthcare Intro & Role Guidance */}
         <div className="subpage-intro">
@@ -276,7 +276,7 @@ export default function GetStartedPage() {
             A single, secure platform connecting Patients, Medical Practitioners, and Platform Administrators for comprehensive healthcare governance.
           </p>
 
-          <div className="portal-access-tips" style={{ marginTop: "24px" }}>
+          <div className="portal-access-tips" style={{ marginTop: "24px", background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", border: "1px solid rgba(23, 76, 64, 0.12)", borderRadius: "16px", padding: "22px", boxShadow: "0 8px 24px rgba(23,76,64,0.06)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "16px" }}>
               <div style={{ color: "var(--color-primary)", flexShrink: 0, marginTop: "2px" }}>
                 <UsersIcon size={20} />
@@ -327,7 +327,7 @@ export default function GetStartedPage() {
         {/* Right Side: Registration Form */}
         <div className="form-card-container">
           {submitted ? (
-            <div className="form-success-card">
+            <div className="form-success-card" style={{ background: "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255, 255, 255, 0.7)", boxShadow: "0 12px 36px rgba(23, 76, 64, 0.09)" }}>
               <span className="success-icon-wrap"><CheckIcon size={28} /></span>
               
               {submittedRole === "PATIENT" && (
@@ -377,104 +377,111 @@ export default function GetStartedPage() {
               )}
             </div>
           ) : (
-            <form className="panel-form" onSubmit={handleSubmit} noValidate>
-              <div className="panel-form-header">
-                <h3>Account Registration</h3>
-                <p>Select your user type to open the appropriate registration form.</p>
-              </div>
-
-              {errors.general && (
-                <div style={{ background: "#FEF2F2", border: "1.5px solid #EF4444", borderRadius: "12px", padding: "14px 18px", marginBottom: "18px" }}>
-                  <p style={{ color: "#991B1B", fontWeight: 700, margin: "0 0 6px" }}>{errors.general}</p>
-                  {errors.alreadyRegistered && (
-                    <div style={{ marginTop: "10px" }}>
-                      <p style={{ fontSize: "0.88rem", color: "#7F1D1D", margin: "0 0 10px" }}>
-                        Once registered, a patient cannot register again and can directly sign in to their account.
-                      </p>
-                      <Link to="/login" className="ref-btn-primary" style={{ display: "inline-block", padding: "8px 18px", fontSize: "0.85rem" }}>
-                        Sign In to Your Account →
-                      </Link>
-                    </div>
-                  )}
+            <div className="panel-form-card" style={{ background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255, 255, 255, 0.7)", boxShadow: "0 14px 40px rgba(23, 76, 64, 0.08)", padding: "32px", borderRadius: "20px" }}>
+              <form className="panel-form" onSubmit={handleSubmit} noValidate>
+                <div className="panel-form-header">
+                  <h3>Account Registration</h3>
+                  <p>Select your user type to open the appropriate registration form.</p>
                 </div>
-              )}
 
-              {/* Top: Select Account Type (Patient, Doctor, Admin) */}
-              <div style={{ marginBottom: "22px" }}>
-                <label style={{ fontWeight: 700, color: "var(--color-primary)", display: "block", marginBottom: "8px", fontSize: "0.95rem" }}>
-                  Select Account Type:
-                </label>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "10px" }}>
-                  <button
-                    type="button"
-                    onClick={() => { setSelectedRole("PATIENT"); setErrors({}); }}
-                    style={{
-                      padding: "12px 6px",
-                      borderRadius: "12px",
-                      border: selectedRole === "PATIENT" ? "2px solid #174C40" : "1.5px solid #D1D5DB",
-                      background: selectedRole === "PATIENT" ? "#E8F5E9" : "#FFFFFF",
-                      color: selectedRole === "PATIENT" ? "#174C40" : "#4B5563",
-                      fontWeight: selectedRole === "PATIENT" ? 700 : 500,
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s ease",
-                      boxShadow: selectedRole === "PATIENT" ? "0 2px 8px rgba(23,76,64,0.15)" : "none",
-                    }}
-                  >
-                    <span style={{ fontSize: "1.4rem" }}>👤</span>
-                    <span style={{ fontSize: "0.92rem" }}>Patient</span>
-                  </button>
+                {errors.general && (
+                  <div style={{ background: "#FEF2F2", border: "1.5px solid #EF4444", borderRadius: "12px", padding: "14px 18px", marginBottom: "18px" }}>
+                    <p style={{ color: "#991B1B", fontWeight: 700, margin: "0 0 6px" }}>{errors.general}</p>
+                    {errors.alreadyRegistered && (
+                      <div style={{ marginTop: "10px" }}>
+                        <p style={{ fontSize: "0.88rem", color: "#7F1D1D", margin: "0 0 10px" }}>
+                          Once registered, a patient cannot register again and can directly sign in to their account.
+                        </p>
+                        <Link to="/login" className="ref-btn-primary" style={{ display: "inline-block", padding: "8px 18px", fontSize: "0.85rem" }}>
+                          Sign In to Your Account →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                  <button
-                    type="button"
-                    onClick={() => { setSelectedRole("DOCTOR"); setErrors({}); }}
-                    style={{
-                      padding: "12px 6px",
-                      borderRadius: "12px",
-                      border: selectedRole === "DOCTOR" ? "2px solid #174C40" : "1.5px solid #D1D5DB",
-                      background: selectedRole === "DOCTOR" ? "#E8F5E9" : "#FFFFFF",
-                      color: selectedRole === "DOCTOR" ? "#174C40" : "#4B5563",
-                      fontWeight: selectedRole === "DOCTOR" ? 700 : 500,
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s ease",
-                      boxShadow: selectedRole === "DOCTOR" ? "0 2px 8px rgba(23,76,64,0.15)" : "none",
-                    }}
-                  >
-                    <span style={{ fontSize: "1.4rem" }}>🩺</span>
-                    <span style={{ fontSize: "0.92rem" }}>Doctor</span>
-                  </button>
+                {/* Top: Select Account Type with React SVG Icons instead of emojis */}
+                <div style={{ marginBottom: "22px" }}>
+                  <label style={{ fontWeight: 700, color: "var(--color-primary)", display: "block", marginBottom: "8px", fontSize: "0.95rem" }}>
+                    Select Account Type:
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "10px" }}>
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedRole("PATIENT"); setErrors({}); }}
+                      style={{
+                        padding: "14px 8px",
+                        borderRadius: "12px",
+                        border: selectedRole === "PATIENT" ? "2px solid #174C40" : "1.5px solid #D1D5DB",
+                        background: selectedRole === "PATIENT" ? "#E8F5E9" : "#FFFFFF",
+                        color: selectedRole === "PATIENT" ? "#174C40" : "#4B5563",
+                        fontWeight: selectedRole === "PATIENT" ? 700 : 500,
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "8px",
+                        transition: "all 0.2s ease",
+                        boxShadow: selectedRole === "PATIENT" ? "0 4px 12px rgba(23,76,64,0.15)" : "none",
+                      }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", color: selectedRole === "PATIENT" ? "#174C40" : "#6B7280" }}>
+                        <UsersIcon size={24} />
+                      </span>
+                      <span style={{ fontSize: "0.92rem" }}>Patient</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => { setSelectedRole("ADMIN"); setErrors({}); }}
-                    style={{
-                      padding: "12px 6px",
-                      borderRadius: "12px",
-                      border: selectedRole === "ADMIN" ? "2px solid #174C40" : "1.5px solid #D1D5DB",
-                      background: selectedRole === "ADMIN" ? "#E8F5E9" : "#FFFFFF",
-                      color: selectedRole === "ADMIN" ? "#174C40" : "#4B5563",
-                      fontWeight: selectedRole === "ADMIN" ? 700 : 500,
-                      cursor: "pointer",
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s ease",
-                      boxShadow: selectedRole === "ADMIN" ? "0 2px 8px rgba(23,76,64,0.15)" : "none",
-                    }}
-                  >
-                    <span style={{ fontSize: "1.4rem" }}>🛡️</span>
-                    <span style={{ fontSize: "0.92rem" }}>Admin</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedRole("DOCTOR"); setErrors({}); }}
+                      style={{
+                        padding: "14px 8px",
+                        borderRadius: "12px",
+                        border: selectedRole === "DOCTOR" ? "2px solid #174C40" : "1.5px solid #D1D5DB",
+                        background: selectedRole === "DOCTOR" ? "#E8F5E9" : "#FFFFFF",
+                        color: selectedRole === "DOCTOR" ? "#174C40" : "#4B5563",
+                        fontWeight: selectedRole === "DOCTOR" ? 700 : 500,
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "8px",
+                        transition: "all 0.2s ease",
+                        boxShadow: selectedRole === "DOCTOR" ? "0 4px 12px rgba(23,76,64,0.15)" : "none",
+                      }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", color: selectedRole === "DOCTOR" ? "#174C40" : "#6B7280" }}>
+                        <DoctorIcon size={24} />
+                      </span>
+                      <span style={{ fontSize: "0.92rem" }}>Doctor</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedRole("ADMIN"); setErrors({}); }}
+                      style={{
+                        padding: "14px 8px",
+                        borderRadius: "12px",
+                        border: selectedRole === "ADMIN" ? "2px solid #174C40" : "1.5px solid #D1D5DB",
+                        background: selectedRole === "ADMIN" ? "#E8F5E9" : "#FFFFFF",
+                        color: selectedRole === "ADMIN" ? "#174C40" : "#4B5563",
+                        fontWeight: selectedRole === "ADMIN" ? 700 : 500,
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "8px",
+                        transition: "all 0.2s ease",
+                        boxShadow: selectedRole === "ADMIN" ? "0 4px 12px rgba(23,76,64,0.15)" : "none",
+                      }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", color: selectedRole === "ADMIN" ? "#174C40" : "#6B7280" }}>
+                        <ShieldIcon size={24} />
+                      </span>
+                      <span style={{ fontSize: "0.92rem" }}>Admin</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
 
               {/* Common Name Fields */}
               <div className="form-row-2">
@@ -859,6 +866,7 @@ export default function GetStartedPage() {
                 <ArrowRightIcon size={14} />
               </button>
             </form>
+            </div>
           )}
         </div>
       </div>

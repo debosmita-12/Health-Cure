@@ -516,19 +516,19 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <section className="subpage admin-dashboard" style={{ paddingTop: "20px" }}>
-      <div className="container" style={{ maxWidth: "1440px" }}>
-        {/* Full-Height Layout: Dark Green Sidebar on the Left starting from the Top */}
-        <div className="portal-grid-layout" style={{ marginTop: 0 }}>
-          {/* Left Sidebar Column */}
+    <section className="subpage admin-dashboard" style={{ paddingTop: "14px", minHeight: "100vh", background: "radial-gradient(circle at 8% 12%, rgba(167, 243, 208, 0.3) 0%, transparent 40%), radial-gradient(circle at 92% 88%, rgba(209, 250, 229, 0.35) 0%, transparent 45%), #F4FAF7" }}>
+      <div style={{ width: "100%", maxWidth: "100%", padding: "0 24px", boxSizing: "border-box" }}>
+        {/* Full-Height Layout: Dark Green Sidebar Flush to the Left */}
+        <div className="portal-grid-layout" style={{ marginTop: 0, gap: "24px", gridTemplateColumns: "280px minmax(0, 1fr)" }}>
+          {/* Left Sidebar Column - Pinned to Extreme Left */}
           <div className="portal-sidebar-column">
-            <aside className="portal-sidebar-card dark-green-sidebar">
+            <aside className="portal-sidebar-card dark-green-sidebar" style={{ background: "rgba(23, 76, 64, 0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "18px" }}>
             <div className="portal-user-profile-box">
               <div className="portal-user-avatar">
-                {(user?.firstName || "S")[0].toUpperCase()}
+                {(user?.firstName || "R")[0].toUpperCase()}
               </div>
               <div className="portal-user-info">
-                <h4 className="portal-user-name">{user?.firstName} {user?.lastName}</h4>
+                <h4 className="portal-user-name">{user?.firstName || "Rakhi"} {user?.lastName || "Chatterjee"}</h4>
                 <span className="portal-user-role-badge">ADMIN</span>
               </div>
             </div>
@@ -1673,6 +1673,470 @@ export default function AdminDashboard() {
               </div>
             )}
 
+            {/* View: Schedule & Facilities */}
+            {(activeTab === "doctor-schedules" || activeTab === "facility-availability" || activeTab === "room-management" || activeTab === "holidays" || activeTab === "facility-management") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <div className="portal-card-header">
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Clinical Suites, OPD Rooms &amp; Facilities</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Real-time status of hospital consultation rooms, diagnostic suites, and physician practice schedules.
+                      </p>
+                    </div>
+                    <span className="status-badge-pill" style={{ background: "#ECFDF5", color: "#065F46", border: "1px solid #10B981" }}>
+                      10/10 Suites Operational
+                    </span>
+                  </div>
+
+                  <div className="portal-table-wrap" style={{ marginTop: "16px" }}>
+                    <table className="portal-table">
+                      <thead>
+                        <tr>
+                          <th>Room / Unit</th>
+                          <th>Clinical Scope</th>
+                          <th>Assigned Department</th>
+                          <th>Operating Hours</th>
+                          <th>Equipment Status</th>
+                          <th>Room Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { room: "Suite 101", name: "Cardiac Diagnostics & ECG Lab", dept: "Cardiology & Vascular", hours: "09:00 - 18:00", equip: "12-Lead ECG, Holter Monitors, Echo", status: "Active & Sanitized" },
+                          { room: "Suite 102", name: "Dermatology & Laser Clinic", dept: "Dermatology & Skin Health", hours: "09:00 - 17:00", equip: "Dermatoscope, Cryotherapy, Laser", status: "Active & Sanitized" },
+                          { room: "Suite 103", name: "Neurology & EEG Pavilion", dept: "Neurology & Brain Sciences", hours: "09:00 - 18:00", equip: "Digital EEG, EMG Analyzer, Doppler", status: "Active & Sanitized" },
+                          { room: "Suite 104", name: "Primary Care & General OPD", dept: "General Medicine", hours: "08:30 - 19:00", equip: "Vitals Monitor, Nebulizers, O2 Station", status: "Active & Sanitized" },
+                          { room: "Suite 105", name: "Ophthalmic Examination Suite", dept: "Ophthalmology & Vision Care", hours: "09:00 - 17:30", equip: "Slit Lamp, Auto-Refractor, Tonometer", status: "Active & Sanitized" },
+                          { room: "Suite 106", name: "Pediatric Wellness Center", dept: "Pediatrics & Family Care", hours: "09:00 - 16:30", equip: "Infant Scale, Immunization Cooler", status: "Active & Sanitized" },
+                          { room: "Suite 107", name: "Mental Health & Counseling", dept: "Psychiatry & Mental Health", hours: "10:00 - 19:00", equip: "Acoustic Insulation, Therapy Setup", status: "Active & Sanitized" },
+                          { room: "Suite 108", name: "Orthopedic Mobility Clinic", dept: "Orthopedics & Joint", hours: "09:00 - 17:00", equip: "Digital X-Ray Viewer, Joint Cast Bench", status: "Active & Sanitized" },
+                        ].map((r) => (
+                          <tr key={r.room}>
+                            <td><strong>{r.room}</strong></td>
+                            <td>{r.name}</td>
+                            <td><span style={{ color: "var(--color-sage)", fontWeight: 600 }}>{r.dept}</span></td>
+                            <td>{r.hours}</td>
+                            <td><small style={{ color: "var(--color-text-muted)" }}>{r.equip}</small></td>
+                            <td>
+                              <span className="status-badge-pill status-verified">{r.status}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View: Medical Records Governance */}
+            {(activeTab === "all-medical-records" || activeTab === "document-management" || activeTab === "record-access-logs") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <div className="portal-card-header">
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Electronic Medical Records (EMR) Vault</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Zero-Trust cryptographic access log for all patient health records, diagnostic PDFs, and lab charts.
+                      </p>
+                    </div>
+                    <span className="status-badge-pill" style={{ background: "#EFF6FF", color: "#1E40AF", border: "1px solid #3B82F6" }}>
+                      AES-256 GCM Encrypted
+                    </span>
+                  </div>
+
+                  <div className="portal-table-wrap" style={{ marginTop: "16px" }}>
+                    <table className="portal-table">
+                      <thead>
+                        <tr>
+                          <th>Record ID</th>
+                          <th>Patient Name</th>
+                          <th>Record Title</th>
+                          <th>Type</th>
+                          <th>Attending Doctor</th>
+                          <th>Access Policy</th>
+                          <th>Integrity Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { id: "REC-2026-001", patient: "Debosmita Mukhopadhyay", title: "Comprehensive Cardiovascular Examination", type: "Clinical Report", doctor: "Dr. Debasis Mukhopadhyay", access: "Patient Consent Enforced", hash: "SHA-256 Verified" },
+                          { id: "REC-2026-002", patient: "Debosmita Mukhopadhyay", title: "Annual Preventive Health Consultation", type: "Consultation Note", doctor: "Dr. Rajesh Sharma", access: "Patient Consent Enforced", hash: "SHA-256 Verified" },
+                          { id: "REC-2026-003", patient: "Debosmita Mukhopadhyay", title: "Lipid Profile & Resting 12-Lead ECG", type: "Diagnostic PDF", doctor: "Dr. Maya Patel", access: "Patient Consent Enforced", hash: "SHA-256 Verified" },
+                          { id: "REC-2026-004", patient: "Aarav Sen", title: "General Health Checkup & CBC Panel", type: "Lab Diagnostic", doctor: "Dr. Sarah Jenkins", access: "Patient Consent Enforced", hash: "SHA-256 Verified" },
+                        ].map((rec) => (
+                          <tr key={rec.id}>
+                            <td><code>{rec.id}</code></td>
+                            <td><strong>{rec.patient}</strong></td>
+                            <td>{rec.title}</td>
+                            <td><span className="status-badge-pill" style={{ background: "#EEF8F3", color: "#174C40" }}>{rec.type}</span></td>
+                            <td>{rec.doctor}</td>
+                            <td><small style={{ color: "var(--color-primary)", fontWeight: 600 }}>{rec.access}</small></td>
+                            <td><span className="status-badge-pill status-verified">{rec.hash}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View: Prescriptions Registry */}
+            {(activeTab === "all-prescriptions" || activeTab === "prescription-templates" || activeTab === "prescription-history") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <div className="portal-card-header">
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Platform Digital Prescriptions Registry</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Physician-authored electronic prescriptions linked directly to patient vaults and hospital pharmacy.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="portal-table-wrap" style={{ marginTop: "16px" }}>
+                    <table className="portal-table">
+                      <thead>
+                        <tr>
+                          <th>Rx Reference</th>
+                          <th>Patient Name</th>
+                          <th>Prescribing Physician</th>
+                          <th>Medications &amp; Dosage</th>
+                          <th>Refills</th>
+                          <th>Dispensation Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { rx: "RX-2026-101", patient: "Debosmita Mukhopadhyay", doc: "Dr. Debasis Mukhopadhyay", meds: "Tab. Atorvastatin 20mg (1 OD), Tab. Aspirin 75mg (1 OD)", refills: "2 Refills", status: "Dispensed / Active" },
+                          { rx: "RX-2026-102", patient: "Debosmita Mukhopadhyay", doc: "Dr. Maya Patel", meds: "Dermatological Barrier Gel 1% (BD), Tab. Cetirizine 10mg (HS)", refills: "1 Refill", status: "Dispensed / Active" },
+                          { rx: "RX-2026-103", patient: "Aarav Sen", doc: "Dr. Sarah Jenkins", meds: "Tab. Amoxicillin-Clav 625mg (TDS), Tab. Paracetamol 650mg (SOS)", refills: "0 Refills", status: "Completed" },
+                        ].map((rx) => (
+                          <tr key={rx.rx}>
+                            <td><code>{rx.rx}</code></td>
+                            <td><strong>{rx.patient}</strong></td>
+                            <td>{rx.doc}</td>
+                            <td><strong>{rx.meds}</strong></td>
+                            <td>{rx.refills}</td>
+                            <td><span className="status-badge-pill status-verified">{rx.status}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View: Pharmacy & Inventory */}
+            {(activeTab === "medicines" || activeTab === "stock-management" || activeTab === "suppliers" || activeTab === "purchase-orders" || activeTab === "expiry-tracking") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <div className="portal-card-header">
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Hospital Pharmacy &amp; Pharmaceutical Inventory</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Formulary stock levels, batch tracking, licensed suppliers, and temperature-controlled storage audit.
+                      </p>
+                    </div>
+                    <span className="status-badge-pill" style={{ background: "#ECFDF5", color: "#065F46", border: "1px solid #10B981" }}>
+                      Formulary: Full Stock
+                    </span>
+                  </div>
+
+                  <div className="portal-table-wrap" style={{ marginTop: "16px" }}>
+                    <table className="portal-table">
+                      <thead>
+                        <tr>
+                          <th>Medication Name</th>
+                          <th>Category</th>
+                          <th>Batch #</th>
+                          <th>Available Units</th>
+                          <th>Unit Price (₹)</th>
+                          <th>Licensed Supplier</th>
+                          <th>Expiry Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { name: "Atorvastatin 20mg", cat: "Cardiovascular", batch: "ATV-2601", stock: 1250, price: 14.50, supplier: "Sun Pharmaceutical Industries", exp: "2028-09-30" },
+                          { name: "Metformin 500mg SR", cat: "Endocrinology", batch: "MET-8842", stock: 2400, price: 6.20, supplier: "Cipla Ltd, Mumbai", exp: "2028-11-15" },
+                          { name: "Pantoprazole 40mg", cat: "Gastroenterology", batch: "PAN-1109", stock: 1800, price: 8.50, supplier: "Dr. Reddy's Laboratories", exp: "2028-08-20" },
+                          { name: "Levocetirizine 5mg", cat: "Dermatology / Allergy", batch: "LCT-5531", stock: 950, price: 5.00, supplier: "Lupin Healthcare", exp: "2028-06-30" },
+                          { name: "Paracetamol 650mg", cat: "Analgesic / Antipyretic", batch: "PCM-9910", stock: 3500, price: 2.10, supplier: "GlaxoSmithKline India", exp: "2029-01-10" },
+                          { name: "Amoxicillin-Clav 625mg", cat: "Anti-Infective", batch: "AMX-4421", stock: 820, price: 22.00, supplier: "Alkem Laboratories", exp: "2027-12-31" },
+                        ].map((m) => (
+                          <tr key={m.batch}>
+                            <td><strong>{m.name}</strong></td>
+                            <td>{m.cat}</td>
+                            <td><code>{m.batch}</code></td>
+                            <td><strong>{m.stock} Units</strong></td>
+                            <td>₹{m.price.toFixed(2)}</td>
+                            <td>{m.supplier}</td>
+                            <td><small style={{ color: "var(--color-sage)", fontWeight: 700 }}>{m.exp}</small></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View: Communication Center */}
+            {(activeTab === "notifications" || activeTab === "email-management" || activeTab === "sms-management" || activeTab === "announcements") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <div className="portal-card-header">
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Hospital Broadcast &amp; Patient Messaging Center</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Platform-wide communication gateway for appointment reminders, emergency alerts, and public advisories.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "16px" }}>
+                    <div style={{ background: "var(--color-bg-tint)", padding: "20px", borderRadius: "14px", border: "1px solid var(--color-border-card)" }}>
+                      <h4 style={{ margin: "0 0 8px", color: "var(--color-primary)" }}>Active Broadcast Notices</h4>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "12px" }}>
+                        <div style={{ background: "#FFFFFF", padding: "12px 14px", borderRadius: "8px", borderLeft: "4px solid #10B981" }}>
+                          <strong style={{ fontSize: "0.92rem", color: "var(--color-primary)" }}>Seasonal Flu &amp; Preventive Health Camp Active</strong>
+                          <p style={{ margin: "4px 0 0", fontSize: "0.82rem", color: "var(--color-text-body)" }}>
+                            Free cardiac risk assessments and vaccination drive currently open at Salt Lake Sector V Pavilion.
+                          </p>
+                        </div>
+                        <div style={{ background: "#FFFFFF", padding: "12px 14px", borderRadius: "8px", borderLeft: "4px solid #3B82F6" }}>
+                          <strong style={{ fontSize: "0.92rem", color: "var(--color-primary)" }}>Digital OPD Telemedicine Service 24/7</strong>
+                          <p style={{ margin: "4px 0 0", fontSize: "0.82rem", color: "var(--color-text-body)" }}>
+                            Encrypted HD teleconsultations now accessible to all registered care members.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ background: "var(--color-bg-tint)", padding: "20px", borderRadius: "14px", border: "1px solid var(--color-border-card)" }}>
+                      <h4 style={{ margin: "0 0 8px", color: "var(--color-primary)" }}>Messaging Gateway Metrics</h4>
+                      <ul style={{ margin: "12px 0 0", paddingLeft: "18px", fontSize: "0.88rem", color: "var(--color-text-body)", lineHeight: 1.8 }}>
+                        <li><strong>SMS Dispatch Gateway:</strong> Operational (99.8% 24h delivery success)</li>
+                        <li><strong>Email Notification Server:</strong> SMTP Encrypted (TLS 1.3 active)</li>
+                        <li><strong>Appointment Automated Reminders:</strong> Sent 24h &amp; 2h prior to slot</li>
+                        <li><strong>Emergency Code Alerts:</strong> Hospital-wide rapid response enabled</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View: Feedback & Complaints */}
+            {(activeTab === "patient-feedback" || activeTab === "complaints" || activeTab === "service-ratings") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <div className="portal-card-header">
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Patient Satisfaction &amp; Quality Governance</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Post-consultation feedback, patient experiences, and clinical quality compliance scores.
+                      </p>
+                    </div>
+                    <span className="status-badge-pill" style={{ background: "#ECFDF5", color: "#065F46", fontSize: "0.95rem", padding: "6px 14px" }}>
+                      ⭐ 4.9 / 5.0 Average Rating
+                    </span>
+                  </div>
+
+                  <div className="portal-table-wrap" style={{ marginTop: "16px" }}>
+                    <table className="portal-table">
+                      <thead>
+                        <tr>
+                          <th>Patient Name</th>
+                          <th>Department</th>
+                          <th>Physician</th>
+                          <th>Rating</th>
+                          <th>Feedback / Comment</th>
+                          <th>Resolution</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { patient: "Debosmita Mukhopadhyay", dept: "Cardiology & Vascular", doc: "Dr. Debasis Mukhopadhyay", rating: "5/5", comment: "Exceptional clinical care and thorough diagnostic explanation during consultation.", res: "Verified Satisfied" },
+                          { patient: "Suresh Roy", dept: "Neurology & Brain Sciences", doc: "Dr. Alexander Wright", rating: "5/5", comment: "Clear treatment plan and helpful digital prescription follow-up.", res: "Verified Satisfied" },
+                          { patient: "Pooja Banerjee", dept: "Dermatology & Skin Health", doc: "Dr. Maya Patel", rating: "4.8/5", comment: "Prompt appointment start and excellent skin barrier advice.", res: "Verified Satisfied" },
+                        ].map((f, i) => (
+                          <tr key={i}>
+                            <td><strong>{f.patient}</strong></td>
+                            <td>{f.dept}</td>
+                            <td>{f.doc}</td>
+                            <td><strong style={{ color: "#D97706" }}>{f.rating}</strong></td>
+                            <td>"{f.comment}"</td>
+                            <td><span className="status-badge-pill status-verified">{f.res}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View: Reports & Analytics */}
+            {(activeTab === "analytics-overview" || activeTab === "clinical-reports" || activeTab === "financial-analytics" || activeTab === "operational-metrics") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <h3 style={{ margin: "0 0 16px", color: "var(--color-primary)" }}>Platform Performance Analytics &amp; KPI Dashboard</h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
+                    <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <span style={{ fontSize: "0.82rem", color: "var(--color-sage)", fontWeight: 700 }}>Total Consultations</span>
+                      <h3 style={{ margin: "6px 0", color: "var(--color-primary)" }}>1,420+</h3>
+                      <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-body)" }}>Verified consultations across 10 depts</p>
+                    </div>
+
+                    <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <span style={{ fontSize: "0.82rem", color: "var(--color-sage)", fontWeight: 700 }}>Bed / Facility Occupancy</span>
+                      <h3 style={{ margin: "6px 0", color: "var(--color-primary)" }}>84.2%</h3>
+                      <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-body)" }}>Optimal inpatient capacity</p>
+                    </div>
+
+                    <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <span style={{ fontSize: "0.82rem", color: "var(--color-sage)", fontWeight: 700 }}>Average Patient Wait</span>
+                      <h3 style={{ margin: "6px 0", color: "var(--color-primary)" }}>11 Mins</h3>
+                      <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-body)" }}>Below national benchmark of 28m</p>
+                    </div>
+
+                    <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <span style={{ fontSize: "0.82rem", color: "var(--color-sage)", fontWeight: 700 }}>Diagnostic Turnaround</span>
+                      <h3 style={{ margin: "6px 0", color: "var(--color-primary)" }}>42 Mins</h3>
+                      <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-body)" }}>Biochemistry &amp; ECG automated delivery</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View: Data Management & Backup */}
+            {(activeTab === "database-backup" || activeTab === "recovery" || activeTab === "data-import" || activeTab === "data-export") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <div className="portal-card-header">
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Database Resilience, Snapshots &amp; Disaster Recovery</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        PostgreSQL database snapshot archives, cryptographic verification, and export controls.
+                      </p>
+                    </div>
+                    <span className="status-badge-pill status-verified">
+                      Backup Verified: 04:00 AM IST
+                    </span>
+                  </div>
+
+                  <div style={{ padding: "20px", background: "var(--color-bg-tint)", borderRadius: "14px", border: "1px solid var(--color-border-card)", marginTop: "16px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                      <div>
+                        <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Database Engine</span>
+                        <strong style={{ fontSize: "1rem", color: "var(--color-primary)" }}>PostgreSQL 16 / Spring JDBC Vault</strong>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Automated Snapshot Schedule</span>
+                        <strong style={{ fontSize: "1rem", color: "var(--color-primary)" }}>Daily 04:00 AM IST (Retention: 7 Years)</strong>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Storage Volume Size</span>
+                        <strong>1.24 GB (Encrypted AES-256)</strong>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Point-in-Time Recovery</span>
+                        <strong style={{ color: "#10B981" }}>Enabled (RPO: &lt; 5 mins)</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View: Support & IT Helpdesk */}
+            {(activeTab === "helpdesk" || activeTab === "faqs" || activeTab === "contact-support") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <div className="portal-card-header">
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Administrative IT Helpdesk &amp; Technical Support</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Enterprise technical escalation desk, uptime monitoring, and infrastructure support.
+                      </p>
+                    </div>
+                    <span className="status-badge-pill status-verified">System Uptime: 99.98%</span>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "16px" }}>
+                    <div style={{ background: "var(--color-bg-tint)", padding: "18px", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <h4 style={{ margin: "0 0 6px", color: "var(--color-primary)" }}>Emergency Technical Hotline</h4>
+                      <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                        Direct line to Hospital IT Infrastructure &amp; Security Engineering team:
+                        <br />
+                        <strong style={{ fontSize: "1.1rem", color: "var(--color-primary)", display: "block", marginTop: "6px" }}>+91 9051579029</strong>
+                      </p>
+                    </div>
+                    <div style={{ background: "var(--color-bg-tint)", padding: "18px", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <h4 style={{ margin: "0 0 6px", color: "var(--color-primary)" }}>Technical Support Email</h4>
+                      <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                        Escalations and audit requests:
+                        <br />
+                        <strong style={{ fontSize: "1rem", color: "var(--color-primary)", display: "block", marginTop: "6px" }}>admin@healthcure.local</strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* View: Admin Profile & Clearance */}
+            {(activeTab === "admin-profile") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px", background: "rgba(255, 255, 255, 0.88)", backdropFilter: "blur(14px)", border: "1px solid rgba(255, 255, 255, 0.7)" }}>
+                  <div className="portal-card-header">
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Platform Administrator Profile</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Credentials, active clearance, and cryptographic authorization metadata.
+                      </p>
+                    </div>
+                    <span className="status-badge-pill status-verified">Unified Administrator Role</span>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "18px" }}>
+                    <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Full Legal Name</span>
+                      <strong style={{ fontSize: "1.15rem", color: "var(--color-primary)" }}>Rakhi Chatterjee</strong>
+                    </div>
+
+                    <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Authorized Governance Role</span>
+                      <strong style={{ fontSize: "1.15rem", color: "var(--color-primary)" }}>ADMIN (Unified Hospital Governance)</strong>
+                    </div>
+
+                    <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Administrative Email</span>
+                      <strong>admin@healthcure.local</strong>
+                    </div>
+
+                    <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "12px", border: "1px solid var(--color-border-card)" }}>
+                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Administrative License Key</span>
+                      <code>HEALTH_CURE_ADMIN_9051579029</code>
+                    </div>
+
+                    <div style={{ padding: "16px", background: "var(--color-bg-tint)", borderRadius: "12px", border: "1px solid var(--color-border-card)", gridColumn: "1 / -1" }}>
+                      <span style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", display: "block" }}>Governance Scope</span>
+                      <p style={{ margin: "4px 0 0", fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Complete executive access over all 10 clinical departments, physician licensing, patient medical history maintenance &amp; deletion, digital prescriptions, financial billing invoices, diagnostic lab orders, and forensic immutable audit logs.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Generic Fallback for Remaining Admin Tabs */}
             {![
               "dashboard",
@@ -1680,11 +2144,21 @@ export default function AdminDashboard() {
               "all-patients", "register-patient", "patient-history", "patient-requests",
               "all-departments", "add-department", "specializations", "department-assignments",
               "all-staff", "add-staff", "roles-permissions", "attendance", "leave-management",
+              "doctor-schedules", "facility-availability", "room-management", "holidays", "facility-management",
+              "all-medical-records", "document-management", "record-access-logs",
+              "all-prescriptions", "prescription-templates", "prescription-history",
               "test-management", "test-requests", "lab-reports", "diagnostic-services",
               "all-appointments", "appointment-calendar", "pending-requests", "appointment-history",
               "billing-dashboard", "invoices", "payments", "refunds", "pricing", "financial-reports",
+              "medicines", "stock-management", "suppliers", "purchase-orders", "expiry-tracking",
+              "notifications", "email-management", "sms-management", "announcements",
+              "patient-feedback", "complaints", "service-ratings",
+              "analytics-overview", "clinical-reports", "financial-analytics", "operational-metrics",
               "system-settings", "account-settings", "document-templates",
-              "audit-logs", "login-history", "access-logs", "security-incidents"
+              "audit-logs", "login-history", "access-logs", "security-incidents",
+              "database-backup", "recovery", "data-import", "data-export",
+              "helpdesk", "faqs", "contact-support",
+              "admin-profile"
             ].includes(activeTab) && (
               <div className="panel-form-card" style={{ padding: "28px" }}>
                 <h3 style={{ margin: "0 0 8px", color: "var(--color-primary)" }}>
