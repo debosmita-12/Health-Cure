@@ -166,26 +166,17 @@ export default function Navbar() {
           </button>
 
           {!isAuthenticated ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
               <Link to="/login" className="nav-link" style={{ fontWeight: 600 }}>
                 Login
               </Link>
-              <a
-                href="/#book-appointment"
+              <Link
+                to="/register"
                 className="ref-btn-primary"
                 style={{ padding: "10px 22px", fontSize: "0.88rem" }}
-                onClick={(e) => {
-                  if (location.pathname === "/") {
-                    e.preventDefault();
-                    const el = document.getElementById("book-appointment");
-                    if (el) {
-                      el.scrollIntoView({ behavior: "smooth" });
-                    }
-                  }
-                }}
               >
-                Book Appointment →
-              </a>
+                Register
+              </Link>
             </div>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>

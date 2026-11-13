@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
-import GoogleAuthButton from "../../components/common/GoogleAuthButton";
 import {
   ArrowRightIcon,
   CheckIcon,
@@ -397,31 +396,81 @@ export default function GetStartedPage() {
                 </div>
               )}
 
-              {/* Top: Select Account Type Dropdown (Prompt Mandatory Requirement) */}
-              <div style={{ marginBottom: "18px" }}>
-                <label style={{ fontWeight: 700, color: "var(--color-primary)", display: "block", marginBottom: "6px" }}>
-                  Select Account Type
+              {/* Top: Select Account Type (Patient, Doctor, Admin) */}
+              <div style={{ marginBottom: "22px" }}>
+                <label style={{ fontWeight: 700, color: "var(--color-primary)", display: "block", marginBottom: "8px", fontSize: "0.95rem" }}>
+                  Select Account Type:
                 </label>
-                <select
-                  name="role"
-                  value={selectedRole}
-                  onChange={handleRoleChange}
-                  style={{
-                    width: "100%",
-                    padding: "12px 14px",
-                    borderRadius: "10px",
-                    border: "2px solid var(--color-primary)",
-                    background: "#F0FDF4",
-                    fontWeight: 700,
-                    fontSize: "0.95rem",
-                    color: "var(--color-primary)",
-                    cursor: "pointer",
-                  }}
-                >
-                  <option value="PATIENT">Patient</option>
-                  <option value="DOCTOR">Doctor</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "10px" }}>
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedRole("PATIENT"); setErrors({}); }}
+                    style={{
+                      padding: "12px 6px",
+                      borderRadius: "12px",
+                      border: selectedRole === "PATIENT" ? "2px solid #174C40" : "1.5px solid #D1D5DB",
+                      background: selectedRole === "PATIENT" ? "#E8F5E9" : "#FFFFFF",
+                      color: selectedRole === "PATIENT" ? "#174C40" : "#4B5563",
+                      fontWeight: selectedRole === "PATIENT" ? 700 : 500,
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s ease",
+                      boxShadow: selectedRole === "PATIENT" ? "0 2px 8px rgba(23,76,64,0.15)" : "none",
+                    }}
+                  >
+                    <span style={{ fontSize: "1.4rem" }}>👤</span>
+                    <span style={{ fontSize: "0.92rem" }}>Patient</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedRole("DOCTOR"); setErrors({}); }}
+                    style={{
+                      padding: "12px 6px",
+                      borderRadius: "12px",
+                      border: selectedRole === "DOCTOR" ? "2px solid #174C40" : "1.5px solid #D1D5DB",
+                      background: selectedRole === "DOCTOR" ? "#E8F5E9" : "#FFFFFF",
+                      color: selectedRole === "DOCTOR" ? "#174C40" : "#4B5563",
+                      fontWeight: selectedRole === "DOCTOR" ? 700 : 500,
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s ease",
+                      boxShadow: selectedRole === "DOCTOR" ? "0 2px 8px rgba(23,76,64,0.15)" : "none",
+                    }}
+                  >
+                    <span style={{ fontSize: "1.4rem" }}>🩺</span>
+                    <span style={{ fontSize: "0.92rem" }}>Doctor</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setSelectedRole("ADMIN"); setErrors({}); }}
+                    style={{
+                      padding: "12px 6px",
+                      borderRadius: "12px",
+                      border: selectedRole === "ADMIN" ? "2px solid #174C40" : "1.5px solid #D1D5DB",
+                      background: selectedRole === "ADMIN" ? "#E8F5E9" : "#FFFFFF",
+                      color: selectedRole === "ADMIN" ? "#174C40" : "#4B5563",
+                      fontWeight: selectedRole === "ADMIN" ? 700 : 500,
+                      cursor: "pointer",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s ease",
+                      boxShadow: selectedRole === "ADMIN" ? "0 2px 8px rgba(23,76,64,0.15)" : "none",
+                    }}
+                  >
+                    <span style={{ fontSize: "1.4rem" }}>🛡️</span>
+                    <span style={{ fontSize: "0.92rem" }}>Admin</span>
+                  </button>
+                </div>
               </div>
 
               {/* Common Name Fields */}
@@ -806,21 +855,6 @@ export default function GetStartedPage() {
                 {isLoading ? "Creating Account..." : `Register as ${selectedRole === "PATIENT" ? "Patient" : selectedRole === "DOCTOR" ? "Doctor" : "Admin"}`}{" "}
                 <ArrowRightIcon size={14} />
               </button>
-
-              {/* Continue with Google below registration form */}
-              <GoogleAuthButton
-                mode="register"
-                role={selectedRole}
-                formData={formData}
-                onSuccess={(result) => {
-                  setSubmittedRole(selectedRole);
-                  if (result.pendingVerification) {
-                    setDoctorPendingNotice(result.message);
-                  }
-                  setSubmitted(true);
-                }}
-                onError={(err) => setErrors({ general: err })}
-              />
             </form>
           )}
         </div>

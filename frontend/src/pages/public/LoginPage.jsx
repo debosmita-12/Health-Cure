@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import GoogleAuthButton from "../../components/common/GoogleAuthButton";
 import {
   ArrowRightIcon,
   EyeIcon,
@@ -236,10 +235,7 @@ export default function LoginPage() {
                   <ArrowRightIcon size={14} />
                 </button>
 
-                {/* Continue with Google button below the standard email/password form */}
-                <GoogleAuthButton mode="login" />
-
-                <div style={{ textAlign: "center", margin: "14px 0 6px", fontSize: "0.88rem", color: "var(--color-text-body)" }}>
+                <div style={{ textAlign: "center", margin: "18px 0 6px", fontSize: "0.88rem", color: "var(--color-text-body)" }}>
                   Need an account?{" "}
                   <Link to="/register" style={{ color: "var(--color-primary)", fontWeight: 700 }}>
                     Register here
