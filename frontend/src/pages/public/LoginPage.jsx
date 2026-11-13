@@ -245,22 +245,20 @@ export default function LoginPage() {
                 </label>
 
                 {/* Remember Me on the left of Sign In Button, Sign In button shortened */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", marginTop: "12px" }}>
-                  <label style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", color: "var(--color-text-body)", cursor: "pointer", margin: 0, fontWeight: 500, whiteSpace: "nowrap" }}>
+                <div className="login-controls-row">
+                  <label className="checkbox-label login-remember-label">
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      style={{ accentColor: "var(--color-primary)", width: "17px", height: "17px", cursor: "pointer" }}
                     />
-                    Remember Me
+                    <span>Remember Me</span>
                   </label>
 
                   <button
-                    className="btn btn-primary"
+                    className="btn btn-primary login-submit-btn"
                     type="submit"
                     disabled={isLoading}
-                    style={{ flex: 1, padding: "12px 18px", fontSize: "0.95rem", justifyContent: "center" }}
                   >
                     {isLoading ? "Authenticating..." : "Sign In to Portal"}{" "}
                     <ArrowRightIcon size={14} />

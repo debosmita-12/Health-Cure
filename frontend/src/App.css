@@ -2033,6 +2033,56 @@
   cursor: pointer !important;
 }
 
+/* Login form action row: Remember Me on left, Sign In button on right */
+.login-controls-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 14px !important;
+}
+
+.login-remember-label {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+  color: var(--color-text-body) !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.login-remember-label input[type="checkbox"] {
+  width: 17px !important;
+  min-width: 17px !important;
+  height: 17px !important;
+  min-height: 17px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  accent-color: var(--color-primary, #174C40) !important;
+}
+
+.login-submit-btn {
+  white-space: nowrap !important;
+  padding: 11px 22px !important;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+}
+
 .booking-panel-form input:focus,
 .booking-panel-form select:focus,
 .booking-panel-form textarea:focus,
