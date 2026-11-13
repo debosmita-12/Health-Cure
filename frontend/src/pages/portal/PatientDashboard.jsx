@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
@@ -55,6 +55,24 @@ export default function PatientDashboard() {
   const [isBookingSubmitting, setIsBookingSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState("");
   const [bookingSuccessResult, setBookingSuccessResult] = useState(null);
+
+  // Filter attending physicians strictly by selected clinical department
+  const availableDoctorsForDepartment = useMemo(() => {
+    if (!bookingForm.department) return publicDoctors;
+    const target = bookingForm.department.trim().toLowerCase();
+    const keyword = target.split("&")[0].trim();
+
+    return publicDoctors.filter((d) => {
+      const docDept = (d.department_name || "").trim().toLowerCase();
+      const docSpec = (d.specialisation || "").trim().toLowerCase();
+      return (
+        docDept === target ||
+        docSpec === target ||
+        (docDept && docDept.includes(keyword)) ||
+        (docSpec && docSpec.includes(keyword))
+      );
+    });
+  }, [publicDoctors, bookingForm.department]);
 
   async function loadDashboard() {
     setLoading(true);
@@ -872,7 +890,7 @@ export default function PatientDashboard() {
                           value={bookingForm.preferredDoctor}
                           onChange={(e) => {
                             const docName = e.target.value;
-                            const match = publicDoctors.find((d) => `Dr. ${d.first_name} ${d.last_name}` === docName);
+                            const match = availableDoctorsForDepartment.find((d) => `Dr. ${d.first_name} ${d.last_name}` === docName);
                             setBookingForm((prev) => ({
                               ...prev,
                               preferredDoctor: docName,
@@ -881,10 +899,12 @@ export default function PatientDashboard() {
                           }}
                           style={{ width: "100%", padding: "11px 14px", borderRadius: "10px", border: "1px solid var(--color-border-subtle)", fontSize: "0.92rem", background: "#FFFFFF" }}
                         >
-                          <option value="First Available Specialist">First Available Verified Doctor</option>
-                          {publicDoctors.map((d) => (
+                          <option value="First Available Specialist">
+                            First Available Verified Doctor ({bookingForm.department || "Specialist"})
+                          </option>
+                          {availableDoctorsForDepartment.map((d) => (
                             <option key={d.doctor_id} value={`Dr. ${d.first_name} ${d.last_name}`}>
-                              Dr. {d.first_name} {d.last_name} ({d.specialisation || "Specialist"}) - Fee: ₹{d.consultation_fee ? Number(d.consultation_fee).toFixed(0) : "750"}
+                              Dr. {d.first_name} {d.last_name} ({d.specialisation || d.department_name}) - Fee: ₹{d.consultation_fee ? Number(d.consultation_fee).toFixed(0) : "750"}
                             </option>
                           ))}
                         </select>
