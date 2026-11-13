@@ -47,8 +47,11 @@
    2. NAVBAR & HEADER (EXACT SLIM DARK GREEN #174C40 THEME)
    -------------------------------------------------------------------------- */
 .site-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   z-index: 1000;
   background-color: #174C40;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
@@ -4698,4 +4701,17 @@ th {
   position: relative;
   z-index: 1;
   background: transparent;
+  padding-top: 56px;
+}
+
+@media (max-width: 992px) {
+  .site-layout-wrapper {
+    padding-top: 70px;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-layout-wrapper {
+    padding-top: 64px;
+  }
 }

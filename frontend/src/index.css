@@ -61,8 +61,13 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+  scroll-padding-top: 68px;
   overflow-x: hidden;
   max-width: 100%;
+}
+
+section[id], div[id] {
+  scroll-margin-top: 68px;
 }
 
 body {
