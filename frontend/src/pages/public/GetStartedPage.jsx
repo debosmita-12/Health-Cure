@@ -535,7 +535,7 @@ export default function GetStartedPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="+91 9051579029"
+                    placeholder="+91 98765 43210"
                     required
                   />
                   {errors.phone && <small style={{ color: "#E02424" }}>{errors.phone}</small>}

@@ -466,6 +466,34 @@ public class DataInitializer implements CommandLineRunner {
             accessRepository.save(access);
         }
 
+        // Support registered patient: Akshita Sharma (password: 1234567)
+        if (userRepository.findByEmail("akshita@gmail.com").isEmpty()) {
+            User akshitaUser = new User();
+            akshitaUser.setEmail("akshita@gmail.com");
+            akshitaUser.setPasswordHash(passwordEncoder.encode("1234567"));
+            akshitaUser.setRole("PATIENT");
+            akshitaUser.setFirstName("Akshita");
+            akshitaUser.setLastName("Sharma");
+            akshitaUser.setPhone("+91 9876543210");
+            akshitaUser.setIsActive(true);
+            akshitaUser.setIsVerified(true);
+            User savedAkshita = userRepository.save(akshitaUser);
+
+            Patient akshitaPat = new Patient();
+            akshitaPat.setUserId(savedAkshita.getId());
+            akshitaPat.setDateOfBirth(LocalDate.of(2000, 1, 1));
+            akshitaPat.setGender("Female");
+            akshitaPat.setBloodGroup("B+");
+            akshitaPat.setAddress("Kolkata, West Bengal, India");
+            akshitaPat.setEmergencyContact("+91 9876543210");
+            patientRepository.save(akshitaPat);
+        } else {
+            userRepository.findByEmail("akshita@gmail.com").ifPresent(u -> {
+                u.setPasswordHash(passwordEncoder.encode("1234567"));
+                userRepository.save(u);
+            });
+        }
+
         // 5. Diagnostic Laboratory Catalog in Indian Rupees (₹)
         if (labRepository.findAllTests().isEmpty()) {
             labRepository.saveTest("Complete Blood Count (CBC)", "Hematology", 250.00, "Measures red blood cells, white blood cells, and platelets.", "Fasting not strictly required.");

@@ -49,3 +49,6 @@ desktop.ini
 # Temporary / Scratch files
 scratch/
 *.tmp
+backend/data/
+*.mv.db
+*.trace.db
