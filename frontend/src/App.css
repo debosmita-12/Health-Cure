@@ -1979,47 +1979,120 @@
   gap: 16px;
 }
 
+/* ==========================================================================
+   UNIVERSAL FORM, INPUT, MODAL & CONTROL STYLING
+   Guarantees 100% uniform, clean, enterprise-grade form controls across the website
+   ========================================================================== */
+.portal-modal-box form label,
+.panel-form-card form label,
+.portal-content-area form label,
 .booking-panel-form label,
-.panel-form label {
+.panel-form label,
+.subpage form label {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--color-text-title);
   width: 100%;
+  box-sizing: border-box;
+  text-align: left;
 }
 
+.portal-modal-box form input[type="text"],
+.portal-modal-box form input[type="email"],
+.portal-modal-box form input[type="tel"],
+.portal-modal-box form input[type="number"],
+.portal-modal-box form input[type="date"],
+.portal-modal-box form input[type="time"],
+.portal-modal-box form input[type="password"],
+.portal-modal-box form select,
+.portal-modal-box form textarea,
+.panel-form-card form input[type="text"],
+.panel-form-card form input[type="email"],
+.panel-form-card form input[type="tel"],
+.panel-form-card form input[type="number"],
+.panel-form-card form input[type="date"],
+.panel-form-card form input[type="time"],
+.panel-form-card form input[type="password"],
+.panel-form-card form select,
+.panel-form-card form textarea,
+.portal-content-area form input[type="text"],
+.portal-content-area form input[type="email"],
+.portal-content-area form input[type="tel"],
+.portal-content-area form input[type="number"],
+.portal-content-area form input[type="date"],
+.portal-content-area form input[type="time"],
+.portal-content-area form input[type="password"],
+.portal-content-area form select,
+.portal-content-area form textarea,
 .booking-panel-form input,
 .booking-panel-form select,
 .booking-panel-form textarea,
 .panel-form input,
 .panel-form select,
-.panel-form textarea {
-  border: 1.5px solid var(--color-input-border);
-  border-radius: var(--radius-sm);
+.panel-form textarea,
+.subpage form input,
+.subpage form select,
+.subpage form textarea {
+  border: 1.5px solid var(--color-input-border, #D8ECE3);
+  border-radius: 10px;
   padding: 11px 14px;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: var(--color-text-title);
-  background-color: var(--color-white);
+  background-color: #FFFFFF;
   outline: none;
-  transition: var(--transition);
+  transition: all 0.2s ease;
   width: 100%;
   box-sizing: border-box;
   font-family: inherit;
 }
 
+.portal-modal-box form input:focus,
+.portal-modal-box form select:focus,
+.portal-modal-box form textarea:focus,
+.panel-form-card form input:focus,
+.panel-form-card form select:focus,
+.panel-form-card form textarea:focus,
+.portal-content-area form input:focus,
+.portal-content-area form select:focus,
+.portal-content-area form textarea:focus,
+.booking-panel-form input:focus,
+.booking-panel-form select:focus,
+.booking-panel-form textarea:focus,
+.panel-form input:focus,
+.panel-form select:focus,
+.panel-form textarea:focus,
+.subpage form input:focus,
+.subpage form select:focus,
+.subpage form textarea:focus {
+  border-color: var(--color-primary, #174C40) !important;
+  box-shadow: 0 0 0 3px rgba(23, 76, 64, 0.12) !important;
+  background-color: #FFFFFF !important;
+}
+
+.portal-modal-box form label.checkbox-label,
+.portal-modal-box form .checkbox-label,
+.panel-form-card form label.checkbox-label,
+.panel-form-card form .checkbox-label,
+.portal-content-area form label.checkbox-label,
+.portal-content-area form .checkbox-label,
 .panel-form label.checkbox-label,
 .panel-form .checkbox-label {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 10px !important;
   cursor: pointer !important;
   user-select: none !important;
   width: auto !important;
+  font-weight: 500 !important;
 }
 
+.portal-modal-box form input[type="checkbox"],
+.panel-form-card form input[type="checkbox"],
+.portal-content-area form input[type="checkbox"],
 .panel-form input[type="checkbox"] {
   width: 18px !important;
   min-width: 18px !important;
@@ -2031,6 +2104,32 @@
   border-radius: 4px !important;
   accent-color: var(--color-primary, #174C40) !important;
   cursor: pointer !important;
+}
+
+/* Portal Modal Dialogs (Uniform across Admin, Doctor, Patient portals) */
+.portal-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(10, 35, 28, 0.55) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 2000 !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
+}
+
+.portal-modal-box {
+  background: #FFFFFF !important;
+  border-radius: 20px !important;
+  max-width: 680px !important;
+  width: 100% !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  box-shadow: 0 25px 60px -15px rgba(10, 35, 28, 0.35) !important;
+  border: 1px solid rgba(23, 76, 64, 0.12) !important;
 }
 
 /* Login form action row: Remember Me on left, Sign In button on right */

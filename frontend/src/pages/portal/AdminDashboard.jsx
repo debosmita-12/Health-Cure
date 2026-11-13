@@ -2626,7 +2626,7 @@ export default function AdminDashboard() {
                 />
               </label>
 
-              <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", marginTop: "4px" }}>
+              <label className="checkbox-label" style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", marginTop: "4px" }}>
                 <input
                   type="checkbox"
                   checked={editDoctorModal.isAvailable !== false}
