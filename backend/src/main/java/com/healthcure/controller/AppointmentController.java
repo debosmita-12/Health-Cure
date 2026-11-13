@@ -163,6 +163,30 @@ public class AppointmentController {
             appointment.setAppointmentDate(LocalDateTime.now().plusDays(1));
         }
 
+        // Strict duplicate appointment & slot conflict guards
+        if (appointment.getAppointmentDate() != null && appointment.getTimeSlot() != null) {
+            // 1. Patient time slot conflict
+            if (appointmentRepository.hasPatientSlotConflict(checkPatientId, checkPatientEmail, appointment.getAppointmentDate(), appointment.getTimeSlot())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "You already have an active appointment booked for " + appointment.getAppointmentDate().toLocalDate() + " during " + appointment.getTimeSlot() + ". Duplicate bookings in the same time slot are strictly prohibited."
+                ));
+            }
+
+            // 2. Doctor double booking conflict
+            if (appointment.getDoctorId() != null && appointmentRepository.hasDoctorSlotConflict(appointment.getDoctorId(), appointment.getAppointmentDate(), appointment.getTimeSlot())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "The attending physician already has a consultation booked for " + appointment.getAppointmentDate().toLocalDate() + " during " + appointment.getTimeSlot() + ". Please select another time slot or physician."
+                ));
+            }
+
+            // 3. Exact duplicate
+            if (appointmentRepository.hasExactDuplicate(checkPatientId, checkPatientEmail, appointment.getDoctorId(), specialty, appointment.getAppointmentDate(), appointment.getTimeSlot())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", "An identical appointment is already on record. Duplicate appointment records are strictly prohibited."
+                ));
+            }
+        }
+
         String referenceCode = "HC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         appointment.setReferenceCode(referenceCode);
 

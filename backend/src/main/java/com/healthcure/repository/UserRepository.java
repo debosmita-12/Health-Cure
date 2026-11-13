@@ -68,6 +68,17 @@ public class UserRepository {
         return count != null && count > 0;
     }
 
+    public boolean existsByPhone(String phone) {
+        if (phone == null || phone.isBlank()) return false;
+        String sql = "SELECT COUNT(*) FROM users WHERE phone = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, phone.trim());
+        return count != null && count > 0;
+    }
+
+    public void deleteById(Long id) {
+        jdbcTemplate.update("DELETE FROM users WHERE id = ?", id);
+    }
+
     public User save(User user) {
         if (user.getId() == null) {
             String sql = "INSERT INTO users (email, password_hash, role, first_name, last_name, phone, is_active, is_verified, provider, provider_id, created_at, updated_at) " +

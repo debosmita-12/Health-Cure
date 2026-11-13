@@ -30,6 +30,27 @@ export default function AdminDashboard() {
   const [errorMessage, setErrorMessage] = useState("");
   const [selectedAdminAppt, setSelectedAdminAppt] = useState(null);
 
+  // Doctor & Patient Management Modals & Filters
+  const [editDoctorModal, setEditDoctorModal] = useState(null);
+  const [deleteDoctorModal, setDeleteDoctorModal] = useState(null);
+  const [editPatientModal, setEditPatientModal] = useState(null);
+  const [deletePatientModal, setDeletePatientModal] = useState(null);
+  const [doctorSearch, setDoctorSearch] = useState("");
+  const [patientSearch, setPatientSearch] = useState("");
+
+  const [newPatient, setNewPatient] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "Patient@123",
+    gender: "Other",
+    bloodGroup: "O+",
+    dateOfBirth: "",
+    address: "",
+    emergencyContact: "",
+  });
+
   // Sub-forms
   const [newDoctor, setNewDoctor] = useState({
     firstName: "",
@@ -132,6 +153,89 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleUpdateDoctor(e) {
+    e.preventDefault();
+    if (!editDoctorModal) return;
+    setActionMessage("");
+    setErrorMessage("");
+    try {
+      const res = await api.put(`/api/admin/doctors/${editDoctorModal.id}`, editDoctorModal);
+      setActionMessage(res.data?.message || "Doctor record maintained successfully.");
+      setEditDoctorModal(null);
+      loadDashboard();
+    } catch (err) {
+      setErrorMessage(err.response?.data?.error || "Failed to update doctor record.");
+    }
+  }
+
+  async function handleDeleteDoctor() {
+    if (!deleteDoctorModal) return;
+    setActionMessage("");
+    setErrorMessage("");
+    try {
+      const res = await api.delete(`/api/admin/doctors/${deleteDoctorModal.id}`);
+      setActionMessage(res.data?.message || "Doctor record permanently deleted.");
+      setDeleteDoctorModal(null);
+      loadDashboard();
+    } catch (err) {
+      setErrorMessage(err.response?.data?.error || "Failed to delete doctor record.");
+    }
+  }
+
+  async function handleAddPatient(e) {
+    e.preventDefault();
+    setActionMessage("");
+    setErrorMessage("");
+    try {
+      const res = await api.post("/api/admin/patients", newPatient);
+      setActionMessage(res.data?.message || "Patient provisioned successfully.");
+      setNewPatient({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        password: "Patient@123",
+        gender: "Other",
+        bloodGroup: "O+",
+        dateOfBirth: "",
+        address: "",
+        emergencyContact: "",
+      });
+      loadDashboard();
+    } catch (err) {
+      setErrorMessage(err.response?.data?.error || "Failed to provision patient account.");
+    }
+  }
+
+  async function handleUpdatePatient(e) {
+    e.preventDefault();
+    if (!editPatientModal) return;
+    setActionMessage("");
+    setErrorMessage("");
+    try {
+      const res = await api.put(`/api/admin/patients/${editPatientModal.id}`, editPatientModal);
+      setActionMessage(res.data?.message || "Patient record maintained successfully.");
+      setEditPatientModal(null);
+      loadDashboard();
+    } catch (err) {
+      setErrorMessage(err.response?.data?.error || "Failed to update patient record.");
+    }
+  }
+
+  async function handleDeletePatient() {
+    if (!deletePatientModal) return;
+    setActionMessage("");
+    setErrorMessage("");
+    try {
+      const res = await api.delete(`/api/admin/patients/${deletePatientModal.id}`);
+      setActionMessage(res.data?.message || "Patient record permanently deleted.");
+      setDeletePatientModal(null);
+      loadDashboard();
+    } catch (err) {
+      setErrorMessage(err.response?.data?.error || "Failed to delete patient record.");
+    }
+  }
+
   async function handleAddDepartment(e) {
     e.preventDefault();
     setActionMessage("");
@@ -214,6 +318,7 @@ export default function AdminDashboard() {
   }
 
   const doctors = data?.doctors || [];
+  const patients = data?.patients || [];
   const appointments = data?.appointments || [];
   const auditLogs = data?.auditLogs || [];
   const departments = data?.departments || [];
@@ -235,14 +340,14 @@ export default function AdminDashboard() {
       items: [
         { id: "all-doctors", label: "All Doctors", badge: doctors.length },
         { id: "add-doctor", label: "Add Doctor", badge: "New" },
-        { id: "doctor-verification", label: "Doctor Verification", badge: doctors.filter(d => !d.verifiedByAdmin).length || "All OK" },
+        { id: "doctor-verification", label: "Doctor Verification", badge: doctors.filter(d => !d.verifiedByAdmin && !d.verified_by_admin).length || "All OK" },
         { id: "doctor-performance", label: "Doctor Performance", badge: null },
       ],
     },
     {
       title: "3. Patient Management",
       items: [
-        { id: "all-patients", label: "All Patients", badge: null },
+        { id: "all-patients", label: "All Patients", badge: patients.length || null },
         { id: "register-patient", label: "Register Patient", badge: null },
         { id: "patient-history", label: "Patient History", badge: null },
         { id: "patient-requests", label: "Patient Requests", badge: null },
@@ -533,6 +638,15 @@ export default function AdminDashboard() {
               </div>
 
               <div className="stats-item">
+                <span className="stats-icon"><UsersIcon size={24} /></span>
+                <div className="stats-content">
+                  <strong className="stats-value">{patients.length} Patients</strong>
+                  <span className="stats-label">Registered Patients</span>
+                </div>
+                <span className="stats-divider" aria-hidden="true" />
+              </div>
+
+              <div className="stats-item">
                 <span className="stats-icon"><HospitalIcon size={24} /></span>
                 <div className="stats-content">
                   <strong className="stats-value">{departments.length} Departments</strong>
@@ -639,50 +753,141 @@ export default function AdminDashboard() {
             {(activeTab === "all-doctors" || activeTab === "add-doctor" || activeTab === "doctor-verification" || activeTab === "doctor-performance") && (
               <div style={{ display: "grid", gap: "24px" }}>
                 <div className="panel-form-card" style={{ padding: "28px" }}>
-                  <div className="portal-card-header">
+                  <div className="portal-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
                     <div>
-                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Physician Roster &amp; Verification</h3>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Physician Roster, Maintenance &amp; Deletion</h3>
                       <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
-                        Verify doctor credentials and medical licenses before authorizing clinical practice.
+                        Admin governance over doctors: verify credentials, maintain practice profiles, and delete inactive records.
                       </p>
+                    </div>
+                    <div style={{ width: "320px", maxWidth: "100%" }}>
+                      <input
+                        type="text"
+                        placeholder="Search doctor name, license, specialty..."
+                        value={doctorSearch}
+                        onChange={(e) => setDoctorSearch(e.target.value)}
+                        style={{ width: "100%", padding: "9px 14px", borderRadius: "8px", border: "1px solid var(--color-border-subtle)", fontSize: "0.9rem" }}
+                      />
                     </div>
                   </div>
 
-                  <div className="portal-table-wrap">
+                  <div className="portal-table-wrap" style={{ marginTop: "16px" }}>
                     <table className="portal-table">
                       <thead>
                         <tr>
                           <th>Doctor ID</th>
-                          <th>Specialisation</th>
+                          <th>Physician Name</th>
+                          <th>Specialisation &amp; Dept</th>
                           <th>Licence</th>
-                          <th>Experience</th>
+                          <th>Experience &amp; Fee</th>
+                          <th>Contact</th>
                           <th>Status</th>
-                          <th>Verification</th>
+                          <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {doctors.map((doc) => (
-                          <tr key={doc.id}>
-                            <td><strong>DOC-{doc.id}</strong></td>
-                            <td>{doc.specialisation}</td>
-                            <td><code>{doc.licenceNumber}</code></td>
-                            <td>{doc.experienceYears} Years</td>
-                            <td>
-                              <span className={`status-badge-pill status-${doc.verifiedByAdmin ? "verified" : "pending"}`}>
-                                {doc.verifiedByAdmin ? "Verified" : "Pending Verification"}
-                              </span>
-                            </td>
-                            <td>
-                              {!doc.verifiedByAdmin ? (
-                                <button className="btn btn-primary btn-sm" onClick={() => handleVerifyDoctor(doc.id)}>
-                                  <CheckIcon size={14} /> Verify Doctor
-                                </button>
-                              ) : (
-                                <span style={{ fontSize: "0.85rem", color: "var(--color-sage)" }}>Verified by Admin</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+                        {doctors
+                          .filter((doc) => {
+                            if (!doctorSearch.trim()) return true;
+                            const q = doctorSearch.toLowerCase();
+                            const name = `${doc.first_name || doc.firstName || ""} ${doc.last_name || doc.lastName || ""}`.toLowerCase();
+                            const spec = (doc.specialisation || "").toLowerCase();
+                            const lic = (doc.licence_number || doc.licenceNumber || "").toLowerCase();
+                            const email = (doc.email || "").toLowerCase();
+                            const dept = (doc.department_name || doc.departmentName || "").toLowerCase();
+                            return name.includes(q) || spec.includes(q) || lic.includes(q) || email.includes(q) || dept.includes(q);
+                          })
+                          .map((doc) => {
+                            const isVerified = doc.verifiedByAdmin ?? doc.verified_by_admin ?? false;
+                            const fullName = `Dr. ${(doc.first_name || doc.firstName || "").replace(/^Dr\.?\s*/i, "")} ${doc.last_name || doc.lastName || ""}`.trim();
+                            const lic = doc.licence_number || doc.licenceNumber || "N/A";
+                            const exp = doc.experience_years || doc.experienceYears || 0;
+                            const fee = doc.consultation_fee || doc.consultationFee || 750;
+                            const dept = doc.department_name || doc.departmentName || doc.specialisation || "General";
+
+                            return (
+                              <tr key={doc.id}>
+                                <td><strong>DOC-{doc.id}</strong></td>
+                                <td>
+                                  <strong>{fullName}</strong>
+                                  <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>{doc.qualification || "MBBS"}</div>
+                                </td>
+                                <td>
+                                  <span>{doc.specialisation || "General"}</span>
+                                  <div style={{ fontSize: "0.78rem", color: "var(--color-sage)" }}>Dept: {dept}</div>
+                                </td>
+                                <td><code>{lic}</code></td>
+                                <td>
+                                  <div>₹{Number(fee).toFixed(0)}</div>
+                                  <small style={{ color: "var(--color-text-muted)" }}>{exp} yrs exp</small>
+                                </td>
+                                <td>
+                                  <div style={{ fontSize: "0.85rem" }}>{doc.email}</div>
+                                  <small style={{ color: "var(--color-text-muted)" }}>{doc.phone || "On File"}</small>
+                                </td>
+                                <td>
+                                  <span className={`status-badge-pill status-${isVerified ? "verified" : "pending"}`}>
+                                    {isVerified ? "Verified" : "Pending"}
+                                  </span>
+                                </td>
+                                <td>
+                                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+                                    {!isVerified && (
+                                      <button
+                                        type="button"
+                                        className="btn btn-primary btn-sm"
+                                        style={{ padding: "4px 8px", fontSize: "0.78rem" }}
+                                        onClick={() => handleVerifyDoctor(doc.id)}
+                                        title="Verify physician credentials"
+                                      >
+                                        <CheckIcon size={12} /> Verify
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary btn-sm"
+                                      style={{ padding: "4px 10px", fontSize: "0.78rem" }}
+                                      onClick={() =>
+                                        setEditDoctorModal({
+                                          ...doc,
+                                          firstName: (doc.first_name || doc.firstName || "").replace(/^Dr\.?\s*/i, ""),
+                                          lastName: doc.last_name || doc.lastName || "",
+                                          licenceNumber: doc.licence_number || doc.licenceNumber || "",
+                                          phone: doc.phone || "",
+                                          specialisation: doc.specialisation || "",
+                                          qualification: doc.qualification || "",
+                                          experienceYears: doc.experience_years || doc.experienceYears || 0,
+                                          consultationFee: doc.consultation_fee || doc.consultationFee || 750,
+                                          hospitalAffiliation: doc.hospital_affiliation || doc.hospitalAffiliation || "",
+                                          isAvailable: doc.is_available ?? doc.isAvailable ?? true,
+                                        })
+                                      }
+                                      title="Maintain doctor record"
+                                    >
+                                      ✏️ Maintain
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm"
+                                      style={{
+                                        padding: "4px 10px",
+                                        fontSize: "0.78rem",
+                                        background: "#FEE2E2",
+                                        color: "#DC2626",
+                                        border: "1px solid #F87171",
+                                        borderRadius: "6px",
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() => setDeleteDoctorModal(doc)}
+                                      title="Delete doctor record permanently"
+                                    >
+                                      🗑️ Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
                       </tbody>
                     </table>
                   </div>
@@ -699,7 +904,7 @@ export default function AdminDashboard() {
                         required
                         value={newDoctor.firstName}
                         onChange={(e) => setNewDoctor({ ...newDoctor, firstName: e.target.value })}
-                        placeholder="e.g. Dr. Sarah"
+                        placeholder="e.g. Sarah"
                       />
                     </label>
                     <label>
@@ -755,6 +960,255 @@ export default function AdminDashboard() {
                     <div style={{ gridColumn: "1 / -1" }}>
                       <button type="submit" className="btn btn-primary">
                         Provision Physician Account
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* View: Patient Management */}
+            {(activeTab === "all-patients" || activeTab === "register-patient" || activeTab === "patient-history" || activeTab === "patient-requests") && (
+              <div style={{ display: "grid", gap: "24px" }}>
+                <div className="panel-form-card" style={{ padding: "28px" }}>
+                  <div className="portal-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+                    <div>
+                      <h3 style={{ margin: "0 0 4px", color: "var(--color-primary)" }}>Patient Roster, Maintenance &amp; Deletion</h3>
+                      <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-body)" }}>
+                        Admin governance over registered patients: inspect credentials, maintain demographic records, and delete patient accounts.
+                      </p>
+                    </div>
+                    <div style={{ width: "320px", maxWidth: "100%" }}>
+                      <input
+                        type="text"
+                        placeholder="Search patient name, email, phone, blood group..."
+                        value={patientSearch}
+                        onChange={(e) => setPatientSearch(e.target.value)}
+                        style={{ width: "100%", padding: "9px 14px", borderRadius: "8px", border: "1px solid var(--color-border-subtle)", fontSize: "0.9rem" }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="portal-table-wrap" style={{ marginTop: "16px" }}>
+                    <table className="portal-table">
+                      <thead>
+                        <tr>
+                          <th>Patient ID</th>
+                          <th>Patient Name</th>
+                          <th>Contact (Email / Phone)</th>
+                          <th>Demographics</th>
+                          <th>Date of Birth</th>
+                          <th>Consultations</th>
+                          <th>Address &amp; Emergency</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {patients
+                          .filter((p) => {
+                            if (!patientSearch.trim()) return true;
+                            const q = patientSearch.toLowerCase();
+                            const name = `${p.first_name || p.firstName || ""} ${p.last_name || p.lastName || ""}`.toLowerCase();
+                            const email = (p.email || "").toLowerCase();
+                            const phone = (p.phone || "").toLowerCase();
+                            const blood = (p.blood_group || p.bloodGroup || "").toLowerCase();
+                            const gender = (p.gender || "").toLowerCase();
+                            return name.includes(q) || email.includes(q) || phone.includes(q) || blood.includes(q) || gender.includes(q);
+                          })
+                          .map((p) => {
+                            const fullName = `${p.first_name || p.firstName || ""} ${p.last_name || p.lastName || ""}`.trim() || "Registered Patient";
+                            const blood = p.blood_group || p.bloodGroup || "O+";
+                            const gender = p.gender || "Other";
+                            const dob = p.date_of_birth || p.dateOfBirth || "N/A";
+                            const apptCount = p.total_appointments || p.appointmentCount || 0;
+                            const address = p.address || "On File";
+                            const emerg = p.emergency_contact || p.emergencyContact || p.phone || "On File";
+
+                            return (
+                              <tr key={p.id}>
+                                <td><strong>PAT-{p.id}</strong></td>
+                                <td>
+                                  <strong>{fullName}</strong>
+                                </td>
+                                <td>
+                                  <div style={{ fontSize: "0.85rem" }}>{p.email}</div>
+                                  <small style={{ color: "var(--color-text-muted)" }}>{p.phone || "On File"}</small>
+                                </td>
+                                <td>
+                                  <span>{gender}</span> • <strong style={{ color: "#DC2626" }}>{blood}</strong>
+                                </td>
+                                <td>{dob}</td>
+                                <td>
+                                  <span className="status-badge-pill" style={{ background: "#EFF6FF", color: "#1D4ED8", border: "1px solid #BFDBFE" }}>
+                                    {apptCount} Consultations
+                                  </span>
+                                </td>
+                                <td>
+                                  <div style={{ fontSize: "0.82rem", maxWidth: "220px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={address}>
+                                    {address}
+                                  </div>
+                                  <small style={{ color: "var(--color-text-muted)" }}>Emerg: {emerg}</small>
+                                </td>
+                                <td>
+                                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", alignItems: "center" }}>
+                                    <button
+                                      type="button"
+                                      className="btn btn-secondary btn-sm"
+                                      style={{ padding: "4px 10px", fontSize: "0.78rem" }}
+                                      onClick={() =>
+                                        setEditPatientModal({
+                                          ...p,
+                                          firstName: p.first_name || p.firstName || "",
+                                          lastName: p.last_name || p.lastName || "",
+                                          phone: p.phone || "",
+                                          gender: p.gender || "Other",
+                                          bloodGroup: p.blood_group || p.bloodGroup || "O+",
+                                          dateOfBirth: p.date_of_birth || p.dateOfBirth || "",
+                                          address: p.address || "",
+                                          emergencyContact: p.emergency_contact || p.emergencyContact || "",
+                                        })
+                                      }
+                                      title="Maintain patient profile"
+                                    >
+                                      ✏️ Maintain
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm"
+                                      style={{
+                                        padding: "4px 10px",
+                                        fontSize: "0.78rem",
+                                        background: "#FEE2E2",
+                                        color: "#DC2626",
+                                        border: "1px solid #F87171",
+                                        borderRadius: "6px",
+                                        cursor: "pointer",
+                                      }}
+                                      onClick={() => setDeletePatientModal(p)}
+                                      title="Delete patient record permanently"
+                                    >
+                                      🗑️ Delete
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Provision Patient Account Form */}
+                <div className="panel-form-card" style={{ padding: "28px" }}>
+                  <h3 style={{ margin: "0 0 16px", color: "var(--color-primary)" }}>Provision New Patient Account</h3>
+                  <form onSubmit={handleAddPatient} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                    <label>
+                      First Name *
+                      <input
+                        type="text"
+                        required
+                        value={newPatient.firstName}
+                        onChange={(e) => setNewPatient({ ...newPatient, firstName: e.target.value })}
+                        placeholder="e.g. Debosmita"
+                      />
+                    </label>
+                    <label>
+                      Last Name *
+                      <input
+                        type="text"
+                        required
+                        value={newPatient.lastName}
+                        onChange={(e) => setNewPatient({ ...newPatient, lastName: e.target.value })}
+                        placeholder="e.g. Mukhopadhyay"
+                      />
+                    </label>
+                    <label>
+                      Login Email Address *
+                      <input
+                        type="email"
+                        required
+                        value={newPatient.email}
+                        onChange={(e) => setNewPatient({ ...newPatient, email: e.target.value })}
+                        placeholder="patient@healthcure.local"
+                      />
+                    </label>
+                    <label>
+                      Phone Number *
+                      <input
+                        type="text"
+                        required
+                        value={newPatient.phone}
+                        onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
+                        placeholder="+91 9876543210"
+                      />
+                    </label>
+                    <label>
+                      Temporary Password *
+                      <input
+                        type="text"
+                        required
+                        value={newPatient.password}
+                        onChange={(e) => setNewPatient({ ...newPatient, password: e.target.value })}
+                        placeholder="Patient@123"
+                      />
+                    </label>
+                    <label>
+                      Gender
+                      <select
+                        value={newPatient.gender}
+                        onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
+                      >
+                        <option value="Female">Female</option>
+                        <option value="Male">Male</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </label>
+                    <label>
+                      Blood Group
+                      <select
+                        value={newPatient.bloodGroup}
+                        onChange={(e) => setNewPatient({ ...newPatient, bloodGroup: e.target.value })}
+                      >
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    </label>
+                    <label>
+                      Date of Birth
+                      <input
+                        type="date"
+                        value={newPatient.dateOfBirth}
+                        onChange={(e) => setNewPatient({ ...newPatient, dateOfBirth: e.target.value })}
+                      />
+                    </label>
+                    <label>
+                      Emergency Contact Phone
+                      <input
+                        type="text"
+                        value={newPatient.emergencyContact}
+                        onChange={(e) => setNewPatient({ ...newPatient, emergencyContact: e.target.value })}
+                        placeholder="+91 9051579029"
+                      />
+                    </label>
+                    <label style={{ gridColumn: "1 / -1" }}>
+                      Residential Address
+                      <input
+                        type="text"
+                        value={newPatient.address}
+                        onChange={(e) => setNewPatient({ ...newPatient, address: e.target.value })}
+                        placeholder="Full street address, city, pin code..."
+                      />
+                    </label>
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <button type="submit" className="btn btn-primary">
+                        Provision Patient Account
                       </button>
                     </div>
                   </form>
@@ -1223,6 +1677,7 @@ export default function AdminDashboard() {
             {![
               "dashboard",
               "all-doctors", "add-doctor", "doctor-verification", "doctor-performance",
+              "all-patients", "register-patient", "patient-history", "patient-requests",
               "all-departments", "add-department", "specializations", "department-assignments",
               "all-staff", "add-staff", "roles-permissions", "attendance", "leave-management",
               "test-management", "test-requests", "lab-reports", "diagnostic-services",
@@ -1382,6 +1837,467 @@ export default function AdminDashboard() {
                   Close
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Edit Doctor Modal */}
+      {editDoctorModal && (
+        <div
+          className="portal-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100,
+            padding: "20px",
+          }}
+          onClick={() => setEditDoctorModal(null)}
+        >
+          <div
+            className="portal-modal-box"
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "18px",
+              maxWidth: "640px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.35)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid var(--color-border-subtle)", background: "#F8FAF9" }}>
+              <div>
+                <h3 style={{ margin: 0, color: "var(--color-primary)", fontSize: "1.25rem" }}>
+                  Maintain Doctor Record
+                </h3>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  Editing DOC-{editDoctorModal.id} • {editDoctorModal.email}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditDoctorModal(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: "4px" }}
+              >
+                <CloseIcon size={22} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateDoctor} style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <label>
+                  First Name *
+                  <input
+                    type="text"
+                    required
+                    value={editDoctorModal.firstName || ""}
+                    onChange={(e) => setEditDoctorModal({ ...editDoctorModal, firstName: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Last Name *
+                  <input
+                    type="text"
+                    required
+                    value={editDoctorModal.lastName || ""}
+                    onChange={(e) => setEditDoctorModal({ ...editDoctorModal, lastName: e.target.value })}
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <label>
+                  Contact Phone
+                  <input
+                    type="text"
+                    value={editDoctorModal.phone || ""}
+                    onChange={(e) => setEditDoctorModal({ ...editDoctorModal, phone: e.target.value })}
+                    placeholder="+91 9876543210"
+                  />
+                </label>
+                <label>
+                  Medical Licence Number *
+                  <input
+                    type="text"
+                    required
+                    value={editDoctorModal.licenceNumber || ""}
+                    onChange={(e) => setEditDoctorModal({ ...editDoctorModal, licenceNumber: e.target.value })}
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <label>
+                  Specialisation *
+                  <input
+                    type="text"
+                    required
+                    value={editDoctorModal.specialisation || ""}
+                    onChange={(e) => setEditDoctorModal({ ...editDoctorModal, specialisation: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Qualifications *
+                  <input
+                    type="text"
+                    required
+                    value={editDoctorModal.qualification || ""}
+                    onChange={(e) => setEditDoctorModal({ ...editDoctorModal, qualification: e.target.value })}
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <label>
+                  Experience (Years) *
+                  <input
+                    type="number"
+                    min="0"
+                    max="60"
+                    required
+                    value={editDoctorModal.experienceYears ?? 5}
+                    onChange={(e) => setEditDoctorModal({ ...editDoctorModal, experienceYears: parseInt(e.target.value) || 0 })}
+                  />
+                </label>
+                <label>
+                  Consultation Fee (₹) *
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    required
+                    value={editDoctorModal.consultationFee ?? 750}
+                    onChange={(e) => setEditDoctorModal({ ...editDoctorModal, consultationFee: parseFloat(e.target.value) || 0 })}
+                  />
+                </label>
+              </div>
+
+              <label>
+                Hospital / Wing Affiliation
+                <input
+                  type="text"
+                  value={editDoctorModal.hospitalAffiliation || ""}
+                  onChange={(e) => setEditDoctorModal({ ...editDoctorModal, hospitalAffiliation: e.target.value })}
+                  placeholder="e.g. Health & Cure Main Campus, Kolkata"
+                />
+              </label>
+
+              <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", marginTop: "4px" }}>
+                <input
+                  type="checkbox"
+                  checked={editDoctorModal.isAvailable !== false}
+                  onChange={(e) => setEditDoctorModal({ ...editDoctorModal, isAvailable: e.target.checked })}
+                  style={{ width: "18px", height: "18px" }}
+                />
+                <span style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--color-primary)" }}>
+                  Available for Consultations &amp; New Appointments
+                </span>
+              </label>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "12px", paddingTop: "14px", borderTop: "1px solid var(--color-border-subtle)" }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditDoctorModal(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                >
+                  Save Doctor Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Doctor Confirmation Modal */}
+      {deleteDoctorModal && (
+        <div
+          className="portal-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100,
+            padding: "20px",
+          }}
+          onClick={() => setDeleteDoctorModal(null)}
+        >
+          <div
+            className="portal-modal-box"
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "18px",
+              maxWidth: "520px",
+              width: "100%",
+              padding: "28px",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.35)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ width: "54px", height: "54px", borderRadius: "50%", background: "#FEE2E2", color: "#DC2626", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <CloseIcon size={28} />
+            </div>
+            <h3 style={{ color: "#991B1B", textAlign: "center", margin: "0 0 10px", fontSize: "1.3rem" }}>
+              Delete Doctor Record Permanently?
+            </h3>
+            <p style={{ textAlign: "center", color: "var(--color-text-body)", fontSize: "0.95rem", margin: "0 0 20px", lineHeight: 1.5 }}>
+              Are you sure you want to permanently delete <strong>Dr. {(deleteDoctorModal.first_name || deleteDoctorModal.firstName || "").replace(/^Dr\.?\s*/i, "")} {deleteDoctorModal.last_name || deleteDoctorModal.lastName}</strong> (DOC-{deleteDoctorModal.id})?
+              <br />
+              <span style={{ fontSize: "0.85rem", color: "#B91C1C", display: "block", marginTop: "8px" }}>
+                ⚠️ Warning: This will permanently remove their credentials and unassign any related consultation slots.
+              </span>
+            </p>
+
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setDeleteDoctorModal(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                style={{ background: "#DC2626", color: "#FFFFFF", border: "none", padding: "10px 22px" }}
+                onClick={handleDeleteDoctor}
+              >
+                Yes, Delete Doctor
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Patient Modal */}
+      {editPatientModal && (
+        <div
+          className="portal-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100,
+            padding: "20px",
+          }}
+          onClick={() => setEditPatientModal(null)}
+        >
+          <div
+            className="portal-modal-box"
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "18px",
+              maxWidth: "640px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.35)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "20px 24px", borderBottom: "1px solid var(--color-border-subtle)", background: "#F8FAF9" }}>
+              <div>
+                <h3 style={{ margin: 0, color: "var(--color-primary)", fontSize: "1.25rem" }}>
+                  Maintain Patient Record
+                </h3>
+                <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                  Editing PAT-{editPatientModal.id} • {editPatientModal.email}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditPatientModal(null)}
+                style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--color-text-muted)", padding: "4px" }}
+              >
+                <CloseIcon size={22} />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdatePatient} style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <label>
+                  First Name *
+                  <input
+                    type="text"
+                    required
+                    value={editPatientModal.firstName || ""}
+                    onChange={(e) => setEditPatientModal({ ...editPatientModal, firstName: e.target.value })}
+                  />
+                </label>
+                <label>
+                  Last Name *
+                  <input
+                    type="text"
+                    required
+                    value={editPatientModal.lastName || ""}
+                    onChange={(e) => setEditPatientModal({ ...editPatientModal, lastName: e.target.value })}
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <label>
+                  Phone Number
+                  <input
+                    type="text"
+                    value={editPatientModal.phone || ""}
+                    onChange={(e) => setEditPatientModal({ ...editPatientModal, phone: e.target.value })}
+                    placeholder="+91 9876543210"
+                  />
+                </label>
+                <label>
+                  Emergency Contact Phone
+                  <input
+                    type="text"
+                    value={editPatientModal.emergencyContact || ""}
+                    onChange={(e) => setEditPatientModal({ ...editPatientModal, emergencyContact: e.target.value })}
+                    placeholder="+91 9051579029"
+                  />
+                </label>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px" }}>
+                <label>
+                  Gender
+                  <select
+                    value={editPatientModal.gender || "Other"}
+                    onChange={(e) => setEditPatientModal({ ...editPatientModal, gender: e.target.value })}
+                  >
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </label>
+                <label>
+                  Blood Group
+                  <select
+                    value={editPatientModal.bloodGroup || "O+"}
+                    onChange={(e) => setEditPatientModal({ ...editPatientModal, bloodGroup: e.target.value })}
+                  >
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </label>
+                <label>
+                  Date of Birth
+                  <input
+                    type="date"
+                    value={editPatientModal.dateOfBirth || ""}
+                    onChange={(e) => setEditPatientModal({ ...editPatientModal, dateOfBirth: e.target.value })}
+                  />
+                </label>
+              </div>
+
+              <label>
+                Residential Address
+                <input
+                  type="text"
+                  value={editPatientModal.address || ""}
+                  onChange={(e) => setEditPatientModal({ ...editPatientModal, address: e.target.value })}
+                  placeholder="Full street address, city, pin code..."
+                />
+              </label>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "12px", paddingTop: "14px", borderTop: "1px solid var(--color-border-subtle)" }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditPatientModal(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                >
+                  Save Patient Record
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Patient Confirmation Modal */}
+      {deletePatientModal && (
+        <div
+          className="portal-modal-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.65)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100,
+            padding: "20px",
+          }}
+          onClick={() => setDeletePatientModal(null)}
+        >
+          <div
+            className="portal-modal-box"
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "18px",
+              maxWidth: "520px",
+              width: "100%",
+              padding: "28px",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.35)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ width: "54px", height: "54px", borderRadius: "50%", background: "#FEE2E2", color: "#DC2626", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <CloseIcon size={28} />
+            </div>
+            <h3 style={{ color: "#991B1B", textAlign: "center", margin: "0 0 10px", fontSize: "1.3rem" }}>
+              Delete Patient Record Permanently?
+            </h3>
+            <p style={{ textAlign: "center", color: "var(--color-text-body)", fontSize: "0.95rem", margin: "0 0 20px", lineHeight: 1.5 }}>
+              Are you sure you want to permanently delete patient <strong>{deletePatientModal.first_name || deletePatientModal.firstName} {deletePatientModal.last_name || deletePatientModal.lastName}</strong> (PAT-{deletePatientModal.id})?
+              <br />
+              <span style={{ fontSize: "0.85rem", color: "#B91C1C", display: "block", marginTop: "8px" }}>
+                ⚠️ Warning: This will permanently delete their account, user credentials, access requests, appointments, and associated encrypted medical records.
+              </span>
+            </p>
+
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setDeletePatientModal(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                style={{ background: "#DC2626", color: "#FFFFFF", border: "none", padding: "10px 22px" }}
+                onClick={handleDeletePatient}
+              >
+                Yes, Delete Patient
+              </button>
             </div>
           </div>
         </div>

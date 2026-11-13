@@ -246,9 +246,9 @@ export default function HomePage() {
               </p>
 
               <div className="ref-hero-buttons">
-                <a href="#book-appointment" className="ref-btn-primary">
-                  Book Appointment →
-                </a>
+                <Link to="/register" className="ref-btn-primary">
+                  Register →
+                </Link>
                 <a href="#services" className="ref-btn-secondary">
                   <span className="ref-btn-play-circle">
                     <svg width="9" height="9" viewBox="0 0 10 10" fill="currentColor">
@@ -426,9 +426,9 @@ export default function HomePage() {
           </div>
 
           <div className="ref-cta-right">
-            <a href="#book-appointment" className="ref-btn-primary ref-cta-btn-nowrap">
-              Book Appointment →
-            </a>
+            <Link to="/register" className="ref-btn-primary ref-cta-btn-nowrap">
+              Register →
+            </Link>
             <div className="banner-heart-icon" aria-hidden="true">
               <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#73B69A" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />

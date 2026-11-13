@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,6 +104,49 @@ public class AppointmentRepository {
                 "  AND status NOT IN ('CANCELLED', 'COMPLETED', 'ATTENDED', 'NOT_ATTENDED')";
         Long pId = patientId != null ? patientId : -1L;
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, pId, email != null ? email.trim() : "", specialty.trim());
+        return count != null && count > 0;
+    }
+
+    public boolean hasPatientSlotConflict(Long patientId, String email, LocalDateTime apptDate, String timeSlot) {
+        if (apptDate == null || timeSlot == null || timeSlot.isBlank()) return false;
+        Timestamp dayStart = Timestamp.valueOf(apptDate.toLocalDate().atStartOfDay());
+        Timestamp dayEnd = Timestamp.valueOf(apptDate.toLocalDate().plusDays(1).atStartOfDay());
+        String sql = "SELECT COUNT(*) FROM appointments " +
+                "WHERE (patient_id = ? OR (patient_email IS NOT NULL AND LOWER(patient_email) = LOWER(?))) " +
+                "  AND appointment_date >= ? AND appointment_date < ? " +
+                "  AND LOWER(time_slot) = LOWER(?) " +
+                "  AND status NOT IN ('CANCELLED', 'COMPLETED', 'ATTENDED', 'NOT_ATTENDED')";
+        Long pId = patientId != null ? patientId : -1L;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, pId, email != null ? email.trim() : "", dayStart, dayEnd, timeSlot.trim());
+        return count != null && count > 0;
+    }
+
+    public boolean hasDoctorSlotConflict(Long doctorId, LocalDateTime apptDate, String timeSlot) {
+        if (doctorId == null || apptDate == null || timeSlot == null || timeSlot.isBlank()) return false;
+        Timestamp dayStart = Timestamp.valueOf(apptDate.toLocalDate().atStartOfDay());
+        Timestamp dayEnd = Timestamp.valueOf(apptDate.toLocalDate().plusDays(1).atStartOfDay());
+        String sql = "SELECT COUNT(*) FROM appointments " +
+                "WHERE doctor_id = ? " +
+                "  AND appointment_date >= ? AND appointment_date < ? " +
+                "  AND LOWER(time_slot) = LOWER(?) " +
+                "  AND status NOT IN ('CANCELLED', 'COMPLETED', 'ATTENDED', 'NOT_ATTENDED')";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, doctorId, dayStart, dayEnd, timeSlot.trim());
+        return count != null && count > 0;
+    }
+
+    public boolean hasExactDuplicate(Long patientId, String email, Long doctorId, String specialty, LocalDateTime apptDate, String timeSlot) {
+        if (apptDate == null || timeSlot == null) return false;
+        Timestamp dayStart = Timestamp.valueOf(apptDate.toLocalDate().atStartOfDay());
+        Timestamp dayEnd = Timestamp.valueOf(apptDate.toLocalDate().plusDays(1).atStartOfDay());
+        String sql = "SELECT COUNT(*) FROM appointments " +
+                "WHERE (patient_id = ? OR (patient_email IS NOT NULL AND LOWER(patient_email) = LOWER(?))) " +
+                "  AND (doctor_id = ? OR LOWER(specialty) = LOWER(?)) " +
+                "  AND appointment_date >= ? AND appointment_date < ? " +
+                "  AND LOWER(time_slot) = LOWER(?) " +
+                "  AND status NOT IN ('CANCELLED')";
+        Long pId = patientId != null ? patientId : -1L;
+        Long dId = doctorId != null ? doctorId : -1L;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, pId, email != null ? email.trim() : "", dId, specialty != null ? specialty.trim() : "", dayStart, dayEnd, timeSlot.trim());
         return count != null && count > 0;
     }
 

@@ -113,20 +113,34 @@ public class AuthService {
             throw new IllegalArgumentException("An account with this email is already registered. Please log in to your account.");
         }
 
+        if (request.getPhone() != null && !request.getPhone().isBlank()) {
+            String cleanPhone = request.getPhone().trim();
+            if (userRepository.existsByPhone(cleanPhone)) {
+                throw new IllegalArgumentException("An account with this contact phone number (" + cleanPhone + ") is already registered. Duplicate account records are strictly prohibited.");
+            }
+        }
+
         String rawRole = request.getRole() != null ? request.getRole().trim().toUpperCase() : "PATIENT";
         String normalizedRole;
         boolean isVerified;
 
         if ("ADMIN".equals(rawRole) || "SUPERADMIN".equals(rawRole)) {
-            // Strict authorization check for Admin registration
+            // Strict authorization check for Admin registration:
+            // Must strictly start with HEALTH_CURE_ADMIN_ followed by 10 digits (0 to 9 in any combination)
             String key = request.getAdminKey() != null ? request.getAdminKey().trim() : "";
-            if (!ADMIN_AUTH_KEY.equalsIgnoreCase(key) && !"ADMIN2026".equalsIgnoreCase(key)) {
-                throw new IllegalArgumentException("Invalid Administrator Authorization Key. Administrative accounts require authorization.");
+            if (!key.matches("^HEALTH_CURE_ADMIN_\\d{10}$")) {
+                throw new IllegalArgumentException("Invalid Admin License Key. Registration as Administrator strictly requires a license key starting with 'HEALTH_CURE_ADMIN_' followed by exactly 10 digits (e.g. HEALTH_CURE_ADMIN_0123456789). No other administrator registrations are permitted.");
             }
             normalizedRole = "ADMIN";
             isVerified = true;
         } else if ("DOCTOR".equals(rawRole)) {
-            // Doctors require administrator verification before activation
+            String lic = request.getLicenceNumber() != null ? request.getLicenceNumber().trim() : "";
+            if (lic.isBlank()) {
+                throw new IllegalArgumentException("Medical license number is required for doctor registration.");
+            }
+            if (doctorRepository.existsByLicenceNumber(lic)) {
+                throw new IllegalArgumentException("A doctor with medical license number '" + lic + "' is already registered. Duplicate physician license records are strictly prohibited.");
+            }
             normalizedRole = "DOCTOR";
             isVerified = false;
         } else {

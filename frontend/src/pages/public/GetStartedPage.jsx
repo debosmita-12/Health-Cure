@@ -103,8 +103,11 @@ export default function GetStartedPage() {
     }
 
     if (selectedRole === "ADMIN") {
-      if (!formData.adminKey.trim()) {
-        newErrors.adminKey = "Administrative Authorization Key is required.";
+      const key = formData.adminKey.trim();
+      if (!key) {
+        newErrors.adminKey = "Administrative License Key is required.";
+      } else if (!/^HEALTH_CURE_ADMIN_\d{10}$/.test(key)) {
+        newErrors.adminKey = "Admin license must strictly start with 'HEALTH_CURE_ADMIN_' followed by 10 digits (e.g. HEALTH_CURE_ADMIN_0123456789).";
       }
     }
 
@@ -783,20 +786,20 @@ export default function GetStartedPage() {
                   </div>
 
                   <label>
-                    Administrator Authorization Key *
+                    Administrator License Key *
                     <input
                       name="adminKey"
-                      type="password"
+                      type="text"
                       value={formData.adminKey}
                       onChange={handleChange}
-                      placeholder="Enter security key (e.g. HEALTHCURE-ADMIN-2026)"
+                      placeholder="e.g. HEALTH_CURE_ADMIN_0123456789"
                       required
                     />
                     {errors.adminKey && <small style={{ color: "#E02424" }}>{errors.adminKey}</small>}
                   </label>
 
-                  <div style={{ padding: "10px 14px", background: "#EFF6FF", borderRadius: "8px", border: "1px solid #BFDBFE", color: "#1E40AF", fontSize: "0.85rem" }}>
-                    🔒 <strong>Security Policy:</strong> Administrative registration requires a cryptographic authorization key (Default demo key: <code>HEALTHCURE-ADMIN-2026</code>) to prevent unauthorized privilege escalation.
+                  <div style={{ padding: "10px 14px", background: "#EFF6FF", borderRadius: "8px", border: "1px solid #BFDBFE", color: "#1E40AF", fontSize: "0.85rem", lineHeight: 1.5 }}>
+                    🔒 <strong>Strict Administrator Governance:</strong> Admin registration strictly requires a valid license starting with <code>HEALTH_CURE_ADMIN_</code> followed by 10 digits (e.g. <code>HEALTH_CURE_ADMIN_0123456789</code>). No unauthorized personnel can register as Admin.
                   </div>
                 </>
               )}

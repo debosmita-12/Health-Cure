@@ -62,6 +62,17 @@ public class DoctorRepository {
         return jdbcTemplate.query("SELECT * FROM doctors ORDER BY id ASC", rowMapper);
     }
 
+    public boolean existsByLicenceNumber(String licenceNumber) {
+        if (licenceNumber == null || licenceNumber.isBlank()) return false;
+        String sql = "SELECT COUNT(*) FROM doctors WHERE LOWER(licence_number) = LOWER(?)";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, licenceNumber.trim());
+        return count != null && count > 0;
+    }
+
+    public void deleteById(Long id) {
+        jdbcTemplate.update("DELETE FROM doctors WHERE id = ?", id);
+    }
+
     public Doctor save(Doctor doctor) {
         if (doctor.getId() == null) {
             String sql = "INSERT INTO doctors (user_id, department_id, specialisation, licence_number, qualification, experience_years, consultation_fee, hospital_affiliation, biography, profile_image_url, verified_by_admin, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";

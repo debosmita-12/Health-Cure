@@ -47,6 +47,14 @@ public class PatientRepository {
         return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 
+    public List<Patient> findAll() {
+        return jdbcTemplate.query("SELECT * FROM patients ORDER BY id DESC", rowMapper);
+    }
+
+    public void deleteById(Long id) {
+        jdbcTemplate.update("DELETE FROM patients WHERE id = ?", id);
+    }
+
     public Patient save(Patient patient) {
         if (patient.getId() == null) {
             String sql = "INSERT INTO patients (user_id, date_of_birth, gender, blood_group, address, emergency_contact) VALUES (?, ?, ?, ?, ?, ?)";
