@@ -192,14 +192,25 @@ public class AppointmentRepository {
             }
             return appt;
         } else {
-            String sql = "UPDATE appointments SET appointment_date = ?, status = ?, notes = ?, " +
-                    "diagnosis_title = ?, clinical_notes = ?, prescriptions = ?, follow_up_notes = ?, " +
+            String sql = "UPDATE appointments SET patient_id = ?, doctor_id = ?, patient_name = ?, patient_email = ?, patient_phone = ?, " +
+                    "specialty = ?, consultation_type = ?, time_slot = ?, preferred_doctor = ?, appointment_date = ?, status = ?, notes = ?, " +
+                    "reference_code = ?, diagnosis_title = ?, clinical_notes = ?, prescriptions = ?, follow_up_notes = ?, " +
                     "diagnosis_published_at = ?, patient_gender = ?, patient_blood_group = ?, " +
                     "patient_dob = ?, patient_address = ?, emergency_contact = ? WHERE id = ?";
             jdbcTemplate.update(sql,
-                    Timestamp.valueOf(appt.getAppointmentDate()),
+                    appt.getPatientId(),
+                    appt.getDoctorId(),
+                    appt.getPatientName(),
+                    appt.getPatientEmail(),
+                    appt.getPatientPhone(),
+                    appt.getSpecialty(),
+                    appt.getConsultationType(),
+                    appt.getTimeSlot(),
+                    appt.getPreferredDoctor(),
+                    appt.getAppointmentDate() != null ? Timestamp.valueOf(appt.getAppointmentDate()) : new Timestamp(System.currentTimeMillis()),
                     appt.getStatus(),
                     appt.getNotes(),
+                    appt.getReferenceCode(),
                     appt.getDiagnosisTitle(),
                     appt.getClinicalNotes(),
                     appt.getPrescriptions(),
@@ -213,5 +224,10 @@ public class AppointmentRepository {
                     appt.getId());
             return appt;
         }
+    }
+
+    public void updateDoctorAssignment(String referenceCode, Long doctorId, String preferredDoctor) {
+        String sql = "UPDATE appointments SET doctor_id = ?, preferred_doctor = ? WHERE reference_code = ?";
+        jdbcTemplate.update(sql, doctorId, preferredDoctor, referenceCode);
     }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
@@ -232,6 +232,41 @@ export default function DoctorDashboard() {
     logout();
   }
 
+  const doctor = data?.doctor || {};
+  const rawAppointments = data?.appointments || [];
+  const accessRequests = data?.accessRequests || [];
+  const schedules = data?.schedules || [];
+  const leaves = data?.leaves || [];
+  const feedback = data?.feedback || [];
+
+  const doctorSpecialty = (doctor.specialisation || "").trim().toLowerCase();
+  const doctorDeptKeyword = doctorSpecialty.split(/[&/,]/)[0].trim();
+
+  // Strict specialty filtering: physician only sees appointments matching their clinical specialty
+  const appointments = useMemo(() => {
+    return rawAppointments.filter((a) => {
+      if (!doctorSpecialty) return true;
+      const apptSpec = (a.specialty || "").trim().toLowerCase();
+      if (!apptSpec) return false;
+      return (
+        apptSpec === doctorSpecialty ||
+        (doctorDeptKeyword.length > 3 && apptSpec.includes(doctorDeptKeyword)) ||
+        (apptSpec.length > 3 && doctorSpecialty.includes(apptSpec.split(/[&/,]/)[0].trim()))
+      );
+    });
+  }, [rawAppointments, doctorSpecialty, doctorDeptKeyword]);
+
+  // Unique patient deduplication: prevent duplicates across patient rosters and badges
+  const uniquePatients = useMemo(() => {
+    const seen = new Set();
+    return appointments.filter((a) => {
+      const key = a.patientId || a.patientEmail || a.patientName;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [appointments]);
+
   if (loading && !data) {
     return (
       <section className="subpage">
@@ -241,13 +276,6 @@ export default function DoctorDashboard() {
       </section>
     );
   }
-
-  const doctor = data?.doctor || {};
-  const appointments = data?.appointments || [];
-  const accessRequests = data?.accessRequests || [];
-  const schedules = data?.schedules || [];
-  const leaves = data?.leaves || [];
-  const feedback = data?.feedback || [];
 
   // 14 Standard Categories per Phase 5 (NO Book Appointment option!)
   const menuCategories = [
@@ -268,7 +296,7 @@ export default function DoctorDashboard() {
     {
       title: "3. Patients",
       items: [
-        { id: "my-patients", label: "My Patients", badge: appointments.length },
+        { id: "my-patients", label: "My Patients", badge: uniquePatients.length },
         { id: "patient-history", label: "Patient History", badge: null },
       ],
     },
@@ -478,7 +506,7 @@ export default function DoctorDashboard() {
               <div className="stats-item">
                 <span className="stats-icon"><UsersIcon size={24} /></span>
                 <div className="stats-content">
-                  <strong className="stats-value">{appointments.length} Patients</strong>
+                  <strong className="stats-value">{uniquePatients.length} Patients</strong>
                   <span className="stats-label">Under Clinical Care</span>
                 </div>
                 <span className="stats-divider" aria-hidden="true" />
@@ -793,7 +821,7 @@ export default function DoctorDashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {appointments.map((a) => {
+                        {uniquePatients.map((a) => {
                           const consent = accessRequests.find(r => r.patientId === (a.patientId || 1));
                           const isApproved = consent?.status === "APPROVED";
                           return (

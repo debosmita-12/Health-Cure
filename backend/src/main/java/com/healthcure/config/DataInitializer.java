@@ -122,6 +122,8 @@ public class DataInitializer implements CommandLineRunner {
         Long psychId = deptMap.getOrDefault("Psychiatry & Mental Health", 10L);
 
         Doctor savedFirstDoc = null;
+        Doctor savedMayaDoc = null;
+        Doctor savedAlexDoc = null;
 
         // Group 1: Cardiology & Vascular - Demo Doctor: Dr. Debasis Mukhopadhyay (DOC-1)
         Doctor d1 = seedDoctorIfMissing("debasis@healthcure.local", "Debasis", "Mukhopadhyay", "+91 9051579029",
@@ -152,7 +154,7 @@ public class DataInitializer implements CommandLineRunner {
                 18, 1200.00, "Health & Cure Vascular Pavilion, Kolkata", "Pioneering vascular surgeon specialized in endovascular aortic aneurysm repair, peripheral bypass, and varicose laser ablation.");
 
         // Group 2: Dermatology & Skin Health (5 Doctors)
-        seedDoctorIfMissing("maya.patel@healthcure.local", "Maya", "Patel", "+91 9051579029",
+        savedMayaDoc = seedDoctorIfMissing("maya.patel@healthcure.local", "Maya", "Patel", "+91 9051579029",
                 dermId, "Dermatology & Skin Health", "WB-MCI-2015-7712", "MBBS, MD (Dermatology & Venereology) - Medical College Kolkata",
                 11, 750.00, "Health & Cure Skin & Laser Pavilion, Kolkata", "Clinical dermatologist dedicated to psoriasis management, chronic atopic dermatitis, autoimmune bullous diseases, and barrier therapy.");
 
@@ -215,7 +217,7 @@ public class DataInitializer implements CommandLineRunner {
                 17, 850.00, "Health & Cure Mature Women's Wellness Centre, Kolkata", "Urogynecologist treating pelvic organ prolapse, stress urinary incontinence, and perimenopausal wellness.");
 
         // Group 5: Neurology & Brain Sciences (5 Doctors)
-        seedDoctorIfMissing("alexander.wright@healthcure.local", "Alexander", "Wright", "+91 9051579029",
+        savedAlexDoc = seedDoctorIfMissing("alexander.wright@healthcure.local", "Alexander", "Wright", "+91 9051579029",
                 neuroId, "Neurology & Brain Sciences", "WB-MCI-2008-6611", "MBBS, MD (Medicine), DM (Neurology) - NIMHANS Bengaluru",
                 18, 1000.00, "Health & Cure Neuroscience Institute, Kolkata", "Neurologist specializing in neurodegenerative diseases, Alzheimer's dementia, memory disorders, and cognitive neurorehabilitation.");
 
@@ -382,88 +384,109 @@ public class DataInitializer implements CommandLineRunner {
 
         if (savedPatient != null && savedFirstDoc != null) {
             // Patient Vitals
-            vitalsRepository.save(savedPatient.getId(), "118/76", 68, 98.4, 14, 99, 22.4, 88.0);
+            if (vitalsRepository.findByPatientId(savedPatient.getId()).isEmpty()) {
+                vitalsRepository.save(savedPatient.getId(), "118/76", 68, 98.4, 14, 99, 22.4, 88.0);
+            }
 
             // Medical Records
-            MedicalRecord record1 = new MedicalRecord();
-            record1.setPatientId(savedPatient.getId());
-            record1.setDoctorId(savedFirstDoc.getId());
-            record1.setRecordType("REPORT");
-            record1.setTitle("Comprehensive Cardiovascular Examination");
-            record1.setDescription("Resting 12-lead ECG showed regular sinus rhythm at 68 bpm. Blood pressure: 118/76 mmHg. No signs of ischemia or conduction delay.");
-            record1.setFileType("application/pdf");
-            recordRepository.save(record1);
+            if (recordRepository.findByPatientId(savedPatient.getId()).isEmpty()) {
+                MedicalRecord record1 = new MedicalRecord();
+                record1.setPatientId(savedPatient.getId());
+                record1.setDoctorId(savedFirstDoc.getId());
+                record1.setRecordType("REPORT");
+                record1.setTitle("Comprehensive Cardiovascular Examination");
+                record1.setDescription("Resting 12-lead ECG showed regular sinus rhythm at 68 bpm. Blood pressure: 118/76 mmHg. No signs of ischemia or conduction delay.");
+                record1.setFileType("application/pdf");
+                recordRepository.save(record1);
 
-            MedicalRecord record2 = new MedicalRecord();
-            record2.setPatientId(savedPatient.getId());
-            record2.setDoctorId(savedFirstDoc.getId());
-            record2.setRecordType("CONSULTATION");
-            record2.setTitle("Annual Preventive Health Consultation");
-            record2.setDescription("Patient is active and asymptomatic. Advised continuance of balanced dietary pattern and 150 minutes weekly aerobic activity.");
-            record2.setFileType("text/plain");
-            recordRepository.save(record2);
+                MedicalRecord record2 = new MedicalRecord();
+                record2.setPatientId(savedPatient.getId());
+                record2.setDoctorId(savedFirstDoc.getId());
+                record2.setRecordType("CONSULTATION");
+                record2.setTitle("Annual Preventive Health Consultation");
+                record2.setDescription("Patient is active and asymptomatic. Advised continuance of balanced dietary pattern and 150 minutes weekly aerobic activity.");
+                record2.setFileType("text/plain");
+                recordRepository.save(record2);
+            }
 
-            // Month 1 Appointment (November 2026)
-            Appointment appt = new Appointment();
-            appt.setPatientId(savedPatient.getId());
-            appt.setDoctorId(savedFirstDoc.getId());
-            appt.setPatientName("Debosmita Mukhopadhyay");
-            appt.setPatientEmail("debosmita@healthcure.local");
-            appt.setPatientPhone("+91 9051579029");
-            appt.setSpecialty("Cardiology & Vascular");
-            appt.setConsultationType("In-Clinic Visit");
-            appt.setTimeSlot("Morning (09:00 - 12:00)");
-            appt.setPreferredDoctor("Dr. Rajesh Sharma");
-            appt.setAppointmentDate(LocalDateTime.now().plusDays(4));
-            appt.setStatus("CONFIRMED");
-            appt.setReferenceCode("HC-DEMO-001");
-            Appointment savedAppt = appointmentRepository.save(appt);
+            if (appointmentRepository.findByReferenceCode("HC-DEMO-001").isEmpty()) {
+                // Month 1 Appointment (November 2026)
+                Appointment appt = new Appointment();
+                appt.setPatientId(savedPatient.getId());
+                appt.setDoctorId(savedFirstDoc.getId());
+                appt.setPatientName("Debosmita Mukhopadhyay");
+                appt.setPatientEmail("debosmita@healthcure.local");
+                appt.setPatientPhone("+91 9051579029");
+                appt.setSpecialty("Cardiology & Vascular");
+                appt.setConsultationType("In-Clinic Visit");
+                appt.setTimeSlot("Morning (09:00 - 12:00)");
+                appt.setPreferredDoctor("Dr. Debasis Mukhopadhyay");
+                appt.setAppointmentDate(LocalDateTime.now().plusDays(4));
+                appt.setStatus("CONFIRMED");
+                appt.setReferenceCode("HC-DEMO-001");
+                Appointment savedAppt = appointmentRepository.save(appt);
 
-            // Month 2 Appointment (December 2026)
-            Appointment apptDec = new Appointment();
-            apptDec.setPatientId(savedPatient.getId());
-            apptDec.setDoctorId(savedFirstDoc.getId());
-            apptDec.setPatientName("Debosmita Mukhopadhyay");
-            apptDec.setPatientEmail("debosmita@healthcure.local");
-            apptDec.setPatientPhone("+91 9051579029");
-            apptDec.setSpecialty("Dermatology & Skin Health");
-            apptDec.setConsultationType("In-Clinic Visit");
-            apptDec.setTimeSlot("Afternoon (12:00 - 15:00)");
-            apptDec.setPreferredDoctor("Dr. Maya Patel");
-            apptDec.setAppointmentDate(LocalDateTime.now().plusDays(33));
-            apptDec.setStatus("CONFIRMED");
-            apptDec.setReferenceCode("HC-DEMO-002");
-            appointmentRepository.save(apptDec);
+                // Month 2 Appointment (December 2026)
+                Appointment apptDec = new Appointment();
+                apptDec.setPatientId(savedPatient.getId());
+                apptDec.setDoctorId(savedMayaDoc != null ? savedMayaDoc.getId() : savedFirstDoc.getId());
+                apptDec.setPatientName("Debosmita Mukhopadhyay");
+                apptDec.setPatientEmail("debosmita@healthcure.local");
+                apptDec.setPatientPhone("+91 9051579029");
+                apptDec.setSpecialty("Dermatology & Skin Health");
+                apptDec.setConsultationType("In-Clinic Visit");
+                apptDec.setTimeSlot("Afternoon (12:00 - 15:00)");
+                apptDec.setPreferredDoctor("Dr. Maya Patel");
+                apptDec.setAppointmentDate(LocalDateTime.now().plusDays(33));
+                apptDec.setStatus("CONFIRMED");
+                apptDec.setReferenceCode("HC-DEMO-002");
+                appointmentRepository.save(apptDec);
 
-            // Month 3 Appointment (January 2027)
-            Appointment apptJan = new Appointment();
-            apptJan.setPatientId(savedPatient.getId());
-            apptJan.setDoctorId(savedFirstDoc.getId());
-            apptJan.setPatientName("Debosmita Mukhopadhyay");
-            apptJan.setPatientEmail("debosmita@healthcure.local");
-            apptJan.setPatientPhone("+91 9051579029");
-            apptJan.setSpecialty("Neurology & Brain Sciences");
-            apptJan.setConsultationType("Telemedicine Video");
-            apptJan.setTimeSlot("Evening (15:00 - 18:00)");
-            apptJan.setPreferredDoctor("Dr. Alexander Wright");
-            apptJan.setAppointmentDate(LocalDateTime.now().plusDays(67));
-            apptJan.setStatus("CONFIRMED");
-            apptJan.setReferenceCode("HC-DEMO-003");
-            appointmentRepository.save(apptJan);
+                // Month 3 Appointment (January 2027)
+                Appointment apptJan = new Appointment();
+                apptJan.setPatientId(savedPatient.getId());
+                apptJan.setDoctorId(savedAlexDoc != null ? savedAlexDoc.getId() : savedFirstDoc.getId());
+                apptJan.setPatientName("Debosmita Mukhopadhyay");
+                apptJan.setPatientEmail("debosmita@healthcure.local");
+                apptJan.setPatientPhone("+91 9051579029");
+                apptJan.setSpecialty("Neurology & Brain Sciences");
+                apptJan.setConsultationType("Telemedicine Video");
+                apptJan.setTimeSlot("Evening (15:00 - 18:00)");
+                apptJan.setPreferredDoctor("Dr. Alexander Wright");
+                apptJan.setAppointmentDate(LocalDateTime.now().plusDays(67));
+                apptJan.setStatus("CONFIRMED");
+                apptJan.setReferenceCode("HC-DEMO-003");
+                appointmentRepository.save(apptJan);
 
-            // Billing in Indian Rupees (₹)
-            billingRepository.createInvoice(savedPatient.getId(), savedAppt.getId(), "HC-INV-2026-001", 850.00, "PAID", "UPI / Card", "Cardiology Consultation & Diagnostic Record Archive");
+                // Billing in Indian Rupees (₹)
+                if (billingRepository.findByPatientId(savedPatient.getId()).isEmpty()) {
+                    billingRepository.createInvoice(savedPatient.getId(), savedAppt.getId(), "HC-INV-2026-001", 850.00, "PAID", "UPI / Card", "Cardiology Consultation & Diagnostic Record Archive");
+                }
+            }
 
             // Active Consent Handshake
-            AccessRequest access = new AccessRequest();
-            access.setDoctorId(savedFirstDoc.getId());
-            access.setPatientId(savedPatient.getId());
-            access.setStatus("APPROVED");
-            access.setReason("Pre-consultation cardiac medical history inspection");
-            access.setRequestedAt(LocalDateTime.now().minusHours(24));
-            access.setRespondedAt(LocalDateTime.now().minusHours(20));
-            access.setExpiresAt(LocalDateTime.now().plusDays(6));
-            accessRepository.save(access);
+            if (accessRepository.findByPatientId(savedPatient.getId()).isEmpty()) {
+                AccessRequest access = new AccessRequest();
+                access.setDoctorId(savedFirstDoc.getId());
+                access.setPatientId(savedPatient.getId());
+                access.setStatus("APPROVED");
+                access.setReason("Pre-consultation cardiac medical history inspection");
+                access.setRequestedAt(LocalDateTime.now().minusHours(24));
+                access.setRespondedAt(LocalDateTime.now().minusHours(20));
+                access.setExpiresAt(LocalDateTime.now().plusDays(6));
+                accessRepository.save(access);
+            }
+        }
+
+        // Ensure demo appointments are strictly assigned to their department-specific physicians in persistent DB
+        if (savedMayaDoc != null) {
+            appointmentRepository.updateDoctorAssignment("HC-DEMO-002", savedMayaDoc.getId(), "Dr. Maya Patel");
+        }
+        if (savedAlexDoc != null) {
+            appointmentRepository.updateDoctorAssignment("HC-DEMO-003", savedAlexDoc.getId(), "Dr. Alexander Wright");
+        }
+        if (savedFirstDoc != null) {
+            appointmentRepository.updateDoctorAssignment("HC-DEMO-001", savedFirstDoc.getId(), "Dr. Debasis Mukhopadhyay");
         }
 
         // Support registered patient: Akshita Sharma (password: 1234567)
@@ -503,9 +526,11 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         // 6. Hospital Operational Staff
-        staffRepository.save("EMP-101", "Ramesh Sen", "ramesh@healthcure.local", "Receptionist", cardioId, "+91 9051579029");
-        staffRepository.save("EMP-102", "Sunita Paul", "sunita.paul@healthcure.local", "Nurse Coordinator", cardioId, "+91 9051579029");
-        staffRepository.save("EMP-103", "Dipak Mandal", "dipak@healthcure.local", "Laboratory Technician", dermId, "+91 9051579029");
+        if (staffRepository.findAll().isEmpty()) {
+            staffRepository.save("EMP-101", "Ramesh Sen", "ramesh@healthcure.local", "Receptionist", cardioId, "+91 9051579029");
+            staffRepository.save("EMP-102", "Sunita Paul", "sunita.paul@healthcure.local", "Nurse Coordinator", cardioId, "+91 9051579029");
+            staffRepository.save("EMP-103", "Dipak Mandal", "dipak@healthcure.local", "Laboratory Technician", dermId, "+91 9051579029");
+        }
 
         // 7. System Settings
         settingsRepository.set("center_name", "Health & Cure Super Speciality Hospital, Kolkata");

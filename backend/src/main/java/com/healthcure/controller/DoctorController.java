@@ -64,6 +64,20 @@ public class DoctorController {
                 .orElseThrow(() -> new IllegalStateException("Doctor profile not found"));
     }
 
+    private boolean matchesDoctorSpecialty(Doctor doctor, Appointment a) {
+        if (doctor == null || a == null) return false;
+        if (a.getSpecialty() == null || a.getSpecialty().isBlank()) return true;
+        if (doctor.getSpecialisation() == null || doctor.getSpecialisation().isBlank()) return true;
+        String docSpec = doctor.getSpecialisation().trim().toLowerCase();
+        String apptSpec = a.getSpecialty().trim().toLowerCase();
+        if (docSpec.equals(apptSpec)) return true;
+        String docKey = docSpec.split("[&/,]")[0].trim();
+        String apptKey = apptSpec.split("[&/,]")[0].trim();
+        if (docKey.length() > 3 && apptSpec.contains(docKey)) return true;
+        if (apptKey.length() > 3 && docSpec.contains(apptKey)) return true;
+        return false;
+    }
+
     private List<Appointment> enrichAppointments(List<Appointment> appts) {
         if (appts == null) return List.of();
         for (Appointment a : appts) {
@@ -95,7 +109,10 @@ public class DoctorController {
                 "role", user.getRole()
         ));
         data.put("doctor", doctor);
-        data.put("appointments", enrichAppointments(appointmentRepository.findByDoctorId(doctor.getId())));
+        List<Appointment> docAppts = appointmentRepository.findByDoctorId(doctor.getId()).stream()
+                .filter(a -> matchesDoctorSpecialty(doctor, a))
+                .toList();
+        data.put("appointments", enrichAppointments(docAppts));
         data.put("accessRequests", accessRepository.findByDoctorId(doctor.getId()));
         data.put("schedules", scheduleRepository.findByDoctorId(doctor.getId()));
         data.put("leaves", leaveRepository.findByDoctorId(doctor.getId()));
@@ -108,7 +125,10 @@ public class DoctorController {
     public ResponseEntity<?> getAppointments(Authentication auth) {
         User user = getAuthenticatedUser(auth);
         Doctor doctor = getDoctor(user);
-        return ResponseEntity.ok(enrichAppointments(appointmentRepository.findByDoctorId(doctor.getId())));
+        List<Appointment> docAppts = appointmentRepository.findByDoctorId(doctor.getId()).stream()
+                .filter(a -> matchesDoctorSpecialty(doctor, a))
+                .toList();
+        return ResponseEntity.ok(enrichAppointments(docAppts));
     }
 
     @PostMapping("/appointments/{id}/status")
@@ -193,8 +213,11 @@ public class DoctorController {
     public ResponseEntity<?> getAssignedPatients(Authentication auth) {
         User user = getAuthenticatedUser(auth);
         Doctor doctor = getDoctor(user);
-        // Returns list of patients with valid appointments or approved access requests
-        return ResponseEntity.ok(appointmentRepository.findByDoctorId(doctor.getId()));
+        // Returns list of appointments matching doctor specialty
+        List<Appointment> docAppts = appointmentRepository.findByDoctorId(doctor.getId()).stream()
+                .filter(a -> matchesDoctorSpecialty(doctor, a))
+                .toList();
+        return ResponseEntity.ok(enrichAppointments(docAppts));
     }
 
     @PostMapping("/access/request")

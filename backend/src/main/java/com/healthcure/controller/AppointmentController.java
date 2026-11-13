@@ -39,6 +39,19 @@ public class AppointmentController {
         this.doctorRepository = doctorRepository;
     }
 
+    private boolean matchesDoctorSpecialty(Doctor doctor, String specialty) {
+        if (doctor == null || specialty == null || specialty.isBlank()) return false;
+        if (doctor.getSpecialisation() == null || doctor.getSpecialisation().isBlank()) return false;
+        String docSpec = doctor.getSpecialisation().trim().toLowerCase();
+        String apptSpec = specialty.trim().toLowerCase();
+        if (docSpec.equals(apptSpec)) return true;
+        String docKey = docSpec.split("[&/,]")[0].trim();
+        String apptKey = apptSpec.split("[&/,]")[0].trim();
+        if (docKey.length() > 3 && apptSpec.contains(docKey)) return true;
+        if (apptKey.length() > 3 && docSpec.contains(apptKey)) return true;
+        return false;
+    }
+
     @PostMapping("/book")
     public ResponseEntity<Map<String, Object>> bookAppointment(@RequestBody AppointmentRequest request,
                                                                Authentication auth) {
@@ -123,7 +136,7 @@ public class AppointmentController {
             ));
         }
 
-        // Auto-link doctor if doctor exists
+        // Auto-link doctor if doctor exists for this medical specialty
         if (doctorRepository != null) {
             List<Doctor> docs = doctorRepository.findAll();
             if (!docs.isEmpty()) {
@@ -133,23 +146,24 @@ public class AppointmentController {
                     for (Doctor d : docs) {
                         User du = userRepository.findById(d.getUserId()).orElse(null);
                         if (du != null && (du.getFirstName() + " " + du.getLastName()).toLowerCase().contains(pref)) {
-                            chosenDoc = d;
-                            break;
+                            if (matchesDoctorSpecialty(d, specialty)) {
+                                chosenDoc = d;
+                                break;
+                            }
                         }
                     }
                 }
                 if (chosenDoc == null && specialty != null) {
                     for (Doctor d : docs) {
-                        if (specialty.equalsIgnoreCase(d.getSpecialisation())) {
+                        if (matchesDoctorSpecialty(d, specialty)) {
                             chosenDoc = d;
                             break;
                         }
                     }
                 }
-                if (chosenDoc == null) {
-                    chosenDoc = docs.get(0);
+                if (chosenDoc != null) {
+                    appointment.setDoctorId(chosenDoc.getId());
                 }
-                appointment.setDoctorId(chosenDoc.getId());
             }
         }
 
