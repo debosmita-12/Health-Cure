@@ -56,13 +56,27 @@ export default function PatientDashboard() {
   const [bookingError, setBookingError] = useState("");
   const [bookingSuccessResult, setBookingSuccessResult] = useState(null);
 
+  // Strictly unique public doctors list (defense against duplicates)
+  const uniquePublicDoctors = useMemo(() => {
+    const seenId = new Set();
+    const seenName = new Set();
+    return publicDoctors.filter((d) => {
+      const id = d.doctor_id || d.id;
+      const nameKey = `${(d.first_name || d.firstName || "").trim().toLowerCase()}_${(d.last_name || d.lastName || "").trim().toLowerCase()}`;
+      if ((id && seenId.has(id)) || (nameKey.length > 1 && seenName.has(nameKey))) return false;
+      if (id) seenId.add(id);
+      if (nameKey.length > 1) seenName.add(nameKey);
+      return true;
+    });
+  }, [publicDoctors]);
+
   // Filter attending physicians strictly by selected clinical department
   const availableDoctorsForDepartment = useMemo(() => {
-    if (!bookingForm.department) return publicDoctors;
+    if (!bookingForm.department) return uniquePublicDoctors;
     const target = bookingForm.department.trim().toLowerCase();
     const keyword = target.split("&")[0].trim();
 
-    return publicDoctors.filter((d) => {
+    return uniquePublicDoctors.filter((d) => {
       const docDept = (d.department_name || "").trim().toLowerCase();
       const docSpec = (d.specialisation || "").trim().toLowerCase();
       return (
@@ -72,7 +86,7 @@ export default function PatientDashboard() {
         (docSpec && docSpec.includes(keyword))
       );
     });
-  }, [publicDoctors, bookingForm.department]);
+  }, [uniquePublicDoctors, bookingForm.department]);
 
   async function loadDashboard() {
     setLoading(true);

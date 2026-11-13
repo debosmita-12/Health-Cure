@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
@@ -318,9 +318,52 @@ export default function AdminDashboard() {
     );
   }
 
-  const doctors = data?.doctors || [];
-  const patients = data?.patients || [];
-  const appointments = data?.appointments || [];
+  // Defensive deduplication across all entities so duplicates can NEVER appear in the UI
+  const rawDoctors = data?.doctors || [];
+  const doctors = useMemo(() => {
+    const seenId = new Set();
+    const seenName = new Set();
+    return rawDoctors.filter((d) => {
+      const id = d.id || d.doctorId;
+      const nameKey = `${(d.first_name || d.firstName || "").trim().toLowerCase()}_${(d.last_name || d.lastName || "").trim().toLowerCase()}`;
+      if ((id && seenId.has(id)) || (nameKey.length > 1 && seenName.has(nameKey))) return false;
+      if (id) seenId.add(id);
+      if (nameKey.length > 1) seenName.add(nameKey);
+      return true;
+    });
+  }, [rawDoctors]);
+
+  const rawPatients = data?.patients || [];
+  const patients = useMemo(() => {
+    const seenId = new Set();
+    const seenName = new Set();
+    const seenEmail = new Set();
+    return rawPatients.filter((p) => {
+      const id = p.id || p.patientId;
+      const nameKey = `${(p.first_name || p.firstName || "").trim().toLowerCase()}_${(p.last_name || p.lastName || "").trim().toLowerCase()}`;
+      const email = (p.email || "").trim().toLowerCase();
+      if ((id && seenId.has(id)) || (nameKey.length > 1 && seenName.has(nameKey)) || (email && seenEmail.has(email))) return false;
+      if (id) seenId.add(id);
+      if (nameKey.length > 1) seenName.add(nameKey);
+      if (email) seenEmail.add(email);
+      return true;
+    });
+  }, [rawPatients]);
+
+  const rawAppointments = data?.appointments || [];
+  const appointments = useMemo(() => {
+    const seenRef = new Set();
+    const seenId = new Set();
+    return rawAppointments.filter((a) => {
+      const id = a.id;
+      const ref = a.referenceCode || a.reference_code;
+      if ((id && seenId.has(id)) || (ref && seenRef.has(ref))) return false;
+      if (id) seenId.add(id);
+      if (ref) seenRef.add(ref);
+      return true;
+    });
+  }, [rawAppointments]);
+
   const auditLogs = data?.auditLogs || [];
   const departments = data?.departments || [];
   const staff = data?.staff || [];
