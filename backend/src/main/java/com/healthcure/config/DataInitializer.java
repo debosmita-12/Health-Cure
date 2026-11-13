@@ -89,10 +89,10 @@ public class DataInitializer implements CommandLineRunner {
 
         // 2. Administrator User: Rakhi Chatterjee (Canonical Role: ADMIN)
         User savedAdmin;
-        Optional<User> adminOpt = userRepository.findByEmail("admin@healthcure.local");
+        Optional<User> adminOpt = userRepository.findByEmail("rakhi@healthcure.local");
         if (adminOpt.isEmpty()) {
             User admin = new User();
-            admin.setEmail("admin@healthcure.local");
+            admin.setEmail("rakhi@healthcure.local");
             admin.setPasswordHash(passwordEncoder.encode("Ra@170879"));
             admin.setRole("ADMIN");
             admin.setFirstName("Rakhi");
@@ -109,20 +109,6 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(savedAdmin);
         }
 
-        // Also alias rakhi@healthcure.local
-        if (userRepository.findByEmail("rakhi@healthcure.local").isEmpty()) {
-            User rakhiUser = new User();
-            rakhiUser.setEmail("rakhi@healthcure.local");
-            rakhiUser.setPasswordHash(passwordEncoder.encode("Ra@170879"));
-            rakhiUser.setRole("ADMIN");
-            rakhiUser.setFirstName("Rakhi");
-            rakhiUser.setLastName("Chatterjee");
-            rakhiUser.setPhone("+91 9051579030");
-            rakhiUser.setIsActive(true);
-            rakhiUser.setIsVerified(true);
-            userRepository.save(rakhiUser);
-        }
-
         // 3. Seed at least 52 Demo Doctors across all 10 Medical Specialties
         Long cardioId = deptMap.getOrDefault("Cardiology & Vascular", 1L);
         Long dermId = deptMap.getOrDefault("Dermatology & Skin Health", 2L);
@@ -137,24 +123,14 @@ public class DataInitializer implements CommandLineRunner {
 
         Doctor savedFirstDoc = null;
 
-        // Group 1: Cardiology & Vascular - Demo Doctor: Dr. Debasis Mukhopadhyay
-        Doctor d1 = seedDoctorIfMissing("doctor@healthcure.local", "Debasis", "Mukhopadhyay", "+91 9051579029",
+        // Group 1: Cardiology & Vascular - Demo Doctor: Dr. Debasis Mukhopadhyay (DOC-1)
+        Doctor d1 = seedDoctorIfMissing("debasis@healthcure.local", "Debasis", "Mukhopadhyay", "+91 9051579029",
                 cardioId, "Cardiology & Vascular", "WB-MCI-2005-1206", "MBBS, MD, DM (Cardiology) - AIIMS New Delhi",
                 19, 900.00, "Health & Cure Super Speciality Hospital, Kolkata", "Senior consultant cardiologist and clinical director with 19 years of clinical excellence in cardiovascular medicine and interventional care.");
         savedFirstDoc = d1;
-        // Ensure name and password hash updated if already existing
-        userRepository.findByEmail("doctor@healthcure.local").ifPresent(du -> {
+        userRepository.findByEmail("debasis@healthcure.local").ifPresent(du -> {
             du.setFirstName("Debasis");
             du.setLastName("Mukhopadhyay");
-            du.setPasswordHash(passwordEncoder.encode("De@120603"));
-            userRepository.save(du);
-        });
-
-        // Also alias debasis@healthcure.local
-        seedDoctorIfMissing("debasis@healthcure.local", "Debasis", "Mukhopadhyay", "+91 9051579031",
-                cardioId, "Cardiology & Vascular", "WB-MCI-2005-1206-ALT", "MBBS, MD, DM (Cardiology)",
-                19, 900.00, "Health & Cure Super Speciality Hospital, Kolkata", "Senior consultant cardiologist.");
-        userRepository.findByEmail("debasis@healthcure.local").ifPresent(du -> {
             du.setPasswordHash(passwordEncoder.encode("De@120603"));
             userRepository.save(du);
         });
@@ -372,12 +348,12 @@ public class DataInitializer implements CommandLineRunner {
                 psychId, "Psychiatry & Mental Health", "WB-MCI-2009-6697", "MBBS, DPM, MD (Psychiatry) - R.G. Kar Medical College Kolkata",
                 17, 800.00, "Health & Cure Behavioral Health Wing, Kolkata", "Senior clinician offering holistic family psychiatric care, stress management, marital counseling, and mood stability.");
 
-        // 4. Seed Default Indian Patient (Debosmita Mukhopadhyay, password - 123456789)
-        Optional<User> patientUserOpt = userRepository.findByEmail("patient@healthcure.local");
+        // 4. Seed Single Demo Patient: Debosmita Mukhopadhyay (password - 123456789)
+        Optional<User> patientUserOpt = userRepository.findByEmail("debosmita@healthcure.local");
         Patient savedPatient;
         if (patientUserOpt.isEmpty()) {
             User patientUser = new User();
-            patientUser.setEmail("patient@healthcure.local");
+            patientUser.setEmail("debosmita@healthcure.local");
             patientUser.setPasswordHash(passwordEncoder.encode("123456789"));
             patientUser.setRole("PATIENT");
             patientUser.setFirstName("Debosmita");
@@ -402,29 +378,6 @@ public class DataInitializer implements CommandLineRunner {
             pUser.setPasswordHash(passwordEncoder.encode("123456789"));
             userRepository.save(pUser);
             savedPatient = patientRepository.findByUserId(pUser.getId()).orElse(null);
-        }
-
-        // Also alias debosmita@healthcure.local
-        if (userRepository.findByEmail("debosmita@healthcure.local").isEmpty()) {
-            User deboUser = new User();
-            deboUser.setEmail("debosmita@healthcure.local");
-            deboUser.setPasswordHash(passwordEncoder.encode("123456789"));
-            deboUser.setRole("PATIENT");
-            deboUser.setFirstName("Debosmita");
-            deboUser.setLastName("Mukhopadhyay");
-            deboUser.setPhone("+91 9051579032");
-            deboUser.setIsActive(true);
-            deboUser.setIsVerified(true);
-            User savedDebo = userRepository.save(deboUser);
-
-            Patient deboPat = new Patient();
-            deboPat.setUserId(savedDebo.getId());
-            deboPat.setDateOfBirth(LocalDate.of(2003, 6, 12));
-            deboPat.setGender("Female");
-            deboPat.setBloodGroup("A+");
-            deboPat.setAddress("Health & Cure Super Speciality Hospital Campus, Salt Lake Sector V, Kolkata, West Bengal - 700091, India");
-            deboPat.setEmergencyContact("+91 9051579029");
-            patientRepository.save(deboPat);
         }
 
         if (savedPatient != null && savedFirstDoc != null) {
@@ -455,7 +408,7 @@ public class DataInitializer implements CommandLineRunner {
             appt.setPatientId(savedPatient.getId());
             appt.setDoctorId(savedFirstDoc.getId());
             appt.setPatientName("Debosmita Mukhopadhyay");
-            appt.setPatientEmail("patient@healthcure.local");
+            appt.setPatientEmail("debosmita@healthcure.local");
             appt.setPatientPhone("+91 9051579029");
             appt.setSpecialty("Cardiology & Vascular");
             appt.setConsultationType("In-Clinic Visit");
@@ -471,7 +424,7 @@ public class DataInitializer implements CommandLineRunner {
             apptDec.setPatientId(savedPatient.getId());
             apptDec.setDoctorId(savedFirstDoc.getId());
             apptDec.setPatientName("Debosmita Mukhopadhyay");
-            apptDec.setPatientEmail("patient@healthcure.local");
+            apptDec.setPatientEmail("debosmita@healthcure.local");
             apptDec.setPatientPhone("+91 9051579029");
             apptDec.setSpecialty("Dermatology & Skin Health");
             apptDec.setConsultationType("In-Clinic Visit");
@@ -487,7 +440,7 @@ public class DataInitializer implements CommandLineRunner {
             apptJan.setPatientId(savedPatient.getId());
             apptJan.setDoctorId(savedFirstDoc.getId());
             apptJan.setPatientName("Debosmita Mukhopadhyay");
-            apptJan.setPatientEmail("patient@healthcure.local");
+            apptJan.setPatientEmail("debosmita@healthcure.local");
             apptJan.setPatientPhone("+91 9051579029");
             apptJan.setSpecialty("Neurology & Brain Sciences");
             apptJan.setConsultationType("Telemedicine Video");

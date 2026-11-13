@@ -4782,10 +4782,11 @@ th {
 }
 
 .ref-banner-leaf {
+  display: none !important;
   position: absolute;
   pointer-events: none;
-  opacity: 0.4;
-  color: #5E8F7C;
+  opacity: 0;
+  visibility: hidden;
 }
 
 .leaf-left {

@@ -151,7 +151,13 @@ public class AdminController {
 
         String phone = (String) body.getOrDefault("phone", "");
         if (!phone.isBlank() && userRepository.existsByPhone(phone.trim())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "An account with this phone number is already registered."));
+            return ResponseEntity.badRequest().body(Map.of("error", "An account with this phone number is already registered. Duplicate accounts are prohibited."));
+        }
+
+        String firstName = ((String) body.get("firstName")).trim();
+        String lastName = ((String) body.get("lastName")).trim();
+        if (userRepository.existsByNameAndRole(firstName, lastName, "DOCTOR")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A physician named Dr. " + firstName + " " + lastName + " is already registered. Duplicate doctor accounts are strictly prohibited."));
         }
 
         String licence = (String) body.get("licenceNumber");
@@ -163,8 +169,8 @@ public class AdminController {
         docUser.setEmail(email);
         docUser.setPasswordHash(passwordEncoder.encode((String) body.getOrDefault("password", "Doctor@123")));
         docUser.setRole("DOCTOR");
-        docUser.setFirstName(((String) body.get("firstName")).trim());
-        docUser.setLastName(((String) body.get("lastName")).trim());
+        docUser.setFirstName(firstName);
+        docUser.setLastName(lastName);
         docUser.setPhone(phone.trim());
         docUser.setIsActive(true);
         docUser.setIsVerified(true);
@@ -264,15 +270,21 @@ public class AdminController {
         }
         String phone = (String) body.getOrDefault("phone", "");
         if (!phone.isBlank() && userRepository.existsByPhone(phone.trim())) {
-            return ResponseEntity.badRequest().body(Map.of("error", "An account with this phone number is already registered."));
+            return ResponseEntity.badRequest().body(Map.of("error", "An account with this phone number is already registered. Duplicate patient records are prohibited."));
+        }
+
+        String firstName = ((String) body.get("firstName")).trim();
+        String lastName = ((String) body.get("lastName")).trim();
+        if (userRepository.existsByNameAndRole(firstName, lastName, "PATIENT")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A patient named " + firstName + " " + lastName + " is already registered. Duplicate patient records are strictly prohibited."));
         }
 
         User patUser = new User();
         patUser.setEmail(email);
         patUser.setPasswordHash(passwordEncoder.encode((String) body.getOrDefault("password", "Patient@123")));
         patUser.setRole("PATIENT");
-        patUser.setFirstName(((String) body.get("firstName")).trim());
-        patUser.setLastName(((String) body.get("lastName")).trim());
+        patUser.setFirstName(firstName);
+        patUser.setLastName(lastName);
         patUser.setPhone(phone.trim());
         patUser.setIsActive(true);
         patUser.setIsVerified(true);
@@ -353,11 +365,18 @@ public class AdminController {
         if (empId == null || empId.isBlank()) {
             empId = "EMP-" + (System.currentTimeMillis() % 100000);
         }
-        String name = (String) body.get("name");
-        String email = (String) body.get("email");
+        String name = ((String) body.get("name")).trim();
+        String email = ((String) body.get("email")).trim();
         String group = (String) body.getOrDefault("roleGroup", (String) body.getOrDefault("role", "General Staff"));
         Long deptId = body.get("departmentId") != null ? Long.valueOf(body.get("departmentId").toString()) : null;
         String phone = (String) body.getOrDefault("phone", "+91 9051579029");
+
+        Integer existingCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM staff WHERE LOWER(email) = LOWER(?) OR LOWER(name) = LOWER(?) OR employee_id = ?",
+                Integer.class, email, name, empId);
+        if (existingCount != null && existingCount > 0) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A staff member with this employee ID, name, or email already exists. Duplicate records are strictly prohibited."));
+        }
 
         staffRepository.save(empId, name, email, group, deptId, phone);
         auditLogRepository.log(user.getId(), "STAFF_ADDED", "STAFF", null, "Staff member registered: " + name, "127.0.0.1");
@@ -367,9 +386,16 @@ public class AdminController {
     @PostMapping("/departments")
     public ResponseEntity<?> addDepartment(@RequestBody Map<String, Object> body, Authentication auth) {
         User user = getAuthenticatedUser(auth);
-        String name = (String) body.get("name");
+        String name = ((String) body.get("name")).trim();
         String desc = (String) body.get("description");
         String head = (String) body.get("headDoctorName");
+
+        Integer existingCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM departments WHERE LOWER(name) = LOWER(?)",
+                Integer.class, name);
+        if (existingCount != null && existingCount > 0) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A clinical department named '" + name + "' already exists. Duplicate departments are strictly prohibited."));
+        }
 
         departmentRepository.save(name, desc, head);
         auditLogRepository.log(user.getId(), "DEPARTMENT_CREATED", "DEPARTMENT", null, "New clinical department created: " + name, "127.0.0.1");
@@ -379,11 +405,18 @@ public class AdminController {
     @PostMapping("/lab-tests")
     public ResponseEntity<?> addLabTest(@RequestBody Map<String, Object> body, Authentication auth) {
         User user = getAuthenticatedUser(auth);
-        String name = (String) body.get("name");
+        String name = ((String) body.get("name")).trim();
         String category = (String) body.get("category");
         double price = Double.parseDouble(body.get("price").toString());
         String desc = (String) body.getOrDefault("description", "");
         String prep = (String) body.getOrDefault("preparationInstructions", "");
+
+        Integer existingCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM lab_tests WHERE LOWER(test_name) = LOWER(?)",
+                Integer.class, name);
+        if (existingCount != null && existingCount > 0) {
+            return ResponseEntity.badRequest().body(Map.of("error", "A diagnostic test named '" + name + "' already exists. Duplicate tests are strictly prohibited."));
+        }
 
         labRepository.saveTest(name, category, price, desc, prep);
         auditLogRepository.log(user.getId(), "LAB_TEST_CREATED", "LAB_TEST", null, "Diagnostic test added: " + name, "127.0.0.1");

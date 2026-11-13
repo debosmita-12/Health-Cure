@@ -404,8 +404,6 @@ export default function HomePage() {
           ======================================================== */}
       <div className="ref-cta-banner-wrap">
         <div className="ref-cta-banner">
-          <LeafCorner className="ref-banner-leaf leaf-left" />
-
           <div className="ref-cta-left">
             <h2 className="ref-cta-heading">
               Your Health Journey
@@ -435,8 +433,6 @@ export default function HomePage() {
               </svg>
             </div>
           </div>
-
-          <LeafCorner className="ref-banner-leaf leaf-right" />
         </div>
       </div>
 

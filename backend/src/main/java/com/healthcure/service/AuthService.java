@@ -69,7 +69,17 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail().trim().toLowerCase())
+        String inputEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+        // Map alias emails to canonical demo accounts to prevent duplicate database rows
+        if (inputEmail.equals("doctor@healthcure.local") || inputEmail.equals("debasis.mukhopadhyay@healthcure.local")) {
+            inputEmail = "debasis@healthcure.local";
+        } else if (inputEmail.equals("patient@healthcure.local") || inputEmail.equals("debosmita.mukhopadhyay@healthcure.local")) {
+            inputEmail = "debosmita@healthcure.local";
+        } else if (inputEmail.equals("admin@healthcure.local") || inputEmail.equals("rakhi.chatterjee@healthcure.local")) {
+            inputEmail = "rakhi@healthcure.local";
+        }
+
+        User user = userRepository.findByEmail(inputEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
         boolean matches = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
@@ -156,12 +166,18 @@ public class AuthService {
             isVerified = true;
         }
 
+        String firstName = request.getFirstName().trim();
+        String lastName = request.getLastName().trim();
+        if (userRepository.existsByNameAndRole(firstName, lastName, normalizedRole)) {
+            throw new IllegalArgumentException("An account with the name '" + firstName + " " + lastName + "' is already registered as " + normalizedRole + ". Duplicate records are strictly prohibited.");
+        }
+
         User user = new User();
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setRole(normalizedRole);
-        user.setFirstName(request.getFirstName().trim());
-        user.setLastName(request.getLastName().trim());
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
         user.setPhone(request.getPhone() != null ? request.getPhone().trim() : "");
         user.setIsActive(true);
         user.setIsVerified(isVerified);

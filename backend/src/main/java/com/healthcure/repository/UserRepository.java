@@ -75,6 +75,13 @@ public class UserRepository {
         return count != null && count > 0;
     }
 
+    public boolean existsByNameAndRole(String firstName, String lastName, String role) {
+        if (firstName == null || lastName == null) return false;
+        String sql = "SELECT COUNT(*) FROM users WHERE LOWER(TRIM(first_name)) = LOWER(TRIM(?)) AND LOWER(TRIM(last_name)) = LOWER(TRIM(?)) AND UPPER(role) = UPPER(?)";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, firstName, lastName, role);
+        return count != null && count > 0;
+    }
+
     public void deleteById(Long id) {
         jdbcTemplate.update("DELETE FROM users WHERE id = ?", id);
     }
