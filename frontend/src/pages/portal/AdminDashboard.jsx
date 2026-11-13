@@ -6,6 +6,7 @@ import {
   AuditIcon,
   CalendarIcon,
   CheckIcon,
+  ClockIcon,
   CloseIcon,
   DatabaseIcon,
   DoctorIcon,
@@ -1587,43 +1588,207 @@ export default function AdminDashboard() {
 
             {/* View: System Settings */}
             {(activeTab === "system-settings" || activeTab === "account-settings" || activeTab === "document-templates") && (
-              <div className="panel-form-card" style={{ padding: "28px" }}>
-                <h3 style={{ margin: "0 0 16px", color: "var(--color-primary)" }}>Platform Configuration &amp; Governance</h3>
-                <form onSubmit={handleSaveSettings} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                  <label>
-                    Healthcare Center Name
-                    <input
-                      type="text"
-                      value={settingsForm.center_name}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, center_name: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Emergency Phone Line
-                    <input
-                      type="text"
-                      value={settingsForm.emergency_phone}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, emergency_phone: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Consultation Buffer (Minutes)
-                    <input
-                      type="number"
-                      value={settingsForm.consultation_buffer_minutes}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, consultation_buffer_minutes: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    Medical Record Retention (Years)
-                    <input
-                      type="number"
-                      value={settingsForm.record_retention_years}
-                      onChange={(e) => setSettingsForm({ ...settingsForm, record_retention_years: e.target.value })}
-                    />
-                  </label>
-                  <div style={{ gridColumn: "1 / -1" }}>
-                    <button type="submit" className="btn btn-primary">
+              <div className="panel-form-card" style={{ padding: "36px 32px", borderRadius: "20px", background: "rgba(255, 255, 255, 0.95)", boxShadow: "0 10px 30px rgba(17, 35, 30, 0.05)", border: "1px solid var(--color-border-subtle)" }}>
+                {/* Header */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", paddingBottom: "20px", borderBottom: "1px solid var(--color-border-subtle)", flexWrap: "wrap", gap: "16px" }}>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                      <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "#DEF4EC", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <DatabaseIcon size={20} />
+                      </div>
+                      <h3 style={{ margin: 0, fontSize: "1.45rem", color: "var(--color-primary)", fontWeight: 800 }}>Platform Configuration &amp; Governance</h3>
+                    </div>
+                    <p style={{ margin: 0, fontSize: "0.92rem", color: "var(--color-text-body)" }}>
+                      Central operational parameters, institutional identity, clinical buffer periods, and statutory record retention policies.
+                    </p>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "#ECFDF5", border: "1px solid #A7F3D0", padding: "6px 14px", borderRadius: "999px" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
+                    <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#065F46", letterSpacing: "0.5px" }}>POLICIES ENFORCED</span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSaveSettings}>
+                  {/* Section 1: Institution & Emergency Parameters */}
+                  <div style={{ marginBottom: "28px" }}>
+                    <h4 style={{ margin: "0 0 16px", fontSize: "1.02rem", color: "var(--color-primary)", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}>
+                      <HospitalIcon size={18} />
+                      Institutional Identity &amp; Emergency Channels
+                    </h4>
+                    
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <label style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-title)" }}>
+                          Healthcare Center Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={settingsForm.center_name}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, center_name: e.target.value })}
+                          placeholder="e.g. Health & Cure Connected Care Centre"
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "1.5px solid var(--color-input-border, #D8ECE3)",
+                            borderRadius: "10px",
+                            fontSize: "0.95rem",
+                            color: "var(--color-text-title)",
+                            background: "#FFFFFF",
+                            boxSizing: "border-box",
+                            outline: "none",
+                            transition: "border-color 0.2s",
+                          }}
+                        />
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                          Official institution name displayed on digital prescriptions and invoices.
+                        </span>
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <label style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-title)" }}>
+                          Emergency Phone Line *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={settingsForm.emergency_phone}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, emergency_phone: e.target.value })}
+                          placeholder="e.g. +91 9051579029"
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "1.5px solid var(--color-input-border, #D8ECE3)",
+                            borderRadius: "10px",
+                            fontSize: "0.95rem",
+                            color: "var(--color-text-title)",
+                            background: "#FFFFFF",
+                            boxSizing: "border-box",
+                            outline: "none",
+                            transition: "border-color 0.2s",
+                          }}
+                        />
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                          24/7 prioritized triage hotline routed to central ambulance and ER desk.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2: Clinical Workflow & Buffers */}
+                  <div style={{ marginBottom: "28px" }}>
+                    <h4 style={{ margin: "0 0 16px", fontSize: "1.02rem", color: "var(--color-primary)", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}>
+                      <ClockIcon size={18} />
+                      Clinical Scheduling &amp; Consultation Governance
+                    </h4>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <label style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-title)" }}>
+                          Consultation Buffer (Minutes) *
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="120"
+                          required
+                          value={settingsForm.consultation_buffer_minutes}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, consultation_buffer_minutes: e.target.value })}
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "1.5px solid var(--color-input-border, #D8ECE3)",
+                            borderRadius: "10px",
+                            fontSize: "0.95rem",
+                            color: "var(--color-text-title)",
+                            background: "#FFFFFF",
+                            boxSizing: "border-box",
+                            outline: "none",
+                            transition: "border-color 0.2s",
+                          }}
+                        />
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                          Mandatory downtime between appointments for clinical sanitization and record charting.
+                        </span>
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <label style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-title)" }}>
+                          Medical Record Retention (Years) *
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          required
+                          value={settingsForm.record_retention_years}
+                          onChange={(e) => setSettingsForm({ ...settingsForm, record_retention_years: e.target.value })}
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            border: "1.5px solid var(--color-input-border, #D8ECE3)",
+                            borderRadius: "10px",
+                            fontSize: "0.95rem",
+                            color: "var(--color-text-title)",
+                            background: "#FFFFFF",
+                            boxSizing: "border-box",
+                            outline: "none",
+                            transition: "border-color 0.2s",
+                          }}
+                        />
+                        <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+                          Statutory longitudinal record archival duration before cold-storage migration.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Governance Policies Readout */}
+                  <div style={{ marginBottom: "28px", padding: "18px 20px", background: "var(--color-mint-bg, #E6F4EE)", borderRadius: "14px", border: "1px solid rgba(23, 76, 64, 0.12)" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span style={{ color: "#059669" }}><CheckIcon size={20} /></span>
+                        <div>
+                          <strong style={{ fontSize: "0.88rem", color: "var(--color-primary)", display: "block" }}>Zero-Trust Consent</strong>
+                          <span style={{ fontSize: "0.76rem", color: "var(--color-text-muted)" }}>Doctor access verified on every call</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span style={{ color: "#059669" }}><CheckIcon size={20} /></span>
+                        <div>
+                          <strong style={{ fontSize: "0.88rem", color: "var(--color-primary)", display: "block" }}>Cryptographic Audit</strong>
+                          <span style={{ fontSize: "0.76rem", color: "var(--color-text-muted)" }}>Immutable forensic activity logging</span>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span style={{ color: "#059669" }}><CheckIcon size={20} /></span>
+                        <div>
+                          <strong style={{ fontSize: "0.88rem", color: "var(--color-primary)", display: "block" }}>Admin Key Barrier</strong>
+                          <span style={{ fontSize: "0.76rem", color: "var(--color-text-muted)" }}>Strict 10-digit authorization requirement</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "12px", paddingTop: "14px", borderTop: "1px solid var(--color-border-subtle)" }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => loadDashboard()}
+                      style={{ padding: "11px 22px", fontSize: "0.92rem" }}
+                    >
+                      Reset to Saved
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      style={{ padding: "11px 26px", fontSize: "0.92rem", display: "inline-flex", alignItems: "center", gap: "8px" }}
+                    >
+                      <CheckIcon size={16} />
                       Save Platform Configurations
                     </button>
                   </div>
