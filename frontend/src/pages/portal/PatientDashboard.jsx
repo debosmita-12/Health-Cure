@@ -509,7 +509,7 @@ export default function PatientDashboard() {
         <div className="portal-grid-layout" style={{ marginTop: 0 }}>
           {/* Left Sidebar Column */}
           <div className="portal-sidebar-column">
-            <aside className="portal-sidebar-card dark-green-sidebar">
+            <aside className="portal-sidebar-card">
               <div className="portal-user-profile-box">
                 <div className="portal-user-avatar">
                   {(user?.firstName || "P")[0].toUpperCase()}

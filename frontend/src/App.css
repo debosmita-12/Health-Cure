@@ -44,7 +44,7 @@
 }
 
 /* --------------------------------------------------------------------------
-   2. NAVBAR & HEADER (EXACT SLIM DARK GREEN #174C40 THEME)
+   2. NAVBAR & HEADER (CLEAN LIGHT THEME - IMAGE 2 REFERENCE)
    -------------------------------------------------------------------------- */
 .site-header {
   position: fixed;
@@ -53,41 +53,42 @@
   right: 0;
   width: 100%;
   z-index: 1000;
-  background-color: #174C40;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 16px rgba(10, 35, 28, 0.22);
+  background-color: #FFFFFF;
+  border-bottom: 1px solid var(--color-border-subtle, #E3EBE6);
+  box-shadow: 0 1px 4px rgba(23, 44, 41, 0.04);
   transition: var(--transition);
 }
 
 .site-header .brand-name {
-  color: #FFFFFF !important;
-  font-size: 1.15rem !important;
-  font-weight: 700 !important;
+  color: var(--color-primary, #164F43) !important;
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
 }
 
 .site-header .brand-tagline {
-  color: #A7F3D0 !important;
-  font-size: 0.52rem !important;
+  color: var(--color-text-secondary, #71817B) !important;
+  font-size: 0.54rem !important;
   letter-spacing: 0.12em !important;
 }
 
 .site-header .brand svg path[stroke="#174C40"] {
-  stroke: #FFFFFF !important;
+  stroke: var(--color-primary, #164F43) !important;
 }
 
 .site-header .brand svg circle[fill="#174C40"] {
-  fill: #FFFFFF !important;
+  fill: var(--color-primary, #164F43) !important;
 }
 
 .site-header .brand svg path[fill="#EEF8F3"] {
-  fill: rgba(255, 255, 255, 0.2) !important;
+  fill: var(--color-mint-soft, #E8F3EE) !important;
 }
 
 .nav-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px; /* Slim compact upper bar */
+  height: 68px;
 }
 
 .brand-link {
@@ -98,96 +99,96 @@
 .desktop-nav {
   display: flex;
   align-items: center;
-  gap: 26px;
+  gap: 32px;
 }
 
 .nav-link {
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--color-text-main, #172C29);
   position: relative;
-  padding: 4px 0;
+  padding: 6px 0;
   transition: var(--transition);
 }
 
 .nav-link:hover {
-  color: #FFFFFF;
+  color: var(--color-primary, #164F43);
 }
 
 .nav-link.active {
-  color: #FFFFFF !important;
+  color: var(--color-primary, #164F43) !important;
   font-weight: 700;
 }
 
 .nav-link.active::after {
   content: '';
   position: absolute;
-  bottom: -4px;
+  bottom: -2px;
   left: 0;
   width: 100%;
   height: 2.5px;
-  background-color: #34D399;
+  background-color: var(--color-primary, #164F43);
   border-radius: var(--radius-full);
 }
 
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .site-header .icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  color: #FFFFFF;
+  color: var(--color-text-main, #172C29);
   background: transparent;
   transition: var(--transition);
 }
 
 .site-header .icon-button:hover {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--color-mint-soft, #E8F3EE);
+  color: var(--color-primary, #164F43);
 }
 
 .site-header .ref-btn-primary {
-  background-color: #FFFFFF !important;
-  color: #174C40 !important;
-  border: 1px solid #FFFFFF !important;
+  background-color: var(--color-primary, #164F43) !important;
+  color: #FFFFFF !important;
+  border: 1px solid var(--color-primary, #164F43) !important;
   border-radius: 9999px !important;
-  font-weight: 700 !important;
-  padding: 6px 16px !important;
-  font-size: 0.82rem !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14) !important;
+  font-weight: 600 !important;
+  padding: 10px 22px !important;
+  font-size: 0.88rem !important;
+  box-shadow: 0 2px 8px rgba(22, 79, 67, 0.16) !important;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .site-header .ref-btn-primary:hover {
-  background-color: #F0FDF4 !important;
-  color: #064E3B !important;
+  background-color: var(--color-primary-hover, #0F3930) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22) !important;
+  box-shadow: 0 4px 14px rgba(22, 79, 67, 0.25) !important;
 }
 
 .site-header .btn-logout {
-  color: rgba(255, 255, 255, 0.92) !important;
-  border: 1px solid rgba(255, 255, 255, 0.28) !important;
-  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--color-text-secondary, #71817B) !important;
+  border: 1px solid var(--color-border-subtle, #E3EBE6) !important;
+  background: transparent !important;
   border-radius: 9999px !important;
-  padding: 5px 12px !important;
-  font-size: 0.8rem !important;
+  padding: 8px 18px !important;
+  font-size: 0.85rem !important;
   font-weight: 600 !important;
   transition: var(--transition);
 }
 
 .site-header .btn-logout:hover {
-  background: #EF4444 !important;
-  border-color: #EF4444 !important;
-  color: #FFFFFF !important;
+  background: #FEE2E2 !important;
+  border-color: #F87171 !important;
+  color: #DC2626 !important;
 }
 
 .site-header .menu-button {
@@ -3334,15 +3335,15 @@ th {
    Preserves 100% of the Health & Cure Color Palette & Component Tokens
    ========================================================================== */
 
-/* Executive Clinical Portal Dashboard Banner in exact Register Button Green (#174C40) */
+/* Executive Clinical Portal Dashboard Banner - Light & Airy Theme (IMAGE 2 Reference) */
 .portal-hero-banner {
-  background: var(--color-primary, #174C40) !important;
-  color: #FFFFFF !important;
-  border-radius: var(--radius-lg, 20px);
-  padding: 32px 36px;
+  background: #FFFFFF !important;
+  color: var(--color-text-main, #172C29) !important;
+  border-radius: var(--radius-lg, 18px);
+  padding: 28px 32px;
   margin-bottom: 24px;
-  box-shadow: 0 8px 24px rgba(23, 76, 64, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 12px rgba(22, 79, 67, 0.04);
+  border: 1px solid var(--color-border-subtle, #E3EBE6);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3355,20 +3356,19 @@ th {
 .portal-hero-banner::before {
   content: '';
   position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, rgba(94, 143, 124, 0.25) 0%, transparent 70%);
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background: var(--color-primary, #164F43);
 }
 
 .portal-hero-eyebrow {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #A7F3D0 !important;
+  color: var(--color-primary, #164F43) !important;
   margin: 0 0 8px;
   display: flex;
   align-items: center;
@@ -3376,21 +3376,21 @@ th {
 }
 
 .portal-hero-title {
-  font-size: 2.1rem;
+  font-size: 1.85rem;
   font-weight: 800;
-  color: #FFFFFF !important;
-  letter-spacing: -0.025em;
+  color: var(--color-text-main, #172C29) !important;
+  letter-spacing: -0.02em;
   margin: 0 0 8px;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .portal-hero-title span {
-  color: #6EE7B7 !important;
+  color: var(--color-primary, #164F43) !important;
 }
 
 .portal-hero-lede {
   font-size: 0.95rem;
-  color: rgba(255, 255, 255, 0.88) !important;
+  color: var(--color-text-secondary, #71817B) !important;
   margin: 0;
   line-height: 1.55;
   max-width: 720px;
@@ -3399,14 +3399,14 @@ th {
 .portal-hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 6px 14px;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.16);
-  color: #FFFFFF !important;
+  background: var(--color-mint-soft, #E8F3EE) !important;
+  color: var(--color-primary, #164F43) !important;
+  border: 1px solid #D5E7DF !important;
+  border-radius: var(--radius-full);
   font-size: 0.82rem;
-  font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-weight: 600;
   backdrop-filter: blur(4px);
 }
 
@@ -3609,88 +3609,112 @@ th {
 }
 
 /* ========================================================
-   DARK GREEN SIDEBAR THEME
-   Matches the exact shade of the Register button (#174C40)
+   LIGHT ELEGANT SIDEBAR THEME (IMAGE 2 INSPIRATION)
+   Light background (#FFFFFF), subtle borders (#E3EBE6),
+   dark green text (#164F43), soft mint (#E8F3EE) active pill
    ======================================================== */
+.portal-sidebar-card,
 .portal-sidebar-card.dark-green-sidebar {
-  background: #174C40 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 10px 30px rgba(17, 46, 38, 0.28) !important;
+  background: #FFFFFF !important;
+  border: 1px solid var(--color-border-subtle, #E3EBE6) !important;
+  color: var(--color-text-main, #172C29) !important;
+  box-shadow: 0 4px 16px rgba(22, 79, 67, 0.04) !important;
+  border-radius: var(--radius-lg, 18px);
 }
 
+.portal-sidebar-card .portal-user-profile-box,
 .portal-sidebar-card.dark-green-sidebar .portal-user-profile-box {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-bottom: 1px solid var(--color-border-subtle, #E3EBE6) !important;
 }
 
+.portal-sidebar-card .portal-user-avatar,
 .portal-sidebar-card.dark-green-sidebar .portal-user-avatar {
-  background: rgba(255, 255, 255, 0.18) !important;
-  color: #FFFFFF !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
+  background: var(--color-mint-soft, #E8F3EE) !important;
+  color: var(--color-primary, #164F43) !important;
+  border: 1.5px solid #D5E7DF !important;
 }
 
+.portal-sidebar-card .portal-user-name,
 .portal-sidebar-card.dark-green-sidebar .portal-user-name {
-  color: #FFFFFF !important;
+  color: var(--color-text-main, #172C29) !important;
+  font-weight: 700 !important;
 }
 
+.portal-sidebar-card .portal-user-role-badge,
 .portal-sidebar-card.dark-green-sidebar .portal-user-role-badge {
-  background: #A7F3D0 !important;
-  color: #064E3B !important;
-  font-weight: 800 !important;
+  background: var(--color-mint-soft, #E8F3EE) !important;
+  color: var(--color-primary, #164F43) !important;
+  font-weight: 700 !important;
+  border: 1px solid #D5E7DF !important;
 }
 
+.portal-sidebar-card .portal-search-input,
 .portal-sidebar-card.dark-green-sidebar .portal-search-input {
-  background: rgba(255, 255, 255, 0.12) !important;
-  border: 1px solid rgba(255, 255, 255, 0.22) !important;
-  color: #FFFFFF !important;
+  background: var(--color-bg-light, #F7FAF8) !important;
+  border: 1px solid var(--color-border-subtle, #E3EBE6) !important;
+  color: var(--color-text-main, #172C29) !important;
 }
 
+.portal-sidebar-card .portal-search-input::placeholder,
 .portal-sidebar-card.dark-green-sidebar .portal-search-input::placeholder {
-  color: rgba(255, 255, 255, 0.65) !important;
+  color: var(--color-text-secondary, #71817B) !important;
 }
 
+.portal-sidebar-card .portal-search-input:focus,
 .portal-sidebar-card.dark-green-sidebar .portal-search-input:focus {
-  background: rgba(255, 255, 255, 0.18) !important;
-  border-color: #6EE7B7 !important;
+  background: #FFFFFF !important;
+  border-color: var(--color-primary, #164F43) !important;
 }
 
+.portal-sidebar-card .portal-nav-group-title,
 .portal-sidebar-card.dark-green-sidebar .portal-nav-group-title {
-  color: #A7F3D0 !important;
-  font-weight: 800 !important;
+  color: var(--color-text-secondary, #71817B) !important;
+  font-weight: 700 !important;
+  font-size: 0.72rem !important;
   letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
+.portal-sidebar-card .portal-nav-btn,
 .portal-sidebar-card.dark-green-sidebar .portal-nav-btn {
-  color: rgba(255, 255, 255, 0.88) !important;
+  color: var(--color-text-main, #172C29) !important;
   background: transparent !important;
+  font-weight: 500 !important;
+  border-radius: var(--radius-sm, 8px) !important;
   transition: all 0.2s ease !important;
 }
 
+.portal-sidebar-card .portal-nav-btn:hover,
 .portal-sidebar-card.dark-green-sidebar .portal-nav-btn:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
-  color: #FFFFFF !important;
-  transform: translateX(4px);
+  background: var(--color-mint-soft, #E8F3EE) !important;
+  color: var(--color-primary, #164F43) !important;
+  transform: translateX(3px);
 }
 
+.portal-sidebar-card .portal-nav-btn.active,
 .portal-sidebar-card.dark-green-sidebar .portal-nav-btn.active {
-  background: #FFFFFF !important;
-  color: #174C40 !important;
-  font-weight: 800 !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18) !important;
+  background: var(--color-primary, #164F43) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  box-shadow: 0 3px 10px rgba(22, 79, 67, 0.2) !important;
 }
 
+.portal-sidebar-card .portal-nav-badge,
 .portal-sidebar-card.dark-green-sidebar .portal-nav-badge {
-  background: rgba(255, 255, 255, 0.22) !important;
-  color: #FFFFFF !important;
+  background: var(--color-mint-soft, #E8F3EE) !important;
+  color: var(--color-primary, #164F43) !important;
+  font-weight: 600 !important;
 }
 
+.portal-sidebar-card .portal-nav-btn.active .portal-nav-badge,
 .portal-sidebar-card.dark-green-sidebar .portal-nav-btn.active .portal-nav-badge {
-  background: #174C40 !important;
+  background: rgba(255, 255, 255, 0.25) !important;
   color: #FFFFFF !important;
 }
 
+.portal-sidebar-card::-webkit-scrollbar-thumb,
 .portal-sidebar-card.dark-green-sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25) !important;
+  background: rgba(22, 79, 67, 0.15) !important;
 }
 
 .portal-content-area {

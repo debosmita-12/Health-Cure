@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import heroVisual from "../../assets/hero-mockup-visual.png";
+import clinicReception from "../../assets/clinic-reception.jpg";
 import api from "../../services/api";
 import {
   ArrowRightIcon,
@@ -86,44 +87,34 @@ const DEVELOPERS = [
 
 const PLATFORM_SERVICES = [
   {
-    title: "Doctor Discovery",
-    desc: "Search, filter, and connect with certified and verified medical specialists across diverse clinical departments.",
-    icon: DoctorIcon,
-  },
-  {
-    title: "Healthcare Management",
-    desc: "Coordinated clinical care pathways connecting patients, attending physicians, and administrative oversight.",
-    icon: HospitalIcon,
-  },
-  {
-    title: "Appointment Coordination",
-    desc: "Structured scheduling with conflict detection, automated doctor assignment, and real-time status updates.",
+    title: "Online Appointments",
+    desc: "Seamless scheduling with verified specialists, instant confirmation, and real-time reminders.",
     icon: CalendarStepIcon,
   },
   {
     title: "Digital Medical Records",
-    desc: "Encrypted longitudinal patient health records, diagnostic investigation results, and consultation summaries.",
+    desc: "Encrypted longitudinal patient vault, diagnostic history, and clinical consultation records.",
     icon: RecordsIcon,
   },
   {
-    title: "Prescription Management",
-    desc: "Direct digital prescription issuance by verified doctors with dosages, instructions, and printable formats.",
+    title: "Doctor Consultations",
+    desc: "In-person visits and remote consultations with verified doctors across 10 specialized clinical units.",
+    icon: DoctorIcon,
+  },
+  {
+    title: "Digital Prescriptions",
+    desc: "Legally compliant digital prescriptions issued directly by verified physicians with dosages.",
     icon: PillIcon,
   },
   {
-    title: "Laboratory & Diagnostics",
+    title: "Diagnostic Reports",
     desc: "Integrated catalog of medical tests with online sample booking and verified report release.",
     icon: PulseIcon,
   },
   {
-    title: "Online Consultation",
-    desc: "Remote telemedicine consultations, virtual triage, and follow-up communication.",
-    icon: SupportIcon,
-  },
-  {
-    title: "Healthcare Communication",
-    desc: "Confidential communication and follow-up queries between patients and authorized clinicians.",
-    icon: UsersIcon,
+    title: "Secure Patient Records",
+    desc: "Zero-trust privacy framework ensuring patients own their data with strict consent boundaries.",
+    icon: ShieldIcon,
   },
 ];
 
@@ -231,23 +222,25 @@ export default function HomePage() {
               <p className="eyebrow-text">CARING TODAY FOR BRIGHTER TOMORROWS</p>
 
               <h1 className="ref-hero-headline">
-                Your Health
+                Your Health.
                 <br />
                 <span className="ref-priority-wrapper">
-                  Our Priority.
+                  Your Records.
                   <svg className="ref-priority-arc" viewBox="0 0 140 18" fill="none" preserveAspectRatio="none" aria-hidden="true">
-                    <path d="M4 14C45 2 95 2 136 14" stroke="#48A682" strokeWidth="4.5" strokeLinecap="round" />
+                    <path d="M4 14C45 2 95 2 136 14" stroke="#286B5B" strokeWidth="4.5" strokeLinecap="round" />
                   </svg>
                 </span>
+                <br />
+                <span style={{ fontSize: "0.86em", color: "var(--color-primary)" }}>All in One Place.</span>
               </h1>
 
               <p className="ref-hero-desc">
-                Connect with trusted healthcare professionals, access quality care, and manage your health — all in one place.
+                Experience smarter healthcare management with secure medical records, seamless consultations, verified doctors and complete control over your health information.
               </p>
 
               <div className="ref-hero-buttons">
                 <Link to="/register" className="ref-btn-primary">
-                  Register →
+                  Get Started →
                 </Link>
                 <a href="#services" className="ref-btn-secondary">
                   <span className="ref-btn-play-circle">
@@ -255,8 +248,24 @@ export default function HomePage() {
                       <polygon points="2.5,1.5 8.5,5 2.5,8.5" />
                     </svg>
                   </span>
-                  Explore Our Services
+                  Explore Services
                 </a>
+              </div>
+
+              {/* Three Trust Badges (IMAGE 2) */}
+              <div style={{ display: "flex", alignItems: "center", gap: "24px", marginTop: "32px", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-main)" }}>
+                  <span style={{ color: "var(--color-primary)" }}><ShieldIcon size={18} /></span>
+                  <span>Trusted Care</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-main)" }}>
+                  <span style={{ color: "var(--color-primary)" }}><UsersIcon size={18} /></span>
+                  <span>All Ages Welcome</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-main)" }}>
+                  <span style={{ color: "var(--color-primary)" }}><LightningIcon size={18} /></span>
+                  <span>EHR Technology</span>
+                </div>
               </div>
             </div>
 
@@ -437,56 +446,71 @@ export default function HomePage() {
       </div>
 
       {/* ========================================================
-          4. SERVICES SECTION
+          4. SERVICES SECTION (IMAGE 2 INSPIRATION)
           ======================================================== */}
       <section className="ref-services-section" id="services" style={{ padding: "80px 0", background: "transparent" }}>
         <div className="container">
-          <div className="ref-why-header" style={{ marginBottom: "40px" }}>
-            <p className="eyebrow">COMPREHENSIVE HEALTHCARE</p>
-            <div className="ref-why-title-wrap">
-              <span className="ref-title-line" aria-hidden="true" />
-              <h2>Our Platform Services</h2>
-              <span className="ref-title-line" aria-hidden="true" />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "40px", flexWrap: "wrap", gap: "20px" }}>
+            <div>
+              <p className="eyebrow-text" style={{ marginBottom: "6px" }}>COMPREHENSIVE HEALTHCARE</p>
+              <h2 style={{ fontSize: "2.4rem", color: "var(--color-primary)", fontWeight: 800, margin: 0, letterSpacing: "-0.02em" }}>
+                Our Services
+              </h2>
+              <p style={{ margin: "8px 0 0", color: "var(--color-text-secondary)", fontSize: "1.05rem" }}>
+                Comprehensive, patient-first care designed for modern health management.
+              </p>
             </div>
-            <p style={{ maxWidth: "600px", margin: "14px auto 0", color: "var(--color-text-body)", fontSize: "1rem" }}>
-              Explore the integrated clinical and administrative capabilities designed for patients, doctors, and healthcare administration.
-            </p>
+            <Link to="/services" className="btn-outline-pill">
+              View All Services →
+            </Link>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))", gap: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px" }}>
             {PLATFORM_SERVICES.map((s) => {
               const Icon = s.icon;
               return (
                 <div
                   key={s.title}
                   style={{
-                    background: "var(--color-white)",
-                    borderRadius: "16px",
-                    padding: "28px 24px",
+                    background: "#FFFFFF",
+                    borderRadius: "18px",
+                    padding: "32px 28px",
                     border: "1px solid var(--color-border-subtle)",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    boxShadow: "0 2px 10px rgba(22, 79, 67, 0.04)",
+                    transition: "all 0.25s ease",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                    e.currentTarget.style.boxShadow = "0 12px 28px rgba(22, 79, 67, 0.08)";
+                    e.currentTarget.style.borderColor = "#D5E7DF";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 10px rgba(22, 79, 67, 0.04)";
+                    e.currentTarget.style.borderColor = "var(--color-border-subtle)";
                   }}
                 >
                   <div
                     style={{
-                      width: "48px",
-                      height: "48px",
-                      borderRadius: "12px",
-                      background: "#EEF8F3",
+                      width: "56px",
+                      height: "56px",
+                      borderRadius: "14px",
+                      background: "var(--color-mint-soft)",
                       color: "var(--color-primary)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      marginBottom: "18px",
+                      marginBottom: "20px",
                     }}
                   >
-                    <Icon size={24} />
+                    <Icon size={26} />
                   </div>
-                  <h3 style={{ fontSize: "1.18rem", color: "var(--color-primary)", fontWeight: 700, marginBottom: "8px" }}>
+                  <h3 style={{ fontSize: "1.2rem", color: "var(--color-text-main)", fontWeight: 700, marginBottom: "10px" }}>
                     {s.title}
                   </h3>
-                  <p style={{ fontSize: "0.9rem", color: "var(--color-text-body)", lineHeight: 1.55, margin: 0 }}>
+                  <p style={{ fontSize: "0.92rem", color: "var(--color-text-secondary)", lineHeight: 1.6, margin: 0 }}>
                     {s.desc}
                   </p>
                 </div>
@@ -497,69 +521,166 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================
-          5. ABOUT HEALTH & CURE
+          5. ABOUT & STORY SECTION (IMAGE 2 INSPIRATION - 3 COLUMNS)
           ======================================================== */}
-      <section id="about" style={{ padding: "80px 0", background: "transparent" }}>
+      <section id="about" style={{ padding: "60px 0 80px", background: "transparent" }}>
         <div className="container">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "50px", alignItems: "center" }}>
-            <div>
-              <p className="eyebrow-text">ABOUT THE PLATFORM</p>
-              <h2 style={{ fontSize: "2.4rem", color: "var(--color-primary)", fontWeight: 800, lineHeight: 1.15, marginBottom: "20px" }}>
-                Connected Healthcare Built on Trust and Clinical Integrity.
-              </h2>
-              <p style={{ fontSize: "1.05rem", color: "var(--color-text-body)", lineHeight: 1.65, marginBottom: "16px" }}>
-                Health &amp; Cure is an integrated healthcare management platform uniting Patients, Verified Doctors, and Operational Administrators. By bridging clinical documentation with strict role boundaries, we ensure patients own their medical records and doctors deliver informed, compassionate care.
-              </p>
-              <ul style={{ listStyle: "none", padding: 0, margin: "24px 0", display: "flex", flexDirection: "column", gap: "12px" }}>
-                <li style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--color-text-title)", fontWeight: 600 }}>
-                  <span style={{ color: "var(--color-sage)" }}><CheckIcon size={18} /></span>
-                  Strict zero-trust consent: doctors access patient history only with active consent or confirmed visits.
-                </li>
-                <li style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--color-text-title)", fontWeight: 600 }}>
-                  <span style={{ color: "var(--color-sage)" }}><CheckIcon size={18} /></span>
-                  Full clinical verification: every doctor is vetted by administrators before receiving credentials.
-                </li>
-                <li style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--color-text-title)", fontWeight: 600 }}>
-                  <span style={{ color: "var(--color-sage)" }}><CheckIcon size={18} /></span>
-                  Spring Boot + Spring JDBC architecture for auditable, resilient healthcare data persistence.
-                </li>
-              </ul>
-              <div style={{ display: "flex", gap: "16px", marginTop: "28px" }}>
-                <Link to="/register" className="ref-btn-primary">
-                  Join Health &amp; Cure →
-                </Link>
-                <Link to="/developers" className="ref-btn-secondary">
-                  Meet the Developers
+          <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 0.9fr", gap: "24px", alignItems: "stretch", marginBottom: "48px" }}>
+            {/* Column 1: Soft Mint Feature Card */}
+            <div
+              style={{
+                background: "var(--color-mint-soft)",
+                borderRadius: "20px",
+                padding: "44px 36px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                border: "1px solid #D5E7DF",
+              }}
+            >
+              <div>
+                <p className="eyebrow-text" style={{ marginBottom: "12px", color: "var(--color-primary)", letterSpacing: "0.08em" }}>
+                  A CALMER HEALTHCARE EXPERIENCE
+                </p>
+                <h3 style={{ fontSize: "2.1rem", color: "var(--color-primary)", fontWeight: 800, lineHeight: 1.2, marginBottom: "18px", letterSpacing: "-0.02em" }}>
+                  Modern Care.
+                  <br />
+                  A Kinder Approach.
+                </h3>
+                <p style={{ fontSize: "1rem", color: "var(--color-text-main)", lineHeight: 1.65, margin: 0, opacity: 0.9 }}>
+                  We combine advanced digital health technology with a warm, patient-first approach to make every consultation comfortable, transparent, and stress-free.
+                </p>
+              </div>
+              <div style={{ marginTop: "32px" }}>
+                <Link to="/about" className="ref-btn-primary" style={{ padding: "12px 26px" }}>
+                  Learn More →
                 </Link>
               </div>
             </div>
 
-            <div style={{ background: "var(--color-mint-bg)", borderRadius: "24px", padding: "36px", border: "1px solid rgba(23, 76, 64, 0.1)" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                <div style={{ background: "#FFFFFF", padding: "24px", borderRadius: "16px", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
-                  <strong style={{ display: "block", fontSize: "2rem", color: "var(--color-primary)", fontWeight: 800 }}>
-                    {stats.totalDoctors || "50+"}
-                  </strong>
-                  <span style={{ fontSize: "0.88rem", color: "var(--color-text-muted)" }}>Verified Doctors</span>
-                </div>
-                <div style={{ background: "#FFFFFF", padding: "24px", borderRadius: "16px", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
-                  <strong style={{ display: "block", fontSize: "2rem", color: "var(--color-primary)", fontWeight: 800 }}>
-                    {stats.totalPatients || "50+"}
-                  </strong>
-                  <span style={{ fontSize: "0.88rem", color: "var(--color-text-muted)" }}>Active Patients</span>
-                </div>
-                <div style={{ background: "#FFFFFF", padding: "24px", borderRadius: "16px", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
-                  <strong style={{ display: "block", fontSize: "2rem", color: "var(--color-primary)", fontWeight: 800 }}>
-                    {stats.totalDepartments || "10"}
-                  </strong>
-                  <span style={{ fontSize: "0.88rem", color: "var(--color-text-muted)" }}>Clinical Departments</span>
-                </div>
-                <div style={{ background: "#FFFFFF", padding: "24px", borderRadius: "16px", textAlign: "center", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
-                  <strong style={{ display: "block", fontSize: "2rem", color: "var(--color-primary)", fontWeight: 800 }}>
-                    {stats.completedAppointments || "25+"}
-                  </strong>
-                  <span style={{ fontSize: "0.88rem", color: "var(--color-text-muted)" }}>Consultations Handled</span>
-                </div>
+            {/* Column 2: Clinic Reception Visual */}
+            <div
+              style={{
+                borderRadius: "20px",
+                overflow: "hidden",
+                border: "1px solid var(--color-border-subtle)",
+                boxShadow: "0 4px 16px rgba(22, 79, 67, 0.06)",
+                minHeight: "340px",
+              }}
+            >
+              <img
+                src={clinicReception}
+                alt="Health & Cure modern clinical reception and care center"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+            </div>
+
+            {/* Column 3: White Testimonial Quote Card */}
+            <div
+              style={{
+                background: "#FFFFFF",
+                borderRadius: "20px",
+                padding: "40px 32px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                border: "1px solid var(--color-border-subtle)",
+                boxShadow: "0 2px 12px rgba(22, 79, 67, 0.04)",
+              }}
+            >
+              <div>
+                <span style={{ fontSize: "3.5rem", color: "var(--color-primary)", lineHeight: 1, fontFamily: "serif", display: "block", marginBottom: "-10px" }}>
+                  “
+                </span>
+                <p style={{ fontSize: "1.02rem", color: "var(--color-text-main)", lineHeight: 1.65, fontStyle: "italic", margin: "0 0 20px" }}>
+                  The clinical team at Health &amp; Cure made managing my records and scheduling follow-up visits so easy and comfortable. Highly recommend!
+                </p>
+                <strong style={{ display: "block", color: "var(--color-text-secondary)", fontSize: "0.92rem", fontWeight: 600 }}>
+                  — Jessica R.
+                </strong>
+              </div>
+
+              {/* Minimal carousel navigation */}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "24px" }}>
+                <button
+                  type="button"
+                  aria-label="Previous quote"
+                  style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-mint-soft)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                >
+                  ←
+                </button>
+                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--color-primary)" }} />
+                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#CBD5E1" }} />
+                <button
+                  type="button"
+                  aria-label="Next quote"
+                  style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-mint-soft)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+                >
+                  →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Clean 4-Item Statistics Strip (IMAGE 2) */}
+          <div
+            style={{
+              background: "#FFFFFF",
+              borderRadius: "20px",
+              padding: "32px 40px",
+              border: "1px solid var(--color-border-subtle)",
+              boxShadow: "0 2px 12px rgba(22, 79, 67, 0.04)",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "32px",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--color-mint-soft)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <UsersIcon size={24} />
+              </div>
+              <div>
+                <strong style={{ display: "block", fontSize: "1.55rem", color: "var(--color-primary)", fontWeight: 800 }}>
+                  10,000+
+                </strong>
+                <span style={{ fontSize: "0.88rem", color: "var(--color-text-secondary)" }}>Happy Patients</span>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--color-mint-soft)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ fontSize: "1.3rem" }}>★</span>
+              </div>
+              <div>
+                <strong style={{ display: "block", fontSize: "1.55rem", color: "var(--color-primary)", fontWeight: 800 }}>
+                  4.9/5
+                </strong>
+                <span style={{ fontSize: "0.88rem", color: "var(--color-text-secondary)" }}>Average Rating</span>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--color-mint-soft)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <DoctorIcon size={24} />
+              </div>
+              <div>
+                <strong style={{ display: "block", fontSize: "1.55rem", color: "var(--color-primary)", fontWeight: 800 }}>
+                  {stats.totalDoctors || "50+"}
+                </strong>
+                <span style={{ fontSize: "0.88rem", color: "var(--color-text-secondary)" }}>Verified Doctors</span>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "var(--color-mint-soft)", color: "var(--color-primary)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <HospitalIcon size={24} />
+              </div>
+              <div>
+                <strong style={{ display: "block", fontSize: "1.55rem", color: "var(--color-primary)", fontWeight: 800 }}>
+                  {stats.totalDepartments || "10"}
+                </strong>
+                <span style={{ fontSize: "0.88rem", color: "var(--color-text-secondary)" }}>Clinical Units</span>
               </div>
             </div>
           </div>

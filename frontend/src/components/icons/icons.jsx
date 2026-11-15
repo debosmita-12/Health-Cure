@@ -28,21 +28,21 @@ export function LogoMark({ size = 36 }) {
       {/* Outer organic pebble/shield shape matching reference image */}
       <path
         d="M18 3.5C26 3.5 32.5 10 32.5 18C32.5 25 26.5 32.5 18 32.5C9.5 32.5 3.5 25 3.5 18C3.5 10 10 3.5 18 3.5Z"
-        stroke="#174C40"
+        stroke="#164F43"
         strokeWidth="2.2"
-        fill="#EEF8F3"
+        fill="#E8F3EE"
       />
       {/* Smiling curve */}
       <path
         d="M11 20C13 23.5 15.5 25 18 25C20.5 25 23 23.5 25 20"
-        stroke="#174C40"
+        stroke="#164F43"
         strokeWidth="2.2"
         strokeLinecap="round"
       />
       {/* Playful cross / leaf leaf bud in mint */}
       <path
         d="M18 9C18.6 11.2 17.8 12.6 15.8 13.2C17.8 13.4 19.2 14.4 19.6 16.4C20.1 14.4 21.4 13.3 23.5 13C21.6 12.3 20.8 11 21.1 9C21.1 9 20.2 10.6 18 9Z"
-        fill="#5E8F7C"
+        fill="#286B5B"
       />
     </svg>
   );

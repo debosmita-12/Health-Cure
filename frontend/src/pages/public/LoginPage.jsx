@@ -244,21 +244,57 @@ export default function LoginPage() {
                   </div>
                 </label>
 
-                {/* Remember Me on the left of Sign In Button, Sign In button shortened */}
-                <div className="login-controls-row">
-                  <label className="checkbox-label login-remember-label">
+                {/* Remember Me on the left, Sign In button on the right */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    marginTop: "18px",
+                    gap: "16px",
+                  }}
+                >
+                  <label
+                    style={{
+                      display: "inline-flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: "8px",
+                      margin: 0,
+                      cursor: "pointer",
+                      fontSize: "0.9rem",
+                      fontWeight: 500,
+                      color: "var(--color-text-main)",
+                      userSelect: "none",
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
+                      style={{
+                        width: "18px",
+                        height: "18px",
+                        margin: 0,
+                        accentColor: "var(--color-primary)",
+                        cursor: "pointer",
+                      }}
                     />
                     <span>Remember Me</span>
                   </label>
 
                   <button
-                    className="btn btn-primary login-submit-btn"
+                    className="btn btn-primary"
                     type="submit"
                     disabled={isLoading}
+                    style={{
+                      padding: "12px 24px",
+                      fontSize: "0.92rem",
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                    }}
                   >
                     {isLoading ? "Authenticating..." : "Sign In to Portal"}{" "}
                     <ArrowRightIcon size={14} />

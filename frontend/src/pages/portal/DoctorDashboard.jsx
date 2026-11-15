@@ -386,7 +386,7 @@ export default function DoctorDashboard() {
         <div className="portal-grid-layout" style={{ marginTop: 0 }}>
           {/* Left Sidebar Column */}
           <div className="portal-sidebar-column">
-            <aside className="portal-sidebar-card dark-green-sidebar">
+            <aside className="portal-sidebar-card">
               <div className="portal-user-profile-box">
                 <div className="portal-user-avatar">
                   {(user?.firstName || "D")[0].toUpperCase()}

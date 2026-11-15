@@ -66,6 +66,16 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        // 0. Ensure no duplicate accounts exist across the platform
+        userRepository.findByEmail("doctor@healthcure.local").ifPresent(u -> {
+            doctorRepository.findByUserId(u.getId()).ifPresent(d -> doctorRepository.deleteById(d.getId()));
+            userRepository.deleteById(u.getId());
+        });
+        userRepository.findByEmail("patient@healthcure.local").ifPresent(u -> {
+            patientRepository.findByUserId(u.getId()).ifPresent(p -> patientRepository.deleteById(p.getId()));
+            userRepository.deleteById(u.getId());
+        });
+
         // 1. Ensure the 10 Canonical Medical Departments exist
         List<Map<String, Object>> existingDepts = departmentRepository.findAll();
         if (existingDepts.isEmpty()) {

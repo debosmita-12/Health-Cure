@@ -610,7 +610,7 @@ export default function AdminDashboard() {
         <div className="portal-grid-layout" style={{ marginTop: 0, gap: "24px", gridTemplateColumns: "280px minmax(0, 1fr)" }}>
           {/* Left Sidebar Column - Pinned to Extreme Left */}
           <div className="portal-sidebar-column">
-            <aside className="portal-sidebar-card dark-green-sidebar" style={{ background: "rgba(23, 76, 64, 0.96)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(255, 255, 255, 0.15)", borderRadius: "18px" }}>
+            <aside className="portal-sidebar-card">
             <div className="portal-user-profile-box">
               <div className="portal-user-avatar">
                 {(user?.firstName || "R")[0].toUpperCase()}

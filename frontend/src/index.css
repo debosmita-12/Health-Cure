@@ -1,46 +1,52 @@
 /* ==========================================================================
-   HEALTH & CURE — GLOBAL DESIGN SYSTEM & TOKENS
-   Exact visual replication of Cleargrin healthcare reference design
+   HEALTH & CURE — MASTER DESIGN SYSTEM & TOKENS
+   Strict implementation of professional healthcare design language (IMAGE 2)
    ========================================================================== */
 
 :root {
-  /* Green & Mint Color Palette */
-  --color-primary: #174C40;          /* Deep Forest Green */
-  --color-primary-hover: #0F352C;    /* Dark Forest Green Hover */
-  --color-primary-light: #2D6B5B;    /* Medium Forest Green */
-  --color-sage: #5E8F7C;             /* Sage / Mint Accent */
-  --color-sage-light: #7EABA0;       /* Light Sage */
-  --color-mint-bg: #E6F4EE;          /* Health Journey Banner Mint Tint */
-  --color-card-mint: #DEF4EC;        /* Service Card Mint Background */
-  --color-card-mint-hover: #D6EFE5;  /* Card Hover Background */
-  --color-white: #FFFFFF;
+  /* Strict Palette from Design Specification */
+  --color-primary: #164F43;          /* Primary Forest Green */
+  --color-primary-hover: #0F3930;    /* Dark Forest Green Hover */
+  --color-secondary: #286B5B;        /* Secondary Green */
+  --color-primary-light: #286B5B;    /* Secondary Green Alias */
+  --color-mint-soft: #E8F3EE;        /* Soft Mint */
+  --color-mint-bg: #E8F3EE;          /* Soft Mint Background */
+  --color-card-mint: #E8F3EE;        /* Soft Mint Card */
+  --color-card-mint-hover: #D8EBDF;  /* Mint Hover */
+  --color-bg-light: #F7FAF8;         /* Very Light Background */
+  --color-white: #FFFFFF;            /* Pure White */
 
-  /* Typography Colors */
-  --color-text-title: #11231E;       /* Deepest Green/Charcoal for Headings */
-  --color-text-body: #4E655E;        /* Readable Dark Green/Slate for Body */
-  --color-text-muted: #6E887E;       /* Soft Muted Green for Captions */
-  --color-border-subtle: #E2F0EA;    /* Divider & Border */
-  --color-input-border: #D8ECE3;     /* Form Field Border */
+  /* Strict Typography Colors */
+  --color-text-main: #172C29;        /* Main Typography */
+  --color-text-title: #172C29;       /* Headings */
+  --color-text-body: #172C29;        /* Body Text */
+  --color-text-secondary: #71817B;   /* Secondary Typography */
+  --color-text-muted: #71817B;       /* Secondary/Muted Text */
+  --color-border-subtle: #E3EBE6;    /* Subtle Borders */
+  --color-input-border: #E3EBE6;     /* Input Borders */
 
   /* Typography */
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Inter', 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'DM Sans', 'Inter', system-ui, -apple-system, sans-serif;
   --font-script: 'Caveat', cursive, sans-serif;
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(23, 76, 64, 0.04);
-  --shadow-md: 0 12px 32px rgba(23, 76, 64, 0.08);
-  --shadow-lg: 0 20px 44px -10px rgba(23, 76, 64, 0.14);
-  --shadow-card: 0 10px 28px rgba(17, 35, 30, 0.06);
+  --shadow-xs: 0 1px 3px rgba(22, 79, 67, 0.04);
+  --shadow-sm: 0 2px 8px rgba(22, 79, 67, 0.05);
+  --shadow-md: 0 8px 24px rgba(22, 79, 67, 0.07);
+  --shadow-lg: 0 16px 36px rgba(22, 79, 67, 0.09);
+  --shadow-card: 0 4px 16px rgba(23, 44, 41, 0.04);
 
   /* Radii */
+  --radius-xs: 6px;
   --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
 
   /* Transitions */
-  --transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Base Resets */
@@ -55,19 +61,19 @@
 html {
   font-family: var(--font-sans);
   font-size: 16px;
-  color: var(--color-text-body);
-  background-color: #E6F4EE;
-  background: linear-gradient(135deg, #DEF4EC 0%, #F4FAF7 50%, #E6F4EE 100%) fixed;
+  color: var(--color-text-main);
+  background-color: var(--color-bg-light);
+  background: var(--color-bg-light);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
-  scroll-padding-top: 68px;
+  scroll-padding-top: 72px;
   overflow-x: hidden;
   max-width: 100%;
 }
 
 section[id], div[id] {
-  scroll-margin-top: 68px;
+  scroll-margin-top: 72px;
 }
 
 body {
@@ -75,10 +81,10 @@ body {
   padding: 0;
   overflow-x: hidden;
   max-width: 100%;
-  background-color: #E6F4EE;
-  background: linear-gradient(135deg, #DEF4EC 0%, #F4FAF7 50%, #E6F4EE 100%) fixed;
-  color: var(--color-text-body);
-  line-height: 1.5;
+  background-color: var(--color-bg-light);
+  background: var(--color-bg-light);
+  color: var(--color-text-main);
+  line-height: 1.55;
   min-height: 100vh;
 }
 
