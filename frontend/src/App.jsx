@@ -17,15 +17,17 @@ import PatientDashboard from "./pages/portal/PatientDashboard";
 import DoctorDashboard from "./pages/portal/DoctorDashboard";
 import AdminDashboard from "./pages/portal/AdminDashboard";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 import { AuthProvider } from "./context/AuthContext";
 import "./App.css";
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<SiteLayout />}>
+    <ErrorBoundary>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<SiteLayout />}>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/services" element={<ServicesPage />} />
@@ -98,6 +100,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+  </ErrorBoundary>
   );
 }
 

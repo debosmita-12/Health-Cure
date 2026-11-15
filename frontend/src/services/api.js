@@ -17,4 +17,19 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Response interceptor: automatically handles expired tokens / 401 Unauthorized
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const isAuthCall = error.config?.url?.includes("/api/auth/login") || error.config?.url?.includes("/api/auth/register");
+      if (!isAuthCall) {
+        localStorage.removeItem("hc_token");
+        localStorage.removeItem("hc_user");
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

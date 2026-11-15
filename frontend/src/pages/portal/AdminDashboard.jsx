@@ -29,6 +29,7 @@ export default function AdminDashboard() {
   const [sidebarFilter, setSidebarFilter] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [authError, setAuthError] = useState("");
   const [selectedAdminAppt, setSelectedAdminAppt] = useState(null);
 
   // Doctor & Patient Management Modals & Filters
@@ -95,6 +96,7 @@ export default function AdminDashboard() {
 
   async function loadDashboard() {
     setLoading(true);
+    setAuthError("");
     try {
       const res = await api.get("/api/admin/dashboard");
       setData(res.data);
@@ -103,6 +105,11 @@ export default function AdminDashboard() {
       }
     } catch (err) {
       console.error("Failed to load admin dashboard", err);
+      if (err.response?.status === 403 || err.response?.status === 401) {
+        setAuthError("Administrative credentials required. Your current session does not have Admin authorization or has expired. Please sign in as an Administrator (rakhi@healthcure.local).");
+      } else {
+        setErrorMessage("Unable to connect to platform server. Please check backend status.");
+      }
     } finally {
       setLoading(false);
     }
@@ -308,16 +315,6 @@ export default function AdminDashboard() {
     logout();
   }
 
-  if (loading && !data) {
-    return (
-      <section className="subpage">
-        <div className="container" style={{ textAlign: "center", padding: "80px 20px" }}>
-          <p>Loading Admin governance console...</p>
-        </div>
-      </section>
-    );
-  }
-
   // Defensive deduplication across all entities so duplicates can NEVER appear in the UI
   const rawDoctors = data?.doctors || [];
   const doctors = useMemo(() => {
@@ -370,6 +367,53 @@ export default function AdminDashboard() {
   const billing = data?.billing || [];
   const labTests = data?.labTests || [];
   const settings = data?.settings || {};
+
+  if (loading && !data) {
+    return (
+      <section className="subpage">
+        <div className="container" style={{ textAlign: "center", padding: "80px 20px" }}>
+          <p>Loading Admin governance console...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (authError || (!loading && !data)) {
+    return (
+      <section className="subpage">
+        <div className="container" style={{ maxWidth: "600px", margin: "60px auto", textAlign: "center" }}>
+          <div className="panel-form-card" style={{ padding: "40px" }}>
+            <span className="success-icon-wrap" style={{ background: "#FDE8E8", color: "#E02424", margin: "0 auto 20px" }}>
+              <LockIcon size={32} />
+            </span>
+            <h2 style={{ marginBottom: "12px", color: "var(--color-primary)" }}>Admin Portal Access Restricted</h2>
+            <p style={{ color: "var(--color-text-body)", marginBottom: "24px", lineHeight: "1.6" }}>
+              {authError || "Administrative oversight requires an authorized Admin session. Please sign in with administrator credentials (rakhi@healthcure.local)."}
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  logout();
+                  navigate("/login");
+                }}
+              >
+                Sign In as Administrator
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => navigate("/")}
+              >
+                Return to Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // 21 Standard Categories per Phase 6
   const menuCategories = [
